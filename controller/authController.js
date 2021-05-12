@@ -88,7 +88,16 @@ exports.signin = catchAsync(async (req, res, next) => {
   }
 
   // 2- check if the use exists && password is correct
-  const user = await User.findOne({ username }).select("+password");
+  const user = await User.findOne({ username }).select("+password +isApproved");
+
+  if (user && !user.isApproved) {
+    return next(
+      new AppError(
+        `You have to approve your account from Admin ${user.isApproved}`,
+        401
+      )
+    );
+  }
 
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError("Incorrect username or password", 401));

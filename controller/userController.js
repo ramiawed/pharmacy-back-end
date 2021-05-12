@@ -2,7 +2,7 @@ const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 
-const userAllowedFields = ["logo_url", "mobile", "email", "address"];
+const userAllowedFields = ["logo_url", "mobile", "email", "address", "type"];
 
 // remove unwanted property from an object
 const filterObj = (obj) => {
@@ -47,21 +47,21 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
   });
 });
 
-// set approved to created user to use you app
-// by set isApproved field to true
-exports.enableApproved = catchAsync(async (req, res, next) => {
-  // set the isApproved property to true for a specific user
-  await User.findByIdAndUpdate(req.params.userId, { isApproved: true });
+// change approve property based on the query string
+// if action is enable, set the approve to true
+// if action is disable, set the approve to false
+exports.changeApprovedState = catchAsync(async (req, res, next) => {
+  // get the action from the request body
+  // action may be enable, or disable
+  const { action } = req.body;
 
-  res.status(200).json({
-    status: "success",
-  });
-});
-
-// disable the approve for a specific user
-// get userId from request url parameters
-exports.disableApproved = catchAsync(async (req, res, next) => {
-  await User.findByIdAndUpdate(req.params.userId, { isApproved: false });
+  if (action === "enable") {
+    // set the isApproved property to true for a specific user
+    await User.findByIdAndUpdate(req.params.userId, { isApproved: true });
+  } else if (action === "disable") {
+    // set the isApproved property to false for a specific user
+    await User.findByIdAndUpdate(req.params.userId, { isApproved: false });
+  }
 
   res.status(200).json({
     status: "success",

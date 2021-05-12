@@ -10,16 +10,10 @@ userRouter.post("/signin", authController.signin);
 userRouter.patch("/updateMe", authController.protect, userController.updateMe);
 userRouter.delete("/deleteMe", authController.protect, userController.deleteMe);
 userRouter.post(
-  "/approve/enable/:userId",
+  "/approve/:userId",
   authController.protect,
   authController.restrictTo("Admin"),
-  userController.enableApproved
-);
-userRouter.post(
-  "/approve/disable/:userId",
-  authController.protect,
-  authController.restrictTo("Admin"),
-  userController.disableApproved
+  userController.changeApprovedState
 );
 userRouter.delete(
   "/delete/:userId",
