@@ -11,9 +11,12 @@ const userAllowedFields = [
   "passwordConfirm",
   "type",
   "logo_url",
+  "phone",
   "mobile",
   "email",
-  "address",
+  "city",
+  "district",
+  "street",
 ];
 
 // remove unwanted property from object
@@ -62,12 +65,35 @@ exports.signup = catchAsync(async (req, res, next) => {
   // remove all fields that doesn't matter
   const filterUser = filterObj(req.body);
 
+  // check if the name is unique
+  // if doesn't return an Error
+  const findUserByName = await User.findOne({ name: req.body.name });
+  if (findUserByName) {
+    return next(new AppError("provide unique name", 400, ["name"]));
+  }
+
+  // check if the username is unique
+  // if doesn't return an Error
+  const findUserByUsername = await User.findOne({
+    username: req.body.username,
+  });
+  if (findUserByUsername) {
+    return next(new AppError("provide unique username", 400, ["username"]));
+  }
+
+  console.log(filterUser);
+
+  // get the approve automatically to normal user
+  if (filterUser.type === "Normal") {
+    filterUser.isApproved = true;
+  }
+
   // create a new user
   const newUser = await User.create(filterUser);
 
   // check if something goes wrong
   if (!newUser) {
-    return next(new AppError("Something went wrong"));
+    return next(new AppError("something went wrong", 400, ""));
   }
 
   // return success
@@ -90,17 +116,14 @@ exports.signin = catchAsync(async (req, res, next) => {
   // 2- check if the use exists && password is correct
   const user = await User.findOne({ username }).select("+password +isApproved");
 
-  if (user && !user.isApproved) {
-    return next(
-      new AppError(
-        `You have to approve your account from Admin ${user.isApproved}`,
-        401
-      )
-    );
-  }
-
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError("Incorrect username or password", 401));
+  }
+
+  if (user && !user.isApproved) {
+    return next(
+      new AppError(`You have to approve your account from Admin`, 401)
+    );
   }
 
   // 3- if everything ok, send token to client

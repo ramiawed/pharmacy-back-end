@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const AppError = require("./utils/appError");
 const globalErrorHandler = require("./controller/errorController");
 const userRouter = require("./routes/userRoutes");
@@ -11,10 +12,10 @@ const app = express();
 app.use(express.json());
 
 // MIDDLEWARE
-if (process.env.NODE_ENV === "development") {
+if (process.env.NODE_ENV.trim() === "development") {
   app.use(
     cors({
-      origin: "http://localhost:3000",
+      origin: "http://localhost:3000/",
     })
   );
 }

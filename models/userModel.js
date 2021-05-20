@@ -50,15 +50,25 @@ var userSchema = new mongoose.Schema({
     select: false,
   },
   mobile: [{ type: String }],
+  phone: [{ type: String }],
   email: [
     {
       type: String,
       lowercase: true,
-      validate: [validator.isEmail, "Please Provide a valid email"],
     },
   ],
-  address: [{ type: String }],
-  location: { type: String },
+  city: {
+    type: String,
+  },
+  district: {
+    type: String,
+  },
+  street: {
+    type: String,
+  },
+  location: {
+    type: String,
+  },
 });
 
 // Encrypt password before save it to DB
@@ -100,11 +110,6 @@ userSchema.methods.passwordChangedAfter = function (JWTTimestamp) {
   // false means NOT changes
   return false;
 };
-
-// userSchema.pre(/^find/, function (next) {
-//   this.find({ isActive: { $ne: false } });
-//   next();
-// });
 
 const User = mongoose.model("User", userSchema);
 

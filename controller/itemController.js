@@ -206,14 +206,11 @@ exports.removeItemFromWarehouse = catchAsync(async (req, res, next) => {
     return next(new AppError(`No caliber found in this item`, 400));
   }
 
-  console.log(findItemWithCaliber.warehouse);
-
+  // remove the warehouse from caliber array
   findItemWithCaliber.warehouse = findItemWithCaliber.warehouse.filter((wh) => {
     console.log(wh.warehouse_id, warehouse);
     return wh.warehouse_id == warehouse;
   });
-
-  console.log(findItemWithCaliber.warehouse);
 
   await findItem.save();
 
