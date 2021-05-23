@@ -28,6 +28,11 @@ userRouter.post(
   userController.reactivateUser
 );
 
-userRouter.get("/", userController.getAllUsers);
+userRouter.get(
+  "/:type",
+  authController.protect,
+  authController.restrictTo("Admin"),
+  userController.getUsers
+);
 
 module.exports = userRouter;

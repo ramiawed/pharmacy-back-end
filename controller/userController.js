@@ -88,10 +88,26 @@ exports.reactivateUser = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-  const query = req.query;
+exports.getUsers = catchAsync(async (req, res, next) => {
+  const { type } = req.params;
+
+  const { page, name } = req.query;
+
+  const count = await User.countDocuments({
+    $and: [{ type: type }, { name: { $regex: name, $options: "i" } }],
+  });
+
+  const users = await User.find({
+    $and: [{ type: type }, { name: { $regex: name, $options: "i" } }],
+  })
+    .skip((page - 1) * 4)
+    .limit(4);
 
   res.status(200).json({
     status: "success",
+    count,
+    data: {
+      users,
+    },
   });
 });

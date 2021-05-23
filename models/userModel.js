@@ -42,12 +42,10 @@ var userSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true,
-    select: false,
   },
   isApproved: {
     type: Boolean,
     default: false,
-    select: false,
   },
   mobile: [{ type: String }],
   phone: [{ type: String }],
