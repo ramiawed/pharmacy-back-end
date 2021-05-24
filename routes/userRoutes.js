@@ -29,7 +29,7 @@ userRouter.post(
 );
 
 userRouter.get(
-  "/:type",
+  "/",
   authController.protect,
   authController.restrictTo("Admin"),
   userController.getUsers

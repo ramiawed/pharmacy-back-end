@@ -88,20 +88,56 @@ exports.reactivateUser = catchAsync(async (req, res, next) => {
   });
 });
 
+// get users specified by type (Company, Warehouse, Normal, Admin)
 exports.getUsers = catchAsync(async (req, res, next) => {
-  const { type } = req.params;
-
   const { page, name } = req.query;
 
-  const count = await User.countDocuments({
-    $and: [{ type: type }, { name: { $regex: name, $options: "i" } }],
-  });
+  const query = req.query;
 
-  const users = await User.find({
-    $and: [{ type: type }, { name: { $regex: name, $options: "i" } }],
-  })
-    .skip((page - 1) * 4)
-    .limit(4);
+  // array that contains all the conditions
+  const conditionArray = [];
+  if (query.type) {
+    conditionArray.push({ type: query.type });
+  }
+
+  // name condition
+  if (query.name) {
+    conditionArray.push({ name: { $regex: query.name, $options: "i" } });
+  } else {
+    delete query.name;
+  }
+
+  // approve condition
+  if (query.isApproved !== undefined) {
+    conditionArray.push({ isApproved: query.isApproved });
+  }
+
+  // active condition
+  if (query.isActive !== undefined) {
+    conditionArray.push({ isActive: query.isActive });
+  }
+
+  let count;
+  let users;
+
+  if (conditionArray.length === 0) {
+    count = await User.countDocuments();
+
+    users = await User.find()
+      .skip((page - 1) * 4)
+      .limit(4);
+  } else {
+    count = await User.countDocuments({
+      $and: conditionArray,
+    });
+
+    users = await User.find({
+      $and: conditionArray,
+    })
+      .skip((page - 1) * 4)
+      .limit(4);
+  }
+  // [query.type, { name: { $regex: name, $options: "i" } }]
 
   res.status(200).json({
     status: "success",
