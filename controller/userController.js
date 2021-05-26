@@ -56,6 +56,7 @@ exports.changeApprovedState = catchAsync(async (req, res, next) => {
   const { action } = req.body;
 
   if (action === "enable") {
+    console.log("enter enable");
     // set the isApproved property to true for a specific user
     await User.findByIdAndUpdate(req.params.userId, { isApproved: true });
   } else if (action === "disable") {
@@ -64,17 +65,20 @@ exports.changeApprovedState = catchAsync(async (req, res, next) => {
   }
 
   res.status(200).json({
-    status: "success",
+    status: action === "enable" ? "activation success" : "deactivation success",
   });
 });
 
 // delete a user by admin
 // get userId from request url parameters
 exports.deleteUser = catchAsync(async (req, res, next) => {
-  await User.findByIdAndUpdate(req.params.userId, { isActive: false });
+  await User.findByIdAndUpdate(req.params.userId, {
+    isActive: false,
+    isApproved: false,
+  });
 
   res.status(200).json({
-    status: "success",
+    status: "delete success",
   });
 });
 
@@ -84,7 +88,7 @@ exports.reactivateUser = catchAsync(async (req, res, next) => {
   await User.findByIdAndUpdate(req.params.userId, { isActive: true });
 
   res.status(200).json({
-    status: "success",
+    status: "undo delete success",
   });
 });
 

@@ -64,6 +64,25 @@ var userSchema = new mongoose.Schema({
   street: {
     type: String,
   },
+  employeeName: {
+    type: String,
+  },
+  certificateName: {
+    type: String,
+  },
+  guestDetails: {
+    job: {
+      type: String,
+      enum: ["", "Student", "Pharmacist", "Employee"],
+      default: "",
+    },
+    companyName: {
+      type: String,
+    },
+    jobTitle: {
+      type: String,
+    },
+  },
   location: {
     type: String,
   },

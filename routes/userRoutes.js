@@ -15,7 +15,7 @@ userRouter.post(
   authController.restrictTo("Admin"),
   userController.changeApprovedState
 );
-userRouter.delete(
+userRouter.post(
   "/delete/:userId",
   authController.protect,
   authController.restrictTo("Admin"),

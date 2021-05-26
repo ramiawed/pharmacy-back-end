@@ -17,6 +17,9 @@ const userAllowedFields = [
   "city",
   "district",
   "street",
+  "employeeName",
+  "certificateName",
+  "guestDetails",
 ];
 
 // remove unwanted property from object
