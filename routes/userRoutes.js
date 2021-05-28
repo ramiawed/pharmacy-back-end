@@ -12,26 +12,26 @@ userRouter.delete("/deleteMe", authController.protect, userController.deleteMe);
 userRouter.post(
   "/approve/:userId",
   authController.protect,
-  authController.restrictTo("Admin"),
+  authController.restrictTo("admin"),
   userController.changeApprovedState
 );
 userRouter.post(
   "/delete/:userId",
   authController.protect,
-  authController.restrictTo("Admin"),
+  authController.restrictTo("admin"),
   userController.deleteUser
 );
 userRouter.post(
   "/reactivate/:userId",
   authController.protect,
-  authController.restrictTo("Admin"),
+  authController.restrictTo("admin"),
   userController.reactivateUser
 );
 
 userRouter.get(
   "/",
   authController.protect,
-  authController.restrictTo("Admin"),
+  authController.restrictTo("admin"),
   userController.getUsers
 );
 

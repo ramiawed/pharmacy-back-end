@@ -98,6 +98,8 @@ exports.getUsers = catchAsync(async (req, res, next) => {
 
   const query = req.query;
 
+  console.log(query);
+
   // array that contains all the conditions
   const conditionArray = [];
   if (query.type) {
@@ -119,6 +121,76 @@ exports.getUsers = catchAsync(async (req, res, next) => {
   // active condition
   if (query.isActive !== undefined) {
     conditionArray.push({ isActive: query.isActive });
+  }
+
+  // city
+  if (query.city) {
+    conditionArray.push({ city: { $regex: query.city, $options: "i" } });
+  } else {
+    delete query.city;
+  }
+
+  // district
+  if (query.district) {
+    conditionArray.push({
+      district: { $regex: query.district, $options: "i" },
+    });
+  } else {
+    delete query.district;
+  }
+
+  // street
+  if (query.street) {
+    conditionArray.push({
+      street: { $regex: query.street, $options: "i" },
+    });
+  } else {
+    delete query.street;
+  }
+
+  // employee name
+  if (query.employeeName) {
+    conditionArray.push({
+      employeeName: { $regex: query.employeeName, $options: "i" },
+    });
+  } else {
+    delete query.employeeName;
+  }
+
+  // certificate name
+  if (query.certificateName) {
+    conditionArray.push({
+      certificateName: { $regex: query.certificateName, $options: "i" },
+    });
+  } else {
+    delete query.certificateName;
+  }
+
+  // job
+  if (query.job) {
+    conditionArray.push({
+      "guestDetails.job": query.job,
+    });
+  } else {
+    delete query.job;
+  }
+
+  // company name
+  if (query.companyName) {
+    conditionArray.push({
+      "guestDetails.companyName": { $regex: query.companyName, $options: "i" },
+    });
+  } else {
+    delete query.companyName;
+  }
+
+  // job title
+  if (query.jobTitle) {
+    conditionArray.push({
+      "guestDetails.jobTitle": { $regex: query.jobTitle, $options: "i" },
+    });
+  } else {
+    delete query.jobTitle;
   }
 
   let count;

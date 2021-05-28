@@ -1,4 +1,3 @@
-const crypto = require("crypto");
 const mongoose = require("mongoose");
 const validator = require("validator");
 const bcrypt = require("bcryptjs");
@@ -17,7 +16,7 @@ var userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, "Please Provide a password"],
-    minlength: 8,
+    minlength: 5,
     select: false,
   },
   passwordConfirm: {
@@ -33,7 +32,7 @@ var userSchema = new mongoose.Schema({
   passwordChangedAt: Date,
   type: {
     type: String,
-    enum: ["Admin", "Pharmacy", "Warehouse", "Company", "Normal"],
+    enum: ["admin", "pharmacy", "warehouse", "company", "normal"],
     default: "Normal",
   },
   logo_url: {
@@ -73,7 +72,7 @@ var userSchema = new mongoose.Schema({
   guestDetails: {
     job: {
       type: String,
-      enum: ["", "Student", "Pharmacist", "Employee"],
+      enum: ["", "student", "pharmacist", "employee"],
       default: "",
     },
     companyName: {
