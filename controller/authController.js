@@ -84,8 +84,6 @@ exports.signup = catchAsync(async (req, res, next) => {
     return next(new AppError("provide unique username", 400, ["username"]));
   }
 
-  console.log(filterUser);
-
   // get the approve automatically to normal user
   if (filterUser.type === "Normal") {
     filterUser.isApproved = true;
@@ -165,11 +163,11 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   // 4- check if the user changed password after the token was issued
-  if (currentUser.passwordChangedAfter(decoded.iat)) {
-    return next(
-      new AppError("User recently changed password! Please log in again.", 401)
-    );
-  }
+  // if (currentUser.passwordChangedAfter(decoded.iat)) {
+  //   return next(
+  //     new AppError("User recently changed password! Please log in again.", 401)
+  //   );
+  // }
 
   // grant access to protected route
   req.user = currentUser;

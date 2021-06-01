@@ -15,13 +15,26 @@ app.use(express.json());
 if (process.env.NODE_ENV.trim() === "development") {
   app.use(
     cors({
-      origin: "http://localhost:3000/",
+      origin: "*",
+      methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+      // preflightContinue: false,
+      // optionsSuccessStatus: 204,
     })
   );
 }
 
 // Serving static files
 app.use(express.static(`${__dirname}/public`));
+
+// app.use(function (req, res, next) {
+//   res.header("Access-Control-Allow-Origin", "*");
+//   res.header(
+//     "Access-Control-Allow-Headers",
+//     "Origin, X-Requested-With, Content-Type, Accept"
+//   );
+//   res.header("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE, OPTIONS");
+//   next();
+// });
 
 // routes
 app.use("/api/v1/users", userRouter);

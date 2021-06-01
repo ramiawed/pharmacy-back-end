@@ -7,8 +7,14 @@ const userRouter = express.Router();
 userRouter.post("/signup", authController.signup);
 userRouter.post("/signin", authController.signin);
 
-userRouter.patch("/updateMe", authController.protect, userController.updateMe);
-userRouter.delete("/deleteMe", authController.protect, userController.deleteMe);
+userRouter.post("/updateMe", authController.protect, userController.updateMe);
+userRouter.post(
+  "/changeMyPassword",
+  authController.protect,
+  userController.changeMyPassword
+);
+userRouter.post("/deleteMe", authController.protect, userController.deleteMe);
+
 userRouter.post(
   "/approve/:userId",
   authController.protect,
@@ -31,7 +37,7 @@ userRouter.post(
 userRouter.get(
   "/",
   authController.protect,
-  authController.restrictTo("admin"),
+  // authController.restrictTo("admin"),
   userController.getUsers
 );
 

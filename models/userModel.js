@@ -2,90 +2,100 @@ const mongoose = require("mongoose");
 const validator = require("validator");
 const bcrypt = require("bcryptjs");
 
-var userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    unique: [true, "You must supply a unique name"],
-    required: [true, "You must supply a name"],
-  },
-  username: {
-    type: String,
-    required: [true, "You must supply a username"],
-    unique: [true, "You must supply a unique username"],
-  },
-  password: {
-    type: String,
-    required: [true, "Please Provide a password"],
-    minlength: 5,
-    select: false,
-  },
-  passwordConfirm: {
-    type: String,
-    required: true,
-    validate: {
-      message: "Password and confirm password must be the same",
-      validator: function (val) {
-        return this.password === val;
+var userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      unique: [true, "You must supply a unique name"],
+      required: [true, "You must supply a name"],
+    },
+    username: {
+      type: String,
+      required: [true, "You must supply a username"],
+      unique: [true, "You must supply a unique username"],
+    },
+    password: {
+      type: String,
+      required: [true, "Please Provide a password"],
+      minlength: [5, "password must be greater than 5 characters"],
+      select: false,
+    },
+    passwordConfirm: {
+      type: String,
+      required: [true, "Please Provide a confirm password"],
+      validate: {
+        message: "Password and confirm password must be the same",
+        validator: function (val) {
+          return this.password === val;
+        },
       },
     },
-  },
-  passwordChangedAt: Date,
-  type: {
-    type: String,
-    enum: ["admin", "pharmacy", "warehouse", "company", "normal"],
-    default: "Normal",
-  },
-  logo_url: {
-    type: String,
-  },
-  isActive: {
-    type: Boolean,
-    default: true,
-  },
-  isApproved: {
-    type: Boolean,
-    default: false,
-  },
-  mobile: [{ type: String }],
-  phone: [{ type: String }],
-  email: [
-    {
+    passwordChangedAt: Date,
+    type: {
       type: String,
-      lowercase: true,
+      enum: ["admin", "pharmacy", "warehouse", "company", "normal"],
+      default: "Normal",
     },
-  ],
-  city: {
-    type: String,
-  },
-  district: {
-    type: String,
-  },
-  street: {
-    type: String,
-  },
-  employeeName: {
-    type: String,
-  },
-  certificateName: {
-    type: String,
-  },
-  guestDetails: {
-    job: {
-      type: String,
-      enum: ["", "student", "pharmacist", "employee"],
-      default: "",
-    },
-    companyName: {
+    logo_url: {
       type: String,
     },
-    jobTitle: {
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+    isApproved: {
+      type: Boolean,
+      default: false,
+    },
+    mobile: [
+      {
+        type: String,
+        required: [true, "You must supply a mobile number"],
+      },
+    ],
+    phone: [{ type: String }],
+    email: [
+      {
+        type: String,
+        lowercase: true,
+      },
+    ],
+    city: {
+      type: String,
+    },
+    district: {
+      type: String,
+    },
+    street: {
+      type: String,
+    },
+    employeeName: {
+      type: String,
+    },
+    certificateName: {
+      type: String,
+    },
+    guestDetails: {
+      job: {
+        type: String,
+        enum: ["", "student", "pharmacist", "employee"],
+        default: "",
+      },
+      companyName: {
+        type: String,
+      },
+      jobTitle: {
+        type: String,
+      },
+    },
+    location: {
       type: String,
     },
   },
-  location: {
-    type: String,
-  },
-});
+  {
+    timestamps: true,
+  }
+);
 
 // Encrypt password before save it to DB
 userSchema.pre("save", async function (next) {
@@ -100,11 +110,11 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-userSchema.pre("save", function (next) {
-  if (!this.isModified("password") || this.isNew) return next();
+// userSchema.pre("save", function (next) {
+//   if (!this.isModified("password") || this.isNew) return next();
 
-  this.passwordChangedAt = Date.now() - 1000;
-});
+//   this.passwordChangedAt = Date.now() - 1000;
+// });
 
 // check if the entered password correct
 userSchema.methods.correctPassword = async function (

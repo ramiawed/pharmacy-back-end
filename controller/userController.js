@@ -2,7 +2,20 @@ const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 
-const userAllowedFields = ["logo_url", "mobile", "email", "address", "type"];
+const userAllowedFields = [
+  "name",
+  "username",
+  "logo_url",
+  "phone",
+  "mobile",
+  "email",
+  "type",
+  "city",
+  "district",
+  "street",
+  "employeeName",
+  "certificateName",
+];
 
 // remove unwanted property from an object
 const filterObj = (obj) => {
@@ -40,7 +53,26 @@ exports.updateMe = catchAsync(async (req, res, next) => {
 // 1- need to pass protect middleware
 // 2- get the id from the req.user.id after passing protect middleware
 exports.deleteMe = catchAsync(async (req, res, next) => {
-  await User.findByIdAndUpdate(req.user.id, { isActive: false });
+  // 1- check if password in the body
+  const { password } = req.body;
+
+  const findUser = await User.findById(req.user._id).select("+password");
+
+  // 2- check that the password is correct
+  const result = await findUser.correctPassword(password, findUser.password);
+
+  if (!result) {
+    return next(new AppError("password is wrong", 401));
+  }
+
+  // findUser.isApproved = false;
+  // findUser.isActive = false;
+
+  await User.findByIdAndUpdate(
+    req.user._id,
+    { isActive: false, isApproved: false },
+    { runValidators: false }
+  );
 
   res.status(200).json({
     status: "success",
@@ -94,7 +126,7 @@ exports.reactivateUser = catchAsync(async (req, res, next) => {
 
 // get users specified by type (Company, Warehouse, Normal, Admin)
 exports.getUsers = catchAsync(async (req, res, next) => {
-  const { page, name } = req.query;
+  const { page, limit } = req.query;
 
   const query = req.query;
 
@@ -200,8 +232,8 @@ exports.getUsers = catchAsync(async (req, res, next) => {
     count = await User.countDocuments();
 
     users = await User.find()
-      .skip((page - 1) * 4)
-      .limit(4);
+      .skip((page - 1) * (limit * 1))
+      .limit(limit * 1);
   } else {
     count = await User.countDocuments({
       $and: conditionArray,
@@ -210,8 +242,8 @@ exports.getUsers = catchAsync(async (req, res, next) => {
     users = await User.find({
       $and: conditionArray,
     })
-      .skip((page - 1) * 4)
-      .limit(4);
+      .skip((page - 1) * (limit * 1))
+      .limit(limit * 1);
   }
   // [query.type, { name: { $regex: name, $options: "i" } }]
 
@@ -220,6 +252,38 @@ exports.getUsers = catchAsync(async (req, res, next) => {
     count,
     data: {
       users,
+    },
+  });
+});
+
+// change my password
+exports.changeMyPassword = catchAsync(async (req, res, next) => {
+  // 1- check if the old password and the new password in the body
+  const { oldPassword, newPassword, newPasswordConfirm } = req.body;
+
+  const updateUser = await User.findById(req.user._id).select("+password");
+
+  // 2- check that the old password is correct
+  const result = await updateUser.correctPassword(
+    oldPassword,
+    updateUser.password
+  );
+
+  if (!result) {
+    return next(new AppError("Old password is wrong", 401));
+  }
+
+  // 3- change the password and save the user
+  updateUser.password = newPassword;
+  updateUser.passwordConfirm = newPasswordConfirm;
+
+  await updateUser.save({});
+
+  // 4- return succeeded
+  res.status(200).json({
+    status: "success",
+    data: {
+      user: updateUser,
     },
   });
 });
