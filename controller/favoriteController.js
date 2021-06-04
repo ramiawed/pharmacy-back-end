@@ -1,6 +1,7 @@
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const Favorite = require("../models/favoriteModel");
+const User = require("../models/userModel");
 
 // get all favorite for a specific user
 exports.getFavorites = catchAsync(async (req, res, next) => {
@@ -10,7 +11,7 @@ exports.getFavorites = catchAsync(async (req, res, next) => {
     return next(new AppError("enter a user id", 401));
   }
 
-  const favorites = await Favorite.findOne({ userId });
+  const favorites = await Favorite.findOne({ userId }).populate("favorites");
 
   res.status(200).json({
     status: "success",
@@ -41,10 +42,12 @@ exports.addFavorite = catchAsync(async (req, res, next) => {
     return next(new AppError("this favorite is already done"));
   }
 
+  const user = await User.findById(favoriteId);
+
   res.status(200).json({
     status: "success",
     data: {
-      favorite: favoriteId,
+      favorite: user,
     },
   });
 });
