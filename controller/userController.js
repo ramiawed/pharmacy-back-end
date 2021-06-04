@@ -88,7 +88,6 @@ exports.changeApprovedState = catchAsync(async (req, res, next) => {
   const { action } = req.body;
 
   if (action === "enable") {
-    console.log("enter enable");
     // set the isApproved property to true for a specific user
     await User.findByIdAndUpdate(req.params.userId, { isApproved: true });
   } else if (action === "disable") {
@@ -129,8 +128,6 @@ exports.getUsers = catchAsync(async (req, res, next) => {
   const { page, limit } = req.query;
 
   const query = req.query;
-
-  console.log(query);
 
   // array that contains all the conditions
   const conditionArray = [];

@@ -5,6 +5,7 @@ const globalErrorHandler = require("./controller/errorController");
 const userRouter = require("./routes/userRoutes");
 const categoryRoute = require("./routes/categoryRoutes");
 const itemRoutes = require("./routes/itemRoutes");
+const favoriteRouter = require("./routes/favoriteRoutes");
 
 const app = express();
 
@@ -40,6 +41,7 @@ app.use(express.static(`${__dirname}/public`));
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/categories", categoryRoute);
 app.use("/api/v1/items", itemRoutes);
+app.use("/api/v1/favorites", favoriteRouter);
 
 // function to handle all the router that doesn't catch by
 // previous routes

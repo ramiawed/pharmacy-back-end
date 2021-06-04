@@ -85,7 +85,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   }
 
   // get the approve automatically to normal user
-  if (filterUser.type === "Normal") {
+  if (filterUser.type === "normal") {
     filterUser.isApproved = true;
   }
 

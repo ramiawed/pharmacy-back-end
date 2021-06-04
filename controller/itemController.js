@@ -208,7 +208,6 @@ exports.removeItemFromWarehouse = catchAsync(async (req, res, next) => {
 
   // remove the warehouse from caliber array
   findItemWithCaliber.warehouse = findItemWithCaliber.warehouse.filter((wh) => {
-    console.log(wh.warehouse_id, warehouse);
     return wh.warehouse_id == warehouse;
   });
 
