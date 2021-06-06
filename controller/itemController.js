@@ -26,6 +26,17 @@ const filterObj = (obj) => {
   return newObj;
 };
 
+exports.getItems = catchAsync(async (req, res, next) => {
+  const items = await Item.find({});
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      items,
+    },
+  });
+});
+
 // add a new item
 exports.addItem = catchAsync(async (req, res, next) => {
   // filter the request body
@@ -122,7 +133,7 @@ exports.handleCaliber = catchAsync(async (req, res, next) => {
       return next(new AppError(`You can't find this caliber`));
     }
 
-    // if this caliber exists in any warehouse you can update it
+    // if this caliber exists in any warehouse you can't update it
     if (findCaliber.warehouse.length !== 0) {
       return next(new AppError(`You can't update this caliber`), 400);
     }

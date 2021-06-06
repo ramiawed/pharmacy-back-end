@@ -18,6 +18,7 @@ var itemSchema = new mongoose.Schema(
         },
         isActive: {
           type: Boolean,
+          default: true,
         },
         warehouse: [
           {
@@ -57,15 +58,15 @@ var itemSchema = new mongoose.Schema(
     },
     pharmacological_composition: [{ type: String }],
     type: {
-      type: String,
-      enum: ["", "", ""],
-      default: "",
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ItemType",
+      required: true,
     },
     tags: [{ type: String }],
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
-      required: true,
+      required: [true, "An item must have a category"],
     },
     company: {
       type: mongoose.Schema.Types.ObjectId,

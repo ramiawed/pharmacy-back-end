@@ -3,49 +3,51 @@ const itemController = require("../controller/itemController");
 const authController = require("../controller/authController");
 const itemRoutes = express.Router();
 
-itemRoutes.post(
-  "/",
-  authController.protect,
-  authController.restrictTo("Company"),
-  itemController.addItem
-);
+itemRoutes
+  .route("/")
+  .get(authController.protect, itemController.getItems)
+  .post(
+    authController.protect,
+    authController.restrictTo("company"),
+    itemController.addItem
+  );
 
 itemRoutes
   .route("/:itemId")
-  .patch(
+  .post(
     authController.protect,
-    authController.restrictTo("Company"),
+    authController.restrictTo("company"),
     itemController.updateItem
   );
 itemRoutes
   .route("/active/:itemId")
-  .patch(
+  .post(
     authController.protect,
-    authController.restrictTo("Company"),
+    authController.restrictTo("company"),
     itemController.changeItemActiveState
   );
 
 itemRoutes
   .route("/caliber/:itemId")
-  .patch(
+  .post(
     authController.protect,
-    authController.restrictTo("Company"),
+    authController.restrictTo("company"),
     itemController.handleCaliber
   );
 
 itemRoutes
   .route("/warehouse/add-item/:itemId")
-  .patch(
+  .post(
     authController.protect,
-    authController.restrictTo("Warehouse"),
+    authController.restrictTo("warehouse"),
     itemController.addItemToWarehouse
   );
 
 itemRoutes
   .route("/warehouse/remove-item/:itemId")
-  .patch(
+  .post(
     authController.protect,
-    authController.restrictTo("Warehouse"),
+    authController.restrictTo("warehouse"),
     itemController.removeItemFromWarehouse
   );
 

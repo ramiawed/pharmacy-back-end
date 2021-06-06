@@ -6,6 +6,7 @@ const userRouter = require("./routes/userRoutes");
 const categoryRoute = require("./routes/categoryRoutes");
 const itemRoutes = require("./routes/itemRoutes");
 const favoriteRouter = require("./routes/favoriteRoutes");
+const itemTypeRoute = require("./routes/ItemTypeRoutes");
 
 const app = express();
 
@@ -42,6 +43,7 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/categories", categoryRoute);
 app.use("/api/v1/items", itemRoutes);
 app.use("/api/v1/favorites", favoriteRouter);
+app.use("/api/v1/itemTypes", itemTypeRoute);
 
 // function to handle all the router that doesn't catch by
 // previous routes
