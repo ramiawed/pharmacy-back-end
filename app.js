@@ -38,7 +38,30 @@ app.use(express.static(`${__dirname}/public`));
 //   next();
 // });
 
+const multer = require("multer");
+const fs = require("fs");
+const { promisify } = require("util");
+const pipeline = promisify(require("stream").pipeline);
+const upload = multer();
+
+app.post("/api/v1/upload", upload.single("file"), async (req, res, next) => {
+  const {
+    file,
+    body: { name },
+  } = req;
+
+  const fileName = "background.jpg";
+
+  await pipeline(
+    file.stream,
+    fs.createWriteStream(`${__dirname}/public/${fileName}`)
+  );
+
+  res.send("file uploaded");
+});
+
 // routes
+
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/categories", categoryRoute);
 app.use("/api/v1/items", itemRoutes);
