@@ -10,6 +10,12 @@ favoriteRouter.get(
   favoriteController.getFavorites
 );
 
+favoriteRouter.get(
+  "/items",
+  authController.protect,
+  favoriteController.addFavoriteItem
+);
+
 favoriteRouter.post(
   "/add",
   authController.protect,
@@ -20,6 +26,18 @@ favoriteRouter.post(
   "/remove",
   authController.protect,
   favoriteController.removeFavorite
+);
+
+favoriteRouter.post(
+  "/add/item",
+  authController.protect,
+  favoriteController.addFavoriteItem
+);
+
+favoriteRouter.post(
+  "/remove/items",
+  authController.protect,
+  favoriteController.removeFavoriteItem
 );
 
 module.exports = favoriteRouter;

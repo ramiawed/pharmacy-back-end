@@ -87,39 +87,68 @@ exports.changeApprovedState = catchAsync(async (req, res, next) => {
   // action may be enable, or disable
   const { action } = req.body;
 
+  let user;
+
   if (action === "enable") {
     // set the isApproved property to true for a specific user
-    await User.findByIdAndUpdate(req.params.userId, { isApproved: true });
+    user = await User.findByIdAndUpdate(
+      req.params.userId,
+      { isApproved: true },
+      { new: true }
+    );
   } else if (action === "disable") {
     // set the isApproved property to false for a specific user
-    await User.findByIdAndUpdate(req.params.userId, { isApproved: false });
+    user = await User.findByIdAndUpdate(
+      req.params.userId,
+      { isApproved: false },
+      { new: true }
+    );
   }
 
   res.status(200).json({
     status: action === "enable" ? "activation success" : "deactivation success",
+    data: {
+      user,
+    },
   });
 });
 
 // delete a user by admin
 // get userId from request url parameters
 exports.deleteUser = catchAsync(async (req, res, next) => {
-  await User.findByIdAndUpdate(req.params.userId, {
-    isActive: false,
-    isApproved: false,
-  });
+  const user = await User.findByIdAndUpdate(
+    req.params.userId,
+    {
+      isActive: false,
+      isApproved: false,
+    },
+    {
+      new: true,
+    }
+  );
 
   res.status(200).json({
     status: "delete success",
+    data: {
+      user,
+    },
   });
 });
 
 // re activate deleted user
 // get userId from request url parameters
 exports.reactivateUser = catchAsync(async (req, res, next) => {
-  await User.findByIdAndUpdate(req.params.userId, { isActive: true });
+  const user = await User.findByIdAndUpdate(
+    req.params.userId,
+    { isActive: true },
+    { new: true }
+  );
 
   res.status(200).json({
     status: "undo delete success",
+    data: {
+      user,
+    },
   });
 });
 
@@ -229,6 +258,7 @@ exports.getUsers = catchAsync(async (req, res, next) => {
     count = await User.countDocuments();
 
     users = await User.find()
+      .sort(query.sort ? query.sort : "-createdAt -name")
       .skip((page - 1) * (limit * 1))
       .limit(limit * 1);
   } else {
@@ -239,6 +269,7 @@ exports.getUsers = catchAsync(async (req, res, next) => {
     users = await User.find({
       $and: conditionArray,
     })
+      .sort(query.sort ? query.sort : "-createdAt -name")
       .skip((page - 1) * (limit * 1))
       .limit(limit * 1);
   }

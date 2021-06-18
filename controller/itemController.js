@@ -4,17 +4,17 @@ const catchAsync = require("../utils/catchAsync");
 
 const itemAllowedFields = [
   "name",
-  "trade_name",
-  "caliber",
-  "price",
-  "logo_url",
-  "description",
-  "pharmacological_composition",
-  "type",
-  "tags",
-  "category",
   "company",
+  "caliber",
+  "formula",
+  "indication",
+  "composition",
+  "packing",
+  "price",
+  "customer_price",
+  "logo_url",
   "isActive",
+  "warehouses",
 ];
 
 // remove unwanted property from an object
@@ -27,10 +27,53 @@ const filterObj = (obj) => {
 };
 
 exports.getItems = catchAsync(async (req, res, next) => {
-  const items = await Item.find({});
+  const { page, limit } = req.query;
+
+  const query = req.query;
+
+  // array that contains all the conditions
+  const conditionArray = [];
+
+  conditionArray.push({ company: req.user._id });
+
+  // name condition
+  if (query.name) {
+    conditionArray.push({ name: { $regex: query.name, $options: "i" } });
+  } else {
+    delete query.name;
+  }
+
+  // active condition
+  if (query.isActive !== undefined) {
+    conditionArray.push({ isActive: query.isActive });
+  }
+
+  let count;
+  let items;
+
+  if (conditionArray.length === 0) {
+    count = await Item.countDocuments();
+
+    items = await Item.find()
+      .sort(query.sort ? query.sort : "-createdAt -name")
+      .skip((page - 1) * (limit * 1))
+      .limit(limit * 1);
+  } else {
+    count = await Item.countDocuments({
+      $and: conditionArray,
+    });
+
+    items = await Item.find({
+      $and: conditionArray,
+    })
+      .sort(query.sort ? query.sort : "-createdAt -name")
+      .skip((page - 1) * (limit * 1))
+      .limit(limit * 1);
+  }
 
   res.status(200).json({
     status: "success",
+    count,
     data: {
       items,
     },
@@ -55,6 +98,22 @@ exports.addItem = catchAsync(async (req, res, next) => {
     status: "success",
     data: {
       item: newItem,
+    },
+  });
+});
+
+exports.addItems = catchAsync(async (req, res, next) => {
+  const items = await Item.insertMany(req.body);
+
+  if (!items) {
+    return next(new AppError("Something went wrong"));
+  }
+
+  // response with the newly item
+  res.status(200).json({
+    status: "success",
+    data: {
+      items,
     },
   });
 });
@@ -90,64 +149,28 @@ exports.updateItem = catchAsync(async (req, res, next) => {
 // set the isActive to false otherwise set it to true
 exports.changeItemActiveState = catchAsync(async (req, res, next) => {
   const { itemId } = req.params;
-  const { action } = req.query;
+  const { action } = req.body;
+
+  let item;
 
   if (action === "delete")
-    await Item.findByIdAndUpdate(itemId, { isActive: false });
-  else await Item.findByIdAndUpdate(itemId, { isActive: true });
+    item = await Item.findByIdAndUpdate(
+      itemId,
+      { isActive: false },
+      { new: true }
+    );
+  else
+    item = await Item.findByIdAndUpdate(
+      itemId,
+      { isActive: true },
+      { new: true }
+    );
 
   res.status(200).json({
     status: "success",
-  });
-});
-
-// Add a new value or update an existing value
-// based on the query parameters (action field)
-// action === new, add a new value
-// action === update, update an existing value.
-exports.handleCaliber = catchAsync(async (req, res, next) => {
-  // get the item id from the request parameters
-  const { itemId } = req.params;
-
-  const { action } = req.query;
-
-  // get the caliber value from the request body
-  const { oldValue, newValue } = req.body;
-
-  // find the item specified by itemId
-  const findItem = await Item.findById(itemId);
-
-  if (action === "new") {
-    // add a new caliber
-    // add the new value to the caliber array
-    findItem.caliber.push({ value: newValue });
-
-    // save the change
-    await findItem.save();
-  } else if (action === "update") {
-    // update an existing caliber
-    const findCaliber = findItem.caliber.find((el) => el.value === oldValue);
-
-    // check if the findCaliber exist
-    if (!findCaliber) {
-      return next(new AppError(`You can't find this caliber`));
-    }
-
-    // if this caliber exists in any warehouse you can't update it
-    if (findCaliber.warehouse.length !== 0) {
-      return next(new AppError(`You can't update this caliber`), 400);
-    }
-
-    // update  the value
-    findCaliber.value = newValue;
-
-    // save the change
-    await findItem.save();
-  }
-
-  // send the response
-  res.status(200).json({
-    status: "success",
+    data: {
+      item,
+    },
   });
 });
 

@@ -11,6 +11,12 @@ const favoriteSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    favorites_items: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Item",
+      },
+    ],
   },
   {
     timestamps: true,

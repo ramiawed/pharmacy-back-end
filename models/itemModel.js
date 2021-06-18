@@ -4,74 +4,48 @@ var itemSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "An item must have a name"],
-      unique: [true, "An item must have a unique name"],
-    },
-    trade_name: {
-      type: String,
       required: [true, "An item must have a trade name"],
-    },
-    caliber: [
-      {
-        value: {
-          type: String,
-        },
-        isActive: {
-          type: Boolean,
-          default: true,
-        },
-        warehouse: [
-          {
-            warehouse_id: {
-              type: mongoose.Schema.Types.ObjectId,
-              ref: "User",
-            },
-            offer_percentage: {
-              qty: { type: Number },
-              percentage: { type: Number },
-            },
-            offer_bonus: {
-              qty: { type: Number },
-              bonus_qty: { type: Number },
-            },
-            offer_item: {
-              item_id: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Item",
-              },
-              qty: { type: Number },
-              bonus_qty: { type: Number },
-            },
-          },
-        ],
-      },
-    ],
-    price: {
-      type: Number,
-      default: 0.0,
-    },
-    logo_url: {
-      type: String,
-    },
-    description: {
-      type: String,
-    },
-    pharmacological_composition: [{ type: String }],
-    type: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "ItemType",
-      required: true,
-    },
-    tags: [{ type: String }],
-    category: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Category",
-      required: [true, "An item must have a category"],
     },
     company: {
       type: mongoose.Schema.Types.ObjectId,
       required: [true, "An Item must have a company"],
       ref: "User",
+    },
+    caliber: {
+      type: String,
+    },
+    //  الشكل الصيدلاني
+    formula: {
+      type: String,
+    },
+    // الاستطباب
+    indication: {
+      type: String,
+    },
+    // التركيب الدوائي
+    composition: {
+      type: String,
+    },
+    // التعبئة
+    packing: {
+      type: String,
+    },
+    price: {
+      type: Number,
+      default: 0.0,
+    },
+    customer_price: {
+      type: Number,
+      default: 0.0,
+    },
+    warehouses: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
+    logo_url: {
+      type: String,
     },
     isActive: {
       type: Boolean,

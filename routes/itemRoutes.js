@@ -13,6 +13,14 @@ itemRoutes
   );
 
 itemRoutes
+  .route("/excel")
+  .post(
+    authController.protect,
+    authController.restrictTo("company"),
+    itemController.addItems
+  );
+
+itemRoutes
   .route("/:itemId")
   .post(
     authController.protect,
@@ -25,14 +33,6 @@ itemRoutes
     authController.protect,
     authController.restrictTo("company"),
     itemController.changeItemActiveState
-  );
-
-itemRoutes
-  .route("/caliber/:itemId")
-  .post(
-    authController.protect,
-    authController.restrictTo("company"),
-    itemController.handleCaliber
   );
 
 itemRoutes

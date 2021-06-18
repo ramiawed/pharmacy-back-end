@@ -11,7 +11,7 @@ const itemTypeRoute = require("./routes/ItemTypeRoutes");
 const app = express();
 
 // body parser, reading data from body into req.body
-app.use(express.json());
+app.use(express.json({ limit: "10mb" }));
 
 // MIDDLEWARE
 if (process.env.NODE_ENV.trim() === "development") {
