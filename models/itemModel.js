@@ -40,8 +40,14 @@ var itemSchema = new mongoose.Schema(
     },
     warehouses: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        warehouse: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        maxQty: {
+          type: Number,
+          default: 0,
+        },
       },
     ],
     logo_url: {

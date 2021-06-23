@@ -77,7 +77,7 @@ exports.addFavoriteItem = catchAsync(async (req, res, next) => {
       favorites_items: [favoriteItemId],
     });
   } else if (!findFavorites.favorites_items.includes(favoriteItemId)) {
-    findFavorites.favorites = [
+    findFavorites.favorites_items = [
       ...findFavorites.favorites_items,
       favoriteItemId,
     ];

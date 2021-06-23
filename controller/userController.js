@@ -152,6 +152,19 @@ exports.reactivateUser = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getUserById = catchAsync(async (req, res, next) => {
+  const { userId } = req.params;
+
+  const user = await User.findById(userId);
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      user,
+    },
+  });
+});
+
 // get users specified by type (Company, Warehouse, Normal, Admin)
 exports.getUsers = catchAsync(async (req, res, next) => {
   const { page, limit } = req.query;

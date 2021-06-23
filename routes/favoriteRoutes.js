@@ -29,7 +29,7 @@ favoriteRouter.post(
 );
 
 favoriteRouter.post(
-  "/add/item",
+  "/add/items",
   authController.protect,
   favoriteController.addFavoriteItem
 );

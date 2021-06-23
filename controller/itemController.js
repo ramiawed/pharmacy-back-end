@@ -1,6 +1,8 @@
+const { find } = require("../models/itemModel");
 const Item = require("../models/itemModel");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
+const mongoose = require("mongoose");
 
 const itemAllowedFields = [
   "name",
@@ -80,6 +82,137 @@ exports.getItems = catchAsync(async (req, res, next) => {
   });
 });
 
+// get items by companyId
+exports.getItemsByCompanyId = catchAsync(async (req, res, next) => {
+  const { page, limit } = req.query;
+
+  const query = req.query;
+
+  // array that contains all the conditions
+  const conditionArray = [];
+
+  conditionArray.push({ company: req.params.companyId });
+
+  // name condition
+  if (query.name) {
+    conditionArray.push({ name: { $regex: query.name, $options: "i" } });
+  } else {
+    delete query.name;
+  }
+
+  // active condition
+  conditionArray.push({ isActive: true });
+
+  let count;
+  let items;
+
+  if (conditionArray.length === 0) {
+    count = await Item.countDocuments();
+
+    items = await Item.find()
+      .sort(query.sort ? query.sort : "-createdAt -name")
+      .skip((page - 1) * (limit * 1))
+      .limit(limit * 1);
+  } else {
+    count = await Item.countDocuments({
+      $and: conditionArray,
+    });
+
+    items = await Item.find({
+      $and: conditionArray,
+    })
+      .sort(query.sort ? query.sort : "-createdAt -name")
+      .skip((page - 1) * (limit * 1))
+      .limit(limit * 1);
+  }
+
+  res.status(200).json({
+    status: "success",
+    count,
+    data: {
+      items,
+    },
+  });
+});
+
+// get items by companyId
+exports.getItemsByWarehouseId = catchAsync(async (req, res, next) => {
+  const { page, limit } = req.query;
+
+  const query = req.query;
+
+  console.log(query);
+
+  let items;
+  let count = 0;
+
+  let aggregateCondition = [];
+  let countAggregateCondition = [];
+
+  aggregateCondition.push({ $match: { isActive: true } });
+
+  // search by name
+  if (query.name) {
+    aggregateCondition.push({
+      $match: { name: { $regex: query.name, $options: "i" } },
+    });
+  }
+
+  aggregateCondition.push({
+    $unwind: "$warehouses",
+  });
+
+  aggregateCondition.push({
+    $match: {
+      "warehouses.warehouse": req.user._id,
+    },
+  });
+
+  aggregateCondition.push({
+    $lookup: {
+      from: "users",
+      localField: "company",
+      foreignField: "_id",
+      as: "company_name",
+    },
+  });
+
+  // search by company name
+  if (query.companyName) {
+    aggregateCondition.push({
+      $match: {
+        "company_name.name": { $regex: query.companyName, $options: "i" },
+      },
+    });
+  }
+
+  countAggregateCondition = [...aggregateCondition];
+  countAggregateCondition.push({
+    $count: "price",
+  });
+
+  aggregateCondition.push({
+    $sort: { "company_name.name": 1 },
+  });
+
+  aggregateCondition.push({
+    $skip: (page - 1) * (limit * 1),
+  });
+
+  aggregateCondition.push({ $limit: limit * 1 });
+
+  items = await Item.aggregate(aggregateCondition);
+  count = await Item.aggregate(countAggregateCondition);
+
+  res.status(200).json({
+    status: "success",
+    count,
+    data: {
+      items,
+    },
+  });
+});
+
 // add a new item
 exports.addItem = catchAsync(async (req, res, next) => {
   // filter the request body
@@ -125,9 +258,6 @@ exports.updateItem = catchAsync(async (req, res, next) => {
 
   // filter the request body
   const filteredItem = filterObj(req.body);
-
-  // remove the caliber field
-  delete filteredItem["caliber"];
 
   // update the item and return the new one
   const updatedItem = await Item.findByIdAndUpdate(itemId, filteredItem, {
@@ -181,10 +311,10 @@ exports.addItemToWarehouse = catchAsync(async (req, res, next) => {
   const { itemId } = req.params;
 
   // get the warehouseId and caliber from request body
-  const { warehouse, caliber } = req.body;
+  const { warehouseId } = req.body;
 
   // check if the warehouse and caliber fields exist in the request body
-  if (!warehouse || !caliber) {
+  if (!warehouseId) {
     return next(new AppError(`Please provide the required fields`));
   }
 
@@ -196,16 +326,18 @@ exports.addItemToWarehouse = catchAsync(async (req, res, next) => {
     return next(new AppError(`No item found`, 400));
   }
 
-  const findItemWithCaliber = findItem.caliber.find(
-    (el) => el.value === caliber
-  );
-
-  findItemWithCaliber.warehouse.push({ warehouse_id: warehouse });
+  findItem.warehouses = [
+    ...findItem.warehouses,
+    { warehouse: warehouseId, maxQty: 0 },
+  ];
 
   await findItem.save();
 
   res.status(200).json({
     status: "success",
+    data: {
+      item: findItem,
+    },
   });
 });
 
@@ -216,10 +348,10 @@ exports.removeItemFromWarehouse = catchAsync(async (req, res, next) => {
   const { itemId } = req.params;
 
   // get the warehouseId and caliber from request body
-  const { warehouse, caliber } = req.body;
+  const { warehouseId } = req.body;
 
   // check if the warehouse and caliber fields exist in the request body
-  if (!warehouse || !caliber) {
+  if (!warehouseId) {
     return next(new AppError(`Please provide the required fields`));
   }
 
@@ -231,23 +363,16 @@ exports.removeItemFromWarehouse = catchAsync(async (req, res, next) => {
     return next(new AppError(`No item found`, 400));
   }
 
-  const findItemWithCaliber = findItem.caliber.find(
-    (el) => el.value === caliber
+  findItem.warehouses = findItem.warehouses.filter(
+    (w) => w.warehouse === warehouseId
   );
-
-  // check if the caliber exist in the item
-  if (!findItemWithCaliber) {
-    return next(new AppError(`No caliber found in this item`, 400));
-  }
-
-  // remove the warehouse from caliber array
-  findItemWithCaliber.warehouse = findItemWithCaliber.warehouse.filter((wh) => {
-    return wh.warehouse_id == warehouse;
-  });
 
   await findItem.save();
 
   res.status(200).json({
     status: "success",
+    data: {
+      item: findItem,
+    },
   });
 });
