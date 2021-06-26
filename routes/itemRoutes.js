@@ -63,4 +63,12 @@ itemRoutes
     itemController.removeItemFromWarehouse
   );
 
+itemRoutes
+  .route("/warehouse/change-max-qty/:itemId")
+  .post(
+    authController.protect,
+    authController.restrictTo("warehouse"),
+    itemController.changeItemWarehouseMaxQty
+  );
+
 module.exports = itemRoutes;

@@ -112,7 +112,15 @@ exports.getItemsByCompanyId = catchAsync(async (req, res, next) => {
     items = await Item.find()
       .sort(query.sort ? query.sort : "-createdAt -name")
       .skip((page - 1) * (limit * 1))
-      .limit(limit * 1);
+      .limit(limit * 1)
+      .populate({
+        path: "warehouses.warehouse",
+        model: "User",
+      })
+      .populate({
+        path: "company",
+        model: "User",
+      });
   } else {
     count = await Item.countDocuments({
       $and: conditionArray,
@@ -123,7 +131,15 @@ exports.getItemsByCompanyId = catchAsync(async (req, res, next) => {
     })
       .sort(query.sort ? query.sort : "-createdAt -name")
       .skip((page - 1) * (limit * 1))
-      .limit(limit * 1);
+      .limit(limit * 1)
+      .populate({
+        path: "warehouses.warehouse",
+        model: "User",
+      })
+      .populate({
+        path: "company",
+        model: "User",
+      });
   }
 
   res.status(200).json({
@@ -305,7 +321,6 @@ exports.changeItemActiveState = catchAsync(async (req, res, next) => {
 });
 
 // add item to the warehouse
-// supply the itemId and warehouse, caliber
 exports.addItemToWarehouse = catchAsync(async (req, res, next) => {
   // get the item id from request parameters
   const { itemId } = req.params;
@@ -341,8 +356,45 @@ exports.addItemToWarehouse = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.changeItemWarehouseMaxQty = catchAsync(async (req, res, next) => {
+  // get the item id from request parameters
+  const { itemId } = req.params;
+
+  // get the warehouseId and caliber from request body
+  const { warehouseId, qty } = req.body;
+
+  console.log(itemId, warehouseId, qty);
+
+  // check if the warehouse and caliber fields exist in the request body
+  if (!warehouseId) {
+    return next(new AppError(`Please provide the required fields`));
+  }
+
+  // find the item specified by itemId
+  const findItem = await Item.findById(itemId);
+
+  // if the item doesn't exist
+  if (!findItem) {
+    return next(new AppError(`No item found`, 400));
+  }
+
+  findItem.warehouses = findItem.warehouses.map((w) => {
+    if (w.warehouse == warehouseId) {
+      return { warehouse: warehouseId, maxQty: qty };
+    } else return w;
+  });
+
+  await findItem.save();
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      item: findItem,
+    },
+  });
+});
+
 //remove item from the warehouse
-// supply the itemId and warehouse, caliber
 exports.removeItemFromWarehouse = catchAsync(async (req, res, next) => {
   // get the item id from request parameters
   const { itemId } = req.params;
