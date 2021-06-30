@@ -36,7 +36,7 @@ exports.getItems = catchAsync(async (req, res, next) => {
   // array that contains all the conditions
   const conditionArray = [];
 
-  conditionArray.push({ company: req.user._id });
+  conditionArray.push({ company: req.query.companyId });
 
   // name condition
   if (query.name) {
@@ -59,7 +59,15 @@ exports.getItems = catchAsync(async (req, res, next) => {
     items = await Item.find()
       .sort(query.sort ? query.sort : "-createdAt -name")
       .skip((page - 1) * (limit * 1))
-      .limit(limit * 1);
+      .limit(limit * 1)
+      .populate({
+        path: "warehouses.warehouse",
+        model: "User",
+      })
+      .populate({
+        path: "company",
+        model: "User",
+      });
   } else {
     count = await Item.countDocuments({
       $and: conditionArray,
@@ -70,7 +78,15 @@ exports.getItems = catchAsync(async (req, res, next) => {
     })
       .sort(query.sort ? query.sort : "-createdAt -name")
       .skip((page - 1) * (limit * 1))
-      .limit(limit * 1);
+      .limit(limit * 1)
+      .populate({
+        path: "warehouses.warehouse",
+        model: "User",
+      })
+      .populate({
+        path: "company",
+        model: "User",
+      });
   }
 
   res.status(200).json({
@@ -109,8 +125,8 @@ exports.getItemsByCompanyId = catchAsync(async (req, res, next) => {
   if (conditionArray.length === 0) {
     count = await Item.countDocuments();
 
-    items = await Item.find()
-      .sort(query.sort ? query.sort : "-createdAt -name")
+    items = await Item.find({})
+      .sort({ createdAt: -1, _id: 1 })
       .skip((page - 1) * (limit * 1))
       .limit(limit * 1)
       .populate({
@@ -129,7 +145,7 @@ exports.getItemsByCompanyId = catchAsync(async (req, res, next) => {
     items = await Item.find({
       $and: conditionArray,
     })
-      .sort(query.sort ? query.sort : "-createdAt -name")
+      .sort({ createdAt: -1, _id: 1 })
       .skip((page - 1) * (limit * 1))
       .limit(limit * 1)
       .populate({
@@ -156,8 +172,6 @@ exports.getItemsByWarehouseId = catchAsync(async (req, res, next) => {
   const { page, limit } = req.query;
 
   const query = req.query;
-
-  console.log(query);
 
   let items;
   let count = 0;
@@ -187,9 +201,9 @@ exports.getItemsByWarehouseId = catchAsync(async (req, res, next) => {
   aggregateCondition.push({
     $lookup: {
       from: "users",
-      localField: "company",
+      localField: "warehouses.warehouse",
       foreignField: "_id",
-      as: "company_name",
+      as: "warehouse",
     },
   });
 

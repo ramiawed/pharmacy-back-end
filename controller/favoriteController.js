@@ -14,7 +14,21 @@ exports.getFavorites = catchAsync(async (req, res, next) => {
 
   const favorites = await Favorite.findOne({ userId })
     .populate("favorites")
-    .populate("favorites_items");
+    .populate({ path: "favorites_items", model: "Item" })
+    .populate({
+      path: "favorites_items",
+      populate: {
+        path: "company",
+        model: "User",
+      },
+    })
+    .populate({
+      path: "favorites_items",
+      populate: {
+        path: "warehouses.warehouse",
+        model: "User",
+      },
+    });
 
   res.status(200).json({
     status: "success",

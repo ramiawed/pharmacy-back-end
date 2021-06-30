@@ -282,7 +282,7 @@ exports.getUsers = catchAsync(async (req, res, next) => {
     users = await User.find({
       $and: conditionArray,
     })
-      .sort(query.sort ? query.sort : "-createdAt -name")
+      .sort(query.sort ? query.sort : "-createdAt -name ")
       .skip((page - 1) * (limit * 1))
       .limit(limit * 1);
   }
