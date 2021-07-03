@@ -101,6 +101,7 @@ exports.getItems = catchAsync(async (req, res, next) => {
 // get items by companyId
 exports.getItemsByCompanyId = catchAsync(async (req, res, next) => {
   const { page, limit } = req.query;
+  const { _id, type } = req.user;
 
   const query = req.query;
 
@@ -114,6 +115,23 @@ exports.getItemsByCompanyId = catchAsync(async (req, res, next) => {
     conditionArray.push({ name: { $regex: query.name, $options: "i" } });
   } else {
     delete query.name;
+  }
+
+  // in warehouse
+  if (query.inWarehouse && type === "warehouse") {
+    conditionArray.push({ "warehouses.warehouse": _id });
+  }
+
+  if (query.inWarehouse && type === "pharmacy") {
+    conditionArray.push({ warehouses: { $ne: [] } });
+  }
+
+  if (query.outWarehouse && type === "warehouse") {
+    conditionArray.push({ "warehouses.warehouse": { $ne: _id } });
+  }
+
+  if (query.outWarehouse && type === "pharmacy") {
+    conditionArray.push({ warehouses: [] });
   }
 
   // active condition
@@ -204,6 +222,15 @@ exports.getItemsByWarehouseId = catchAsync(async (req, res, next) => {
       localField: "warehouses.warehouse",
       foreignField: "_id",
       as: "warehouse",
+    },
+  });
+
+  aggregateCondition.push({
+    $lookup: {
+      from: "users",
+      localField: "company",
+      foreignField: "_id",
+      as: "company_name",
     },
   });
 
@@ -362,10 +389,20 @@ exports.addItemToWarehouse = catchAsync(async (req, res, next) => {
 
   await findItem.save();
 
+  const item = await Item.findById(itemId)
+    .populate({
+      path: "warehouses.warehouse",
+      model: "User",
+    })
+    .populate({
+      path: "company",
+      model: "User",
+    });
+
   res.status(200).json({
     status: "success",
     data: {
-      item: findItem,
+      item: item,
     },
   });
 });
@@ -376,8 +413,6 @@ exports.changeItemWarehouseMaxQty = catchAsync(async (req, res, next) => {
 
   // get the warehouseId and caliber from request body
   const { warehouseId, qty } = req.body;
-
-  console.log(itemId, warehouseId, qty);
 
   // check if the warehouse and caliber fields exist in the request body
   if (!warehouseId) {
