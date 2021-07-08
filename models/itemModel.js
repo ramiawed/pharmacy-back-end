@@ -48,6 +48,14 @@ var itemSchema = new mongoose.Schema(
           type: Number,
           default: 0,
         },
+        addedAt: {
+          type: Date,
+          default: new Date(),
+        },
+        orderNumber: {
+          type: Number,
+          default: 1,
+        },
       },
     ],
     logo_url: {

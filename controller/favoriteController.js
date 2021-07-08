@@ -100,7 +100,14 @@ exports.addFavoriteItem = catchAsync(async (req, res, next) => {
     return next(new AppError("this favorite item is already done"));
   }
 
-  const item = await Item.findById(favoriteItemId);
+  const item = await Item.findById(favoriteItemId)
+    .populate({
+      path: "company",
+    })
+    .populate({
+      path: "warehouses.warehouse",
+      model: "User",
+    });
 
   res.status(200).json({
     status: "success",

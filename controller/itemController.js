@@ -1,8 +1,7 @@
-const { find } = require("../models/itemModel");
 const Item = require("../models/itemModel");
+const User = require("../models/userModel");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
-const mongoose = require("mongoose");
 
 const itemAllowedFields = [
   "name",
@@ -29,65 +28,99 @@ const filterObj = (obj) => {
 };
 
 exports.getItems = catchAsync(async (req, res, next) => {
-  const { page, limit } = req.query;
-
-  const query = req.query;
-
-  // array that contains all the conditions
-  const conditionArray = [];
-
-  conditionArray.push({ company: req.query.companyId });
-
-  // name condition
-  if (query.name) {
-    conditionArray.push({ name: { $regex: query.name, $options: "i" } });
-  } else {
-    delete query.name;
-  }
-
-  // active condition
-  if (query.isActive !== undefined) {
-    conditionArray.push({ isActive: query.isActive });
-  }
+  const {
+    page,
+    limit,
+    companyId,
+    warehouseId,
+    itemName,
+    companyName,
+    warehouseName,
+    isActive,
+    inWarehouse,
+    outWarehouse,
+    sort,
+  } = req.query;
 
   let count;
   let items;
 
-  if (conditionArray.length === 0) {
-    count = await Item.countDocuments();
+  // array that contains all the conditions
+  const conditionArray = [];
+  if (companyId) {
+    conditionArray.push({ company: companyId });
+  }
 
-    items = await Item.find()
-      .sort(query.sort ? query.sort : "-createdAt -name")
-      .skip((page - 1) * (limit * 1))
-      .limit(limit * 1)
-      .populate({
-        path: "warehouses.warehouse",
-        model: "User",
-      })
-      .populate({
-        path: "company",
-        model: "User",
-      });
-  } else {
-    count = await Item.countDocuments({
-      $and: conditionArray,
+  if (warehouseId) {
+    conditionArray.push({ "warehouses.warehouse": warehouseId });
+  }
+
+  if (itemName) {
+    conditionArray.push({ name: { $regex: itemName, $options: "i" } });
+  }
+
+  // active condition
+  if (isActive !== undefined) {
+    conditionArray.push({ isActive: isActive });
+  }
+
+  if (companyName) {
+    // get the ids for all company that there name match the companyName
+    const companiesArray = await User.find({
+      name: { $regex: companyName, $options: "i" },
+      type: "company",
     });
 
-    items = await Item.find({
-      $and: conditionArray,
-    })
-      .sort(query.sort ? query.sort : "-createdAt -name")
-      .skip((page - 1) * (limit * 1))
-      .limit(limit * 1)
-      .populate({
-        path: "warehouses.warehouse",
-        model: "User",
-      })
-      .populate({
-        path: "company",
-        model: "User",
-      });
+    // map each company object to it's id
+    const arr = companiesArray.map((company) => company._id);
+
+    // get all items that company id in the companies ids array
+    conditionArray.push({
+      company: { $in: arr },
+    });
   }
+
+  if (warehouseName) {
+    // get the ids for all warehouse that there name match the warehouseName
+    const warehouseArray = await User.find({
+      name: { $regex: warehouseName, $options: "i" },
+      type: "warehouse",
+    });
+
+    // map each warehouse object to it's id
+    const arr = warehouseArray.map((warehouse) => warehouse._id);
+
+    // get all items that warehouse id in the companies ids array
+    conditionArray.push({
+      "warehouses.warehouse": { $in: arr },
+    });
+  }
+
+  if (inWarehouse) {
+    conditionArray.push({ warehouses: { $ne: [] } });
+  }
+
+  if (outWarehouse) {
+    conditionArray.push({ warehouses: [] });
+  }
+
+  count = await Item.countDocuments(
+    conditionArray.length > 0 ? { $and: conditionArray } : {}
+  );
+
+  items = await Item.find(
+    conditionArray.length > 0 ? { $and: conditionArray } : {}
+  )
+    .sort(sort ? sort + " _id" : "createdAt _id")
+    .populate({
+      path: "company",
+    })
+    .populate({
+      path: "warehouses.warehouse",
+      model: "User",
+    })
+    .skip((page - 1) * (limit * 1))
+    .limit(limit * 1);
 
   res.status(200).json({
     status: "success",
@@ -97,6 +130,104 @@ exports.getItems = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+exports.getItemById = catchAsync(async (req, res, next) => {
+  const { itemId } = req.params;
+
+  if (!itemId) {
+    return next(new AppError("please provide item id"));
+  }
+
+  const item = await Item.findById(itemId)
+    .populate({
+      path: "company",
+    })
+    .populate({
+      path: "warehouses.warehouse",
+      model: "User",
+    });
+
+  if (!item) {
+    return next(new AppError("no such item"));
+  }
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      item,
+    },
+  });
+});
+
+// exports.getItems = catchAsync(async (req, res, next) => {
+//   const { page, limit } = req.query;
+
+//   const query = req.query;
+
+//   let count;
+//   let items;
+
+//   // array that contains all the conditions
+//   const conditionArray = [];
+
+//   conditionArray.push({ company: req.query.companyId });
+
+//   // name condition
+//   if (query.name) {
+//     conditionArray.push({ name: { $regex: query.name, $options: "i" } });
+//   } else {
+//     delete query.name;
+//   }
+
+//   // active condition
+//   if (query.isActive !== undefined) {
+//     conditionArray.push({ isActive: query.isActive });
+//   }
+
+//   if (conditionArray.length === 0) {
+//     count = await Item.countDocuments();
+
+//     items = await Item.find()
+//       .sort(query.sort ? query.sort : "-createdAt -name")
+//       .skip((page - 1) * (limit * 1))
+//       .limit(limit * 1)
+//       .populate({
+//         path: "warehouses.warehouse",
+//         model: "User",
+//       })
+//       .populate({
+//         path: "company",
+//         model: "User",
+//       });
+//   } else {
+//     count = await Item.countDocuments({
+//       $and: conditionArray,
+//     });
+
+//     items = await Item.find({
+//       $and: conditionArray,
+//     })
+//       .sort(query.sort ? query.sort : "-createdAt -name")
+//       .skip((page - 1) * (limit * 1))
+//       .limit(limit * 1)
+//       .populate({
+//         path: "warehouses.warehouse",
+//         model: "User",
+//       })
+//       .populate({
+//         path: "company",
+//         model: "User",
+//       });
+//   }
+
+//   res.status(200).json({
+//     status: "success",
+//     count,
+//     data: {
+//       items,
+//     },
+//   });
+// });
 
 // get items by companyId
 exports.getItemsByCompanyId = catchAsync(async (req, res, next) => {
@@ -185,81 +316,62 @@ exports.getItemsByCompanyId = catchAsync(async (req, res, next) => {
   });
 });
 
-// get items by companyId
+// get items by warehouseId
 exports.getItemsByWarehouseId = catchAsync(async (req, res, next) => {
   const { page, limit } = req.query;
 
   const query = req.query;
 
   let items;
-  let count = 0;
+  let count;
 
-  let aggregateCondition = [];
-  let countAggregateCondition = [];
+  const conditionArray = [];
 
-  aggregateCondition.push({ $match: { isActive: true } });
+  conditionArray.push({ isActive: true });
+
+  conditionArray.push({
+    "warehouses.warehouse": req.user._id,
+  });
 
   // search by name
   if (query.name) {
-    aggregateCondition.push({
-      $match: { name: { $regex: query.name, $options: "i" } },
+    conditionArray.push({
+      name: { $regex: query.name, $options: "i" },
     });
   }
-
-  aggregateCondition.push({
-    $unwind: "$warehouses",
-  });
-
-  aggregateCondition.push({
-    $match: {
-      "warehouses.warehouse": req.user._id,
-    },
-  });
-
-  aggregateCondition.push({
-    $lookup: {
-      from: "users",
-      localField: "warehouses.warehouse",
-      foreignField: "_id",
-      as: "warehouse",
-    },
-  });
-
-  aggregateCondition.push({
-    $lookup: {
-      from: "users",
-      localField: "company",
-      foreignField: "_id",
-      as: "company_name",
-    },
-  });
 
   // search by company name
   if (query.companyName) {
-    aggregateCondition.push({
-      $match: {
-        "company_name.name": { $regex: query.companyName, $options: "i" },
-      },
+    // get the ids for all company that there name match the companyName
+    const companiesArray = await User.find({
+      name: { $regex: query.companyName, $options: "i" },
+    });
+
+    // map each company object to it's id
+    const arr = companiesArray.map((company) => company._id);
+
+    // get all items that company id in the companies ids array
+    conditionArray.push({
+      company: { $in: arr },
     });
   }
 
-  countAggregateCondition = [...aggregateCondition];
-  countAggregateCondition.push({
-    $count: "price",
+  count = await Item.countDocuments({
+    $and: conditionArray,
   });
 
-  aggregateCondition.push({
-    $sort: { "company_name.name": 1 },
-  });
-
-  aggregateCondition.push({
-    $skip: (page - 1) * (limit * 1),
-  });
-
-  aggregateCondition.push({ $limit: limit * 1 });
-
-  items = await Item.aggregate(aggregateCondition);
-  count = await Item.aggregate(countAggregateCondition);
+  items = await Item.find({ $and: conditionArray })
+    .populate({
+      path: "warehouses.warehouse",
+      model: "User",
+    })
+    .populate({
+      path: "company",
+      model: "User",
+    })
+    .sort({ "company.name": -1, _id: 1 })
+    .skip((page - 1) * (limit * 1))
+    .limit(limit * 1);
 
   res.status(200).json({
     status: "success",
@@ -269,6 +381,91 @@ exports.getItemsByWarehouseId = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+// get items by warehouseId
+// exports.getItemsByWarehouseId2 = catchAsync(async (req, res, next) => {
+//   const { page, limit } = req.query;
+
+//   const query = req.query;
+
+//   let items;
+//   let count = 0;
+
+//   let aggregateCondition = [];
+//   let countAggregateCondition = [];
+
+//   aggregateCondition.push({ $match: { isActive: true } });
+
+//   // search by name
+//   if (query.name) {
+//     aggregateCondition.push({
+//       $match: { name: { $regex: query.name, $options: "i" } },
+//     });
+//   }
+
+//   aggregateCondition.push({
+//     $unwind: "$warehouses",
+//   });
+
+//   aggregateCondition.push({
+//     $match: {
+//       "warehouses.warehouse": req.user._id,
+//     },
+//   });
+
+//   aggregateCondition.push({
+//     $lookup: {
+//       from: "users",
+//       localField: "warehouses.warehouse",
+//       foreignField: "_id",
+//       as: "warehouse",
+//     },
+//   });
+
+//   aggregateCondition.push({
+//     $lookup: {
+//       from: "users",
+//       localField: "company",
+//       foreignField: "_id",
+//       as: "company_name",
+//     },
+//   });
+
+//   // search by company name
+//   if (query.companyName) {
+//     aggregateCondition.push({
+//       $match: {
+//         "company_name.name": { $regex: query.companyName, $options: "i" },
+//       },
+//     });
+//   }
+
+//   countAggregateCondition = [...aggregateCondition];
+//   countAggregateCondition.push({
+//     $count: "price",
+//   });
+
+//   aggregateCondition.push({
+//     $sort: { "company_name.name": 1 },
+//   });
+
+//   aggregateCondition.push({
+//     $skip: (page - 1) * (limit * 1),
+//   });
+
+//   aggregateCondition.push({ $limit: limit * 1 });
+
+//   items = await Item.aggregate(aggregateCondition);
+//   count = await Item.aggregate(countAggregateCondition);
+
+//   res.status(200).json({
+//     status: "success",
+//     count,
+//     data: {
+//       items,
+//     },
+//   });
+// });
 
 // add a new item
 exports.addItem = catchAsync(async (req, res, next) => {

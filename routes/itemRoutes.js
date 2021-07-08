@@ -33,7 +33,8 @@ itemRoutes
   );
 
 itemRoutes
-  .route("/:itemId")
+  .route("/item/:itemId")
+  .get(authController.protect, itemController.getItemById)
   .post(
     authController.protect,
     authController.restrictTo("company"),
