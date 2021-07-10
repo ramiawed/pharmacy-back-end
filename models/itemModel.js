@@ -56,6 +56,21 @@ var itemSchema = new mongoose.Schema(
           type: Number,
           default: 1,
         },
+        offer: {
+          mode: {
+            type: String,
+          },
+          offers: [
+            {
+              qty: {
+                type: Number,
+              },
+              bonus: {
+                type: Number,
+              },
+            },
+          ],
+        },
       },
     ],
     logo_url: {

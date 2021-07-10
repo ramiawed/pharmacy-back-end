@@ -72,4 +72,12 @@ itemRoutes
     itemController.changeItemWarehouseMaxQty
   );
 
+itemRoutes
+  .route("/warehouse/change-offer/:itemId")
+  .post(
+    authController.protect,
+    authController.restrictTo("warehouse"),
+    itemController.changeOffer
+  );
+
 module.exports = itemRoutes;

@@ -626,7 +626,7 @@ exports.changeItemWarehouseMaxQty = catchAsync(async (req, res, next) => {
 
   findItem.warehouses = findItem.warehouses.map((w) => {
     if (w.warehouse == warehouseId) {
-      return { warehouse: warehouseId, maxQty: qty };
+      return { warehouse: warehouseId, offer: w.offer, maxQty: qty };
     } else return w;
   });
 
@@ -636,6 +636,52 @@ exports.changeItemWarehouseMaxQty = catchAsync(async (req, res, next) => {
     status: "success",
     data: {
       item: findItem,
+    },
+  });
+});
+
+exports.changeOffer = catchAsync(async (req, res, next) => {
+  // get the item id from request parameters
+  const { itemId } = req.params;
+
+  // get the warehouseId and caliber from request body
+  const { warehouseId, offer } = req.body;
+
+  // check if the warehouseId exist in the body request
+  if (!warehouseId) {
+    return next(new AppError(`Please provide the required fields`));
+  }
+
+  // find the item specified by itemId
+  const findItem = await Item.findById(itemId);
+
+  // if the item doesn't exist
+  if (!findItem) {
+    return next(new AppError(`No item found`, 400));
+  }
+
+  findItem.warehouses = findItem.warehouses.map((w) => {
+    if (w.warehouse == warehouseId) {
+      return { warehouse: warehouseId, offer: offer, maxQty: w.maxQty };
+    } else return w;
+  });
+
+  await findItem.save();
+
+  const returnedItem = await Item.findById(itemId)
+    .populate({
+      path: "warehouses.warehouse",
+      model: "User",
+    })
+    .populate({
+      path: "company",
+      model: "User",
+    });
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      item: returnedItem,
     },
   });
 });
