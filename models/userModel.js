@@ -88,8 +88,9 @@ var userSchema = new mongoose.Schema(
         type: String,
       },
     },
-    location: {
-      type: String,
+    allowAdmin: {
+      type: Boolean,
+      default: false,
     },
   },
   {

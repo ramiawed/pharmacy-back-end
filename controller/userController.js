@@ -15,6 +15,7 @@ const userAllowedFields = [
   "street",
   "employeeName",
   "certificateName",
+  "allowAdmin",
 ];
 
 // remove unwanted property from an object
@@ -171,6 +172,8 @@ exports.getUsers = catchAsync(async (req, res, next) => {
 
   const query = req.query;
 
+  console.log(query.sort);
+
   // array that contains all the conditions
   const conditionArray = [];
   if (query.type) {
@@ -271,7 +274,7 @@ exports.getUsers = catchAsync(async (req, res, next) => {
     count = await User.countDocuments();
 
     users = await User.find()
-      .sort(query.sort ? query.sort : "-createdAt -name")
+      .sort(query.sort ? query.sort + " _id" : "-createdAt -name _id")
       .skip((page - 1) * (limit * 1))
       .limit(limit * 1);
   } else {
@@ -315,6 +318,26 @@ exports.changeMyPassword = catchAsync(async (req, res, next) => {
   }
 
   // 3- change the password and save the user
+  updateUser.password = newPassword;
+  updateUser.passwordConfirm = newPasswordConfirm;
+
+  await updateUser.save({});
+
+  // 4- return succeeded
+  res.status(200).json({
+    status: "success",
+    data: {
+      user: updateUser,
+    },
+  });
+});
+
+// reset user password
+exports.resetUserPassword = catchAsync(async (req, res, next) => {
+  const { userId, newPassword, newPasswordConfirm } = req.body;
+
+  const updateUser = await User.findById(userId).select("+password");
+
   updateUser.password = newPassword;
   updateUser.passwordConfirm = newPasswordConfirm;
 

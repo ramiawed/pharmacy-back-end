@@ -13,6 +13,14 @@ userRouter.post(
   authController.protect,
   userController.changeMyPassword
 );
+
+userRouter.post(
+  "/resetUserPassword",
+  authController.protect,
+  authController.restrictTo("admin"),
+  userController.resetUserPassword
+);
+
 userRouter.post("/deleteMe", authController.protect, userController.deleteMe);
 
 userRouter.post(

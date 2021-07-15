@@ -20,6 +20,7 @@ const userAllowedFields = [
   "employeeName",
   "certificateName",
   "guestDetails",
+  "allowAdmin",
 ];
 
 // remove unwanted property from object
