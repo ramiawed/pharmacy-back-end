@@ -707,9 +707,9 @@ exports.removeItemFromWarehouse = catchAsync(async (req, res, next) => {
     return next(new AppError(`No item found`, 400));
   }
 
-  findItem.warehouses = findItem.warehouses.filter(
-    (w) => w.warehouse === warehouseId
-  );
+  findItem.warehouses = findItem.warehouses.filter((w) => {
+    return !w.warehouse.equals(warehouseId);
+  });
 
   await findItem.save();
 

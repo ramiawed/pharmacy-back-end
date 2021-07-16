@@ -172,8 +172,6 @@ exports.getUsers = catchAsync(async (req, res, next) => {
 
   const query = req.query;
 
-  console.log(query.sort);
-
   // array that contains all the conditions
   const conditionArray = [];
   if (query.type) {
