@@ -60,7 +60,7 @@ itemRoutes
   .route("/warehouse/remove-item/:itemId")
   .post(
     authController.protect,
-    authController.restrictTo("warehouse"),
+    authController.restrictTo("warehouse", "admin"),
     itemController.removeItemFromWarehouse
   );
 
@@ -68,7 +68,7 @@ itemRoutes
   .route("/warehouse/change-max-qty/:itemId")
   .post(
     authController.protect,
-    authController.restrictTo("warehouse"),
+    authController.restrictTo("warehouse", "admin"),
     itemController.changeItemWarehouseMaxQty
   );
 
@@ -76,7 +76,7 @@ itemRoutes
   .route("/warehouse/change-offer/:itemId")
   .post(
     authController.protect,
-    authController.restrictTo("warehouse"),
+    authController.restrictTo("warehouse", "admin"),
     itemController.changeOffer
   );
 
