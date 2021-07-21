@@ -29,12 +29,14 @@ userRouter.post(
   authController.restrictTo("admin"),
   userController.changeApprovedState
 );
+
 userRouter.post(
   "/delete/:userId",
   authController.protect,
   authController.restrictTo("admin"),
   userController.deleteUser
 );
+
 userRouter.post(
   "/reactivate/:userId",
   authController.protect,

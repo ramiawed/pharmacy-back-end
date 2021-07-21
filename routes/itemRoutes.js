@@ -8,7 +8,7 @@ itemRoutes
   .get(authController.protect, itemController.getItems)
   .post(
     authController.protect,
-    authController.restrictTo("company"),
+    authController.restrictTo("company", "admin"),
     itemController.addItem
   );
 
@@ -28,7 +28,7 @@ itemRoutes
   .route("/excel")
   .post(
     authController.protect,
-    authController.restrictTo("company"),
+    authController.restrictTo("company", "admin"),
     itemController.addItems
   );
 

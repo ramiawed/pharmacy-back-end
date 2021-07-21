@@ -248,12 +248,12 @@ exports.getItemsByCompanyId = catchAsync(async (req, res, next) => {
     delete query.name;
   }
 
-  // in warehouse
+  // in and out warehouse
   if (query.inWarehouse && type === "warehouse") {
     conditionArray.push({ "warehouses.warehouse": _id });
   }
 
-  if (query.inWarehouse && type === "pharmacy") {
+  if (query.inWarehouse && type !== "warehouse") {
     conditionArray.push({ warehouses: { $ne: [] } });
   }
 
@@ -261,8 +261,15 @@ exports.getItemsByCompanyId = catchAsync(async (req, res, next) => {
     conditionArray.push({ "warehouses.warehouse": { $ne: _id } });
   }
 
-  if (query.outWarehouse && type === "pharmacy") {
+  if (query.outWarehouse && type !== "warehouse") {
     conditionArray.push({ warehouses: [] });
+  }
+
+  // has an offer
+  if (query.hasOffer) {
+  }
+
+  if (query.noOffer) {
   }
 
   // active condition
