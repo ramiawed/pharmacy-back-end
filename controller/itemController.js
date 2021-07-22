@@ -2,6 +2,9 @@ const Item = require("../models/itemModel");
 const User = require("../models/userModel");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
+const fs = require("fs");
+const { promisify } = require("util");
+const pipeline = promisify(require("stream").pipeline);
 
 const itemAllowedFields = [
   "name",
@@ -724,6 +727,48 @@ exports.removeItemFromWarehouse = catchAsync(async (req, res, next) => {
     status: "success",
     data: {
       item: findItem,
+    },
+  });
+});
+
+// change the user logo
+exports.uploadImage = catchAsync(async (req, res, next) => {
+  const itemId = req.params.itemId;
+
+  const {
+    file,
+    body: { name },
+  } = req;
+
+  const item = await Item.findById(itemId);
+
+  if (!item) {
+    return next(new AppError("no such item"));
+  }
+
+  // if the user have a logo, delete it
+  if (item.logo_url && item.logo_url !== "") {
+    if (fs.existsSync(`${__basedir}/public/${item.logo_url}`)) {
+      fs.unlinkSync(`${__basedir}/public/${item.logo_url}`);
+      await Item.findByIdAndUpdate(itemId, { logo_url: "" });
+    }
+  }
+
+  await pipeline(
+    file.stream,
+    fs.createWriteStream(`${__basedir}/public/${name}`)
+  );
+
+  const updatedItem = await Item.findByIdAndUpdate(
+    itemId,
+    { logo_url: name },
+    { new: true }
+  );
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      item: updatedItem,
     },
   });
 });

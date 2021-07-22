@@ -1,6 +1,11 @@
 const express = require("express");
 const itemController = require("../controller/itemController");
 const authController = require("../controller/authController");
+
+const multer = require("multer");
+
+const upload = multer();
+
 const itemRoutes = express.Router();
 
 itemRoutes
@@ -78,6 +83,14 @@ itemRoutes
     authController.protect,
     authController.restrictTo("warehouse", "admin"),
     itemController.changeOffer
+  );
+
+itemRoutes
+  .route("/upload/:itemId")
+  .post(
+    upload.single("file"),
+    authController.protect,
+    itemController.uploadImage
   );
 
 module.exports = itemRoutes;

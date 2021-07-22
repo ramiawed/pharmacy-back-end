@@ -1,6 +1,9 @@
 const express = require("express");
 const authController = require("../controller/authController");
 const userController = require("../controller/userController");
+const multer = require("multer");
+
+const upload = multer();
 
 const userRouter = express.Router();
 
@@ -52,5 +55,12 @@ userRouter.get(
 );
 
 userRouter.get("/:userId", authController.protect, userController.getUserById);
+
+userRouter.post(
+  "/upload",
+  upload.single("file"),
+  authController.protect,
+  userController.uploadImage
+);
 
 module.exports = userRouter;

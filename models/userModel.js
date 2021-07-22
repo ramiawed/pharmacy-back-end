@@ -38,6 +38,7 @@ var userSchema = new mongoose.Schema(
     },
     logo_url: {
       type: String,
+      default: "",
     },
     isActive: {
       type: Boolean,

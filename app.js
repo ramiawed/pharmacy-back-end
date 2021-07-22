@@ -6,6 +6,8 @@ const userRouter = require("./routes/userRoutes");
 const itemRoutes = require("./routes/itemRoutes");
 const favoriteRouter = require("./routes/favoriteRoutes");
 
+global.__basedir = __dirname;
+
 const app = express();
 
 // body parser, reading data from body into req.body
@@ -36,27 +38,27 @@ app.use(express.static(`${__dirname}/public`));
 //   next();
 // });
 
-const multer = require("multer");
-const fs = require("fs");
-const { promisify } = require("util");
-const pipeline = promisify(require("stream").pipeline);
-const upload = multer();
+// const multer = require("multer");
+// const fs = require("fs");
+// const { promisify } = require("util");
+// const pipeline = promisify(require("stream").pipeline);
+// const upload = multer();
 
-app.post("/api/v1/upload", upload.single("file"), async (req, res, next) => {
-  const {
-    file,
-    body: { name },
-  } = req;
+// app.post("/api/v1/upload", upload.single("file"), async (req, res, next) => {
+//   const {
+//     file,
+//     body: { name },
+//   } = req;
 
-  const fileName = "background.jpg";
+//   const fileName = "background.jpg";
 
-  await pipeline(
-    file.stream,
-    fs.createWriteStream(`${__dirname}/public/${fileName}`)
-  );
+//   await pipeline(
+//     file.stream,
+//     fs.createWriteStream(`${__dirname}/public/${fileName}`)
+//   );
 
-  res.send("file uploaded");
-});
+//   res.send("file uploaded");
+// });
 
 // routes
 
