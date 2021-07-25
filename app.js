@@ -6,6 +6,9 @@ const userRouter = require("./routes/userRoutes");
 const itemRoutes = require("./routes/itemRoutes");
 const favoriteRouter = require("./routes/favoriteRoutes");
 
+const nodemailer = require("nodemailer");
+const Excel = require("exceljs");
+
 global.__basedir = __dirname;
 
 const app = express();

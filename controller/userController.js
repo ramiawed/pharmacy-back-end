@@ -4,6 +4,8 @@ const AppError = require("../utils/appError");
 const fs = require("fs");
 const { promisify } = require("util");
 const pipeline = promisify(require("stream").pipeline);
+const Excel = require("exceljs");
+const nodemailer = require("nodemailer");
 
 const userAllowedFields = [
   "name",
@@ -385,5 +387,79 @@ exports.uploadImage = catchAsync(async (req, res, next) => {
     data: {
       user: updateUser,
     },
+  });
+});
+
+// send email
+exports.sendEmail = catchAsync(async (req, res, next) => {
+  const user = req.user;
+
+  const { cartItems = [] } = req.body;
+
+  console.log(cartItems.length);
+
+  // console.log(cartItems);
+
+  const filename = `Order ${Date.now()}.xlsx`;
+  let workbook = new Excel.Workbook();
+  let worksheet = workbook.addWorksheet("Debtors");
+
+  worksheet.columns = [
+    { header: "الاسم التجاري", key: "itemName" },
+    { header: "اسم الشركة", key: "companyName" },
+    { header: "المستودع", key: "warehouseName" },
+    { header: "الشكل الصيدلاني", key: "formula" },
+    { header: "العيار", key: "caliber" },
+    { header: "التعبئة", key: "packing" },
+    { header: "السعر ص", key: "price" },
+    { header: "السعر ع", key: "customerPrice" },
+    { header: "الكمية", key: "quantity" },
+    { header: "بونص", key: "bonus" },
+    { header: "السعر الإجمالي", key: "totalPrice" },
+  ];
+
+  cartItems.forEach((e) => {
+    worksheet.addRow(e);
+  });
+
+  const buffer = await workbook.xlsx.writeBuffer();
+
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    auth: {
+      user: "companypharmalinkclient@gmail.com",
+      pass: "C@mpany(2021)",
+    },
+  });
+
+  const mailOptions = {
+    from: "companypharmalinkclinent@gmail.com",
+    to: "companypharmalink@gmail.com",
+    subject: "subject",
+    html: `<p><label>name:</label> <label><b>${user.name}</b></label></p>
+           <p><label>Phone:</label> <label><b>${user.phone[0]}</b></label></p>
+           <p><label>Email:</label> <label><b>${user.email[0]}</b></label></p>
+           <p><label>Date:</label> <label><b>${new Date()}</b></label></p>
+    `,
+    attachments: [
+      {
+        filename,
+        content: buffer,
+        contentType:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      },
+    ],
+  };
+
+  // transporter.verify().then(console.log).catch(console.error);
+
+  transporter
+    .sendMail(mailOptions)
+    .then((info) => console.log(info))
+    .catch(() => console.error);
+
+  res.status(200).json({
+    status: "success",
   });
 });

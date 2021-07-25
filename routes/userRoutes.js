@@ -63,4 +63,11 @@ userRouter.post(
   userController.uploadImage
 );
 
+userRouter.post(
+  "/sendemail",
+  authController.protect,
+  authController.restrictTo("pharmacy"),
+  userController.sendEmail
+);
+
 module.exports = userRouter;
