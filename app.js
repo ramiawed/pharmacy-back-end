@@ -5,6 +5,7 @@ const globalErrorHandler = require("./controller/errorController");
 const userRouter = require("./routes/userRoutes");
 const itemRoutes = require("./routes/itemRoutes");
 const favoriteRouter = require("./routes/favoriteRoutes");
+const statisticsRouter = require("./routes/statisticsRoutes");
 
 const nodemailer = require("nodemailer");
 const Excel = require("exceljs");
@@ -68,6 +69,7 @@ app.use(express.static(`${__dirname}/public`));
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/items", itemRoutes);
 app.use("/api/v1/favorites", favoriteRouter);
+app.use("/api/v1/statistics", statisticsRouter);
 
 // function to handle all the router that doesn't catch by
 // previous routes

@@ -21,6 +21,10 @@ const userAllowedFields = [
   "employeeName",
   "certificateName",
   "allowAdmin",
+  "signinCount",
+  "selectedCount",
+  "orderCount",
+  "favoriteCount",
 ];
 
 // remove unwanted property from an object
@@ -396,10 +400,6 @@ exports.sendEmail = catchAsync(async (req, res, next) => {
 
   const { cartItems = [] } = req.body;
 
-  console.log(cartItems.length);
-
-  // console.log(cartItems);
-
   const filename = `Order ${Date.now()}.xlsx`;
   let workbook = new Excel.Workbook();
   let worksheet = workbook.addWorksheet("Debtors");
@@ -454,10 +454,7 @@ exports.sendEmail = catchAsync(async (req, res, next) => {
 
   // transporter.verify().then(console.log).catch(console.error);
 
-  transporter
-    .sendMail(mailOptions)
-    .then((info) => console.log(info))
-    .catch(() => console.error);
+  await transporter.sendMail(mailOptions);
 
   res.status(200).json({
     status: "success",

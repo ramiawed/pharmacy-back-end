@@ -81,6 +81,21 @@ var itemSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    selectedCount: {
+      type: Number,
+      default: 0,
+    },
+    selectedDates: [Date],
+    addedToCartCount: {
+      type: Number,
+      default: 0,
+    },
+    addedToCartDates: [Date],
+    addedToFavoriteCount: {
+      type: Number,
+      default: 0,
+    },
+    addedToFavoriteDates: [Date],
   },
   {
     timestamps: true,

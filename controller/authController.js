@@ -21,6 +21,10 @@ const userAllowedFields = [
   "certificateName",
   "guestDetails",
   "allowAdmin",
+  "signinCount",
+  "selectedCount",
+  "orderCount",
+  "favoriteCount",
 ];
 
 // remove unwanted property from object
@@ -39,7 +43,7 @@ const signToken = (id) => {
   });
 };
 
-const createSendToken = (user, statusCode, res) => {
+const createSendToken = async (user, statusCode, res) => {
   const token = signToken(user._id);
 
   const cookieOptions = {
@@ -127,6 +131,12 @@ exports.signin = catchAsync(async (req, res, next) => {
       new AppError(`You have to approve your account from Admin`, 401)
     );
   }
+
+  // user = await User.findByIdAndUpdate(
+  //   user._id,
+  //   { signinCount: user.signinCount + 1 },
+  //   { runValidators: false, new: true }
+  // );
 
   // 3- if everything ok, send token to client
   createSendToken(user, 200, res);

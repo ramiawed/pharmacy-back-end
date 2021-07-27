@@ -47,12 +47,7 @@ userRouter.post(
   userController.reactivateUser
 );
 
-userRouter.get(
-  "/",
-  authController.protect,
-  // authController.restrictTo("admin"),
-  userController.getUsers
-);
+userRouter.get("/", authController.protect, userController.getUsers);
 
 userRouter.get("/:userId", authController.protect, userController.getUserById);
 
