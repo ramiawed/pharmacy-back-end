@@ -5,11 +5,9 @@ const authController = require("../controller/authController");
 const statisticsRouter = express.Router();
 
 // user statistics
-statisticsRouter.post(
-  "/signin",
-  authController.protect,
-  statisticsController.incrementSigninCount
-);
+statisticsRouter
+  .route("/signin")
+  .post(authController.protect, statisticsController.incrementSigninCount);
 
 statisticsRouter.post(
   "/selectedCompany",
@@ -47,5 +45,8 @@ statisticsRouter.post(
   authController.protect,
   statisticsController.incrementSelectedItem
 );
+
+statisticsRouter.get("/users", statisticsController.getUsersStatistics);
+statisticsRouter.get("/items", statisticsController.getItemsStatistics);
 
 module.exports = statisticsRouter;

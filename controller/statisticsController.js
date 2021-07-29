@@ -100,3 +100,268 @@ exports.incrementFavoritesItem = catchAsync(async (req, res, next) => {
     status: "success",
   });
 });
+
+exports.getUsersStatistics = catchAsync(async (req, res, next) => {
+  const query = req.query;
+  const field = query.field;
+  const page = query.page;
+  const limit = query.limit;
+
+  let aggregateCondition = [];
+
+  if (field && field === "signinDates") {
+    aggregateCondition.push({
+      $unwind: {
+        path: "$signinDates",
+      },
+    });
+  } else if (field && field === "selectedDates") {
+    aggregateCondition.push({
+      $unwind: {
+        path: "$selectedDates",
+      },
+    });
+  } else if (field && field === "orderDates") {
+    aggregateCondition.push({
+      $unwind: {
+        path: "$orderDates",
+      },
+    });
+  } else if (field && field === "addedToFavoriteDates") {
+    aggregateCondition.push({
+      $unwind: {
+        path: "$addedToFavoriteDates",
+      },
+    });
+  }
+  aggregateCondition.push({
+    $sort: {
+      [field]: -1,
+    },
+  });
+
+  // search by name
+  if (query.name) {
+    aggregateCondition.push({
+      $match: { name: { $regex: query.name, $options: "i" } },
+    });
+  }
+
+  // search in a specific date
+  if (query.compare && query.compare === "equals") {
+    const date = query.date;
+    let nextDay = new Date(date);
+    nextDay.setDate(nextDay.getDate() + 1);
+
+    aggregateCondition.push({
+      $match: {
+        [field]: {
+          $gte: new Date(query.date),
+          $lt: nextDay,
+        },
+      },
+    });
+  }
+
+  if (query.compare && query.compare === "less") {
+    aggregateCondition.push({
+      $match: {
+        [field]: {
+          $lte: new Date(query.date),
+        },
+      },
+    });
+  }
+
+  if (query.compare && query.compare === "greater") {
+    aggregateCondition.push({
+      $match: {
+        [field]: {
+          $gte: new Date(query.date),
+        },
+      },
+    });
+  }
+
+  // search in a specific date
+  if (query.compare && query.compare === "between") {
+    aggregateCondition.push({
+      $match: {
+        [field]: {
+          $gte: new Date(query.date),
+          $lte: new Date(query.date1),
+        },
+      },
+    });
+  }
+
+  aggregateCondition.push({
+    $group: {
+      _id: "$_id",
+      count: {
+        $sum: 1,
+      },
+      dates: {
+        $addToSet: `$${field}`,
+      },
+      name: {
+        $first: "$name",
+      },
+    },
+  });
+
+  const countAggregateCondition = [
+    ...aggregateCondition,
+    {
+      $count: "name",
+    },
+  ];
+
+  aggregateCondition.push({
+    $sort: { count: -1 },
+  });
+
+  aggregateCondition.push({
+    $skip: (page - 1) * (limit * 1),
+  });
+
+  aggregateCondition.push({ $limit: limit * 1 });
+
+  const data = await User.aggregate(aggregateCondition);
+  const count = await User.aggregate(countAggregateCondition);
+
+  res.status(200).json({
+    status: "success",
+    count: count[0]?.name ? count[0].name : 0,
+    data: {
+      data,
+    },
+  });
+});
+
+exports.getItemsStatistics = catchAsync(async (req, res, next) => {
+  const query = req.query;
+  const field = query.field;
+  const page = query.page;
+  const limit = query.limit;
+
+  let aggregateCondition = [];
+
+  if (field && field === "selectedDates") {
+    aggregateCondition.push({
+      $unwind: {
+        path: "$selectedDates",
+      },
+    });
+  } else if (field && field === "addedToCartDates") {
+    aggregateCondition.push({
+      $unwind: {
+        path: "$addedToCartDates",
+      },
+    });
+  } else if (field && field === "addedToFavoriteDates") {
+    aggregateCondition.push({
+      $unwind: {
+        path: "$addedToFavoriteDates",
+      },
+    });
+  }
+
+  // search by name
+  if (query.name) {
+    aggregateCondition.push({
+      $match: { name: { $regex: query.name, $options: "i" } },
+    });
+  }
+
+  // search in a specific date
+  if (query.compare && query.compare === "equals") {
+    const date = query.date;
+    let nextDay = new Date(date);
+    nextDay.setDate(nextDay.getDate() + 1);
+
+    aggregateCondition.push({
+      $match: {
+        [field]: {
+          $gte: new Date(query.date),
+          $lt: nextDay,
+        },
+      },
+    });
+  }
+
+  if (query.compare && query.compare === "less") {
+    aggregateCondition.push({
+      $match: {
+        [field]: {
+          $lte: new Date(query.date),
+        },
+      },
+    });
+  }
+
+  if (query.compare && query.compare === "greater") {
+    aggregateCondition.push({
+      $match: {
+        [field]: {
+          $gte: new Date(query.date),
+        },
+      },
+    });
+  }
+
+  // search in a specific date
+  if (query.compare && query.compare === "between") {
+    aggregateCondition.push({
+      $match: {
+        [field]: {
+          $gte: new Date(query.date),
+          $lte: new Date(query.date1),
+        },
+      },
+    });
+  }
+
+  aggregateCondition.push({
+    $group: {
+      _id: "$_id",
+      count: {
+        $sum: 1,
+      },
+      dates: {
+        $addToSet: `$${field}`,
+      },
+      name: {
+        $first: "$name",
+      },
+    },
+  });
+
+  const countAggregateCondition = [
+    ...aggregateCondition,
+    {
+      $count: "name",
+    },
+  ];
+
+  aggregateCondition.push({
+    $sort: { count: -1 },
+  });
+
+  aggregateCondition.push({
+    $skip: (page - 1) * (limit * 1),
+  });
+
+  aggregateCondition.push({ $limit: limit * 1 });
+
+  const data = await Item.aggregate(aggregateCondition);
+  const count = await Item.aggregate(countAggregateCondition);
+
+  res.status(200).json({
+    status: "success",
+    count: count[0]?.name ? count[0].name : 0,
+    data: {
+      data,
+    },
+  });
+});
