@@ -13,7 +13,17 @@ dotenv.config({ path: "./config.env" });
 
 const app = require("./app");
 
-const DB = process.env.DATABASE;
+// DATABASE CONFIGURATION OPTION {USERNAME, PASSWORD, DBNAME}
+const DB_USER = process.env.DATABASE_USER;
+const DB_PASSWORD = process.env.DATABASE_PASSWORD;
+const DB_NAME = process.env.DATABASE_NAME;
+
+// BUILD THE CONNECTION STRING
+let DB = process.env.DATABASE.replace("<user>", DB_USER);
+DB = DB.replace("<password>", DB_PASSWORD);
+DB = DB.replace("<dbname>", DB_NAME);
+
+// const DB = process.env.DATABASE;
 
 mongoose
   .connect(DB, {
