@@ -97,6 +97,8 @@ exports.changeApprovedState = catchAsync(async (req, res, next) => {
   // action may be enable, or disable
   const { action } = req.body;
 
+  console.log("approve");
+
   let user;
 
   if (action === "enable") {
