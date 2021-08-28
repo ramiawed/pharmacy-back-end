@@ -402,6 +402,8 @@ exports.sendEmail = catchAsync(async (req, res, next) => {
 
   const { cartItems = [] } = req.body;
 
+  console.log(cartItems);
+
   const filename = `Order ${Date.now()}.xlsx`;
   let workbook = new Excel.Workbook();
   let worksheet = workbook.addWorksheet("Debtors");
