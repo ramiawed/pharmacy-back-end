@@ -162,76 +162,6 @@ exports.getItemById = catchAsync(async (req, res, next) => {
   });
 });
 
-// exports.getItems = catchAsync(async (req, res, next) => {
-//   const { page, limit } = req.query;
-
-//   const query = req.query;
-
-//   let count;
-//   let items;
-
-//   // array that contains all the conditions
-//   const conditionArray = [];
-
-//   conditionArray.push({ company: req.query.companyId });
-
-//   // name condition
-//   if (query.name) {
-//     conditionArray.push({ name: { $regex: query.name, $options: "i" } });
-//   } else {
-//     delete query.name;
-//   }
-
-//   // active condition
-//   if (query.isActive !== undefined) {
-//     conditionArray.push({ isActive: query.isActive });
-//   }
-
-//   if (conditionArray.length === 0) {
-//     count = await Item.countDocuments();
-
-//     items = await Item.find()
-//       .sort(query.sort ? query.sort : "-createdAt -name")
-//       .skip((page - 1) * (limit * 1))
-//       .limit(limit * 1)
-//       .populate({
-//         path: "warehouses.warehouse",
-//         model: "User",
-//       })
-//       .populate({
-//         path: "company",
-//         model: "User",
-//       });
-//   } else {
-//     count = await Item.countDocuments({
-//       $and: conditionArray,
-//     });
-
-//     items = await Item.find({
-//       $and: conditionArray,
-//     })
-//       .sort(query.sort ? query.sort : "-createdAt -name")
-//       .skip((page - 1) * (limit * 1))
-//       .limit(limit * 1)
-//       .populate({
-//         path: "warehouses.warehouse",
-//         model: "User",
-//       })
-//       .populate({
-//         path: "company",
-//         model: "User",
-//       });
-//   }
-
-//   res.status(200).json({
-//     status: "success",
-//     count,
-//     data: {
-//       items,
-//     },
-//   });
-// });
-
 // get items by companyId
 exports.getItemsByCompanyId = catchAsync(async (req, res, next) => {
   const { page, limit } = req.query;
@@ -392,91 +322,6 @@ exports.getItemsByWarehouseId = catchAsync(async (req, res, next) => {
   });
 });
 
-// get items by warehouseId
-// exports.getItemsByWarehouseId2 = catchAsync(async (req, res, next) => {
-//   const { page, limit } = req.query;
-
-//   const query = req.query;
-
-//   let items;
-//   let count = 0;
-
-//   let aggregateCondition = [];
-//   let countAggregateCondition = [];
-
-//   aggregateCondition.push({ $match: { isActive: true } });
-
-//   // search by name
-//   if (query.name) {
-//     aggregateCondition.push({
-//       $match: { name: { $regex: query.name, $options: "i" } },
-//     });
-//   }
-
-//   aggregateCondition.push({
-//     $unwind: "$warehouses",
-//   });
-
-//   aggregateCondition.push({
-//     $match: {
-//       "warehouses.warehouse": req.user._id,
-//     },
-//   });
-
-//   aggregateCondition.push({
-//     $lookup: {
-//       from: "users",
-//       localField: "warehouses.warehouse",
-//       foreignField: "_id",
-//       as: "warehouse",
-//     },
-//   });
-
-//   aggregateCondition.push({
-//     $lookup: {
-//       from: "users",
-//       localField: "company",
-//       foreignField: "_id",
-//       as: "company_name",
-//     },
-//   });
-
-//   // search by company name
-//   if (query.companyName) {
-//     aggregateCondition.push({
-//       $match: {
-//         "company_name.name": { $regex: query.companyName, $options: "i" },
-//       },
-//     });
-//   }
-
-//   countAggregateCondition = [...aggregateCondition];
-//   countAggregateCondition.push({
-//     $count: "price",
-//   });
-
-//   aggregateCondition.push({
-//     $sort: { "company_name.name": 1 },
-//   });
-
-//   aggregateCondition.push({
-//     $skip: (page - 1) * (limit * 1),
-//   });
-
-//   aggregateCondition.push({ $limit: limit * 1 });
-
-//   items = await Item.aggregate(aggregateCondition);
-//   count = await Item.aggregate(countAggregateCondition);
-
-//   res.status(200).json({
-//     status: "success",
-//     count,
-//     data: {
-//       items,
-//     },
-//   });
-// });
-
 // add a new item
 exports.addItem = catchAsync(async (req, res, next) => {
   // filter the request body
@@ -552,13 +397,29 @@ exports.changeItemActiveState = catchAsync(async (req, res, next) => {
       itemId,
       { isActive: false },
       { new: true }
-    );
+    )
+      .populate({
+        path: "warehouses.warehouse",
+        model: "User",
+      })
+      .populate({
+        path: "company",
+        model: "User",
+      });
   else
     item = await Item.findByIdAndUpdate(
       itemId,
       { isActive: true },
       { new: true }
-    );
+    )
+      .populate({
+        path: "warehouses.warehouse",
+        model: "User",
+      })
+      .populate({
+        path: "company",
+        model: "User",
+      });
 
   res.status(200).json({
     status: "success",

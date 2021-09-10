@@ -45,11 +45,12 @@ itemRoutes
     authController.restrictTo("company", "admin"),
     itemController.updateItem
   );
+
 itemRoutes
   .route("/active/:itemId")
   .post(
     authController.protect,
-    authController.restrictTo("company"),
+    authController.restrictTo("company", "admin"),
     itemController.changeItemActiveState
   );
 
