@@ -47,6 +47,24 @@ userRouter.post(
   userController.reactivateUser
 );
 
+userRouter.get("/isFavorite", userController.getFavoritesCompanies);
+
+userRouter.post(
+  "/isFavorite/:userId?",
+  authController.protect,
+  authController.restrictTo("admin"),
+  userController.changeIsFavoriteField
+);
+
+userRouter
+  .route("/isNewest/:userId?")
+  .get(userController.getNewestCompanies)
+  .post(
+    authController.protect,
+    authController.restrictTo("admin"),
+    userController.changeIsNewestField
+  );
+
 userRouter.get("/", authController.protect, userController.getUsers);
 
 userRouter.get("/:userId", authController.protect, userController.getUserById);

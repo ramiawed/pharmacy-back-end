@@ -25,6 +25,8 @@ const userAllowedFields = [
   "selectedCount",
   "orderCount",
   "favoriteCount",
+  "isFavorite",
+  "isNewest",
 ];
 
 // remove unwanted property from an object
@@ -164,6 +166,63 @@ exports.reactivateUser = catchAsync(async (req, res, next) => {
   });
 });
 
+// update the isFavorite field for specific company
+exports.changeIsFavoriteField = catchAsync(async (req, res, next) => {
+  const { option } = req.body;
+
+  const user = await User.findByIdAndUpdate(
+    req.params.userId,
+    { isFavorite: option },
+    { new: true }
+  );
+
+  res.status(200).json({
+    status: "added successfully",
+    data: {
+      user,
+    },
+  });
+});
+
+exports.getFavoritesCompanies = catchAsync(async (req, res, next) => {
+  const favoritesCompanies = await User.find({ isFavorite: true });
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      favoritesCompanies,
+    },
+  });
+});
+
+// update the isNewest field for specific company
+exports.changeIsNewestField = catchAsync(async (req, res, next) => {
+  const { option } = req.body;
+  const user = await User.findByIdAndUpdate(
+    req.params.userId,
+    { isNewest: option },
+    { new: true }
+  );
+
+  res.status(200).json({
+    status: "added successfully",
+    data: {
+      user,
+    },
+  });
+});
+
+exports.getNewestCompanies = catchAsync(async (req, res, next) => {
+  const newestCompanies = await User.find({ isNewest: true });
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      newestCompanies,
+    },
+  });
+});
+
 exports.getUserById = catchAsync(async (req, res, next) => {
   const { userId } = req.params;
 
@@ -181,6 +240,8 @@ exports.getUserById = catchAsync(async (req, res, next) => {
 exports.getUsers = catchAsync(async (req, res, next) => {
   const { page, limit } = req.query;
 
+  console.log(req.query);
+
   const query = req.query;
 
   // array that contains all the conditions
@@ -194,6 +255,10 @@ exports.getUsers = catchAsync(async (req, res, next) => {
     conditionArray.push({ name: { $regex: query.name, $options: "i" } });
   } else {
     delete query.name;
+  }
+
+  if (query.isFavorite !== undefined) {
+    conditionArray.push({ isFavorite: query.isFavorite });
   }
 
   // approve condition

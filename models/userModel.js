@@ -113,6 +113,14 @@ var userSchema = new mongoose.Schema(
       default: 0,
     },
     addedToFavoriteDates: [Date],
+    isFavorite: {
+      type: Boolean,
+      default: false,
+    },
+    isNewest: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
