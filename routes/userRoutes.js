@@ -56,14 +56,12 @@ userRouter.post(
   userController.changeIsFavoriteField
 );
 
-userRouter
-  .route("/isNewest/:userId?")
-  .get(userController.getNewestCompanies)
-  .post(
-    authController.protect,
-    authController.restrictTo("admin"),
-    userController.changeIsNewestField
-  );
+userRouter.post(
+  "/isNewest/:userId?",
+  authController.protect,
+  authController.restrictTo("admin"),
+  userController.changeIsNewestField
+);
 
 userRouter.get("/", authController.protect, userController.getUsers);
 

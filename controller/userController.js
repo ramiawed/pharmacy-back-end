@@ -240,8 +240,6 @@ exports.getUserById = catchAsync(async (req, res, next) => {
 exports.getUsers = catchAsync(async (req, res, next) => {
   const { page, limit } = req.query;
 
-  console.log(req.query);
-
   const query = req.query;
 
   // array that contains all the conditions
