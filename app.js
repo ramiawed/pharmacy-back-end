@@ -2,13 +2,13 @@ const express = require("express");
 const cors = require("cors");
 const AppError = require("./utils/appError");
 const globalErrorHandler = require("./controller/errorController");
+
+// routers
 const userRouter = require("./routes/userRoutes");
 const itemRoutes = require("./routes/itemRoutes");
 const favoriteRouter = require("./routes/favoriteRoutes");
 const statisticsRouter = require("./routes/statisticsRoutes");
-
-const nodemailer = require("nodemailer");
-const Excel = require("exceljs");
+const settingRouter = require("./routes/settingRoutes");
 
 global.__basedir = __dirname;
 
@@ -23,8 +23,6 @@ if (process.env.NODE_ENV.trim() === "development") {
     cors({
       origin: "*",
       methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-      // preflightContinue: false,
-      // optionsSuccessStatus: 204,
     })
   );
 }
@@ -32,44 +30,13 @@ if (process.env.NODE_ENV.trim() === "development") {
 // Serving static files
 app.use(express.static(`${__dirname}/public`));
 
-// app.use(function (req, res, next) {
-//   res.header("Access-Control-Allow-Origin", "*");
-//   res.header(
-//     "Access-Control-Allow-Headers",
-//     "Origin, X-Requested-With, Content-Type, Accept"
-//   );
-//   res.header("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE, OPTIONS");
-//   next();
-// });
-
-// const multer = require("multer");
-// const fs = require("fs");
-// const { promisify } = require("util");
-// const pipeline = promisify(require("stream").pipeline);
-// const upload = multer();
-
-// app.post("/api/v1/upload", upload.single("file"), async (req, res, next) => {
-//   const {
-//     file,
-//     body: { name },
-//   } = req;
-
-//   const fileName = "background.jpg";
-
-//   await pipeline(
-//     file.stream,
-//     fs.createWriteStream(`${__dirname}/public/${fileName}`)
-//   );
-
-//   res.send("file uploaded");
-// });
-
 // routes
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/items", itemRoutes);
 app.use("/api/v1/favorites", favoriteRouter);
 app.use("/api/v1/statistics", statisticsRouter);
+app.use("/api/v1/settings", settingRouter);
 
 // function to handle all the router that doesn't catch by
 // previous routes

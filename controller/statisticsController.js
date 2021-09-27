@@ -1,7 +1,6 @@
 const User = require("../models/userModel");
 const Item = require("../models/itemModel");
 const catchAsync = require("../utils/catchAsync");
-const AppError = require("../utils/appError");
 
 // signin count
 exports.incrementSigninCount = catchAsync(async (req, res, next) => {

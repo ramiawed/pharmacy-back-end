@@ -259,6 +259,10 @@ exports.getUsers = catchAsync(async (req, res, next) => {
     conditionArray.push({ isFavorite: query.isFavorite });
   }
 
+  if (query.isNewest !== undefined) {
+    conditionArray.push({ isNewest: query.isNewest });
+  }
+
   // approve condition
   if (query.isApproved !== undefined) {
     conditionArray.push({ isApproved: query.isApproved });
