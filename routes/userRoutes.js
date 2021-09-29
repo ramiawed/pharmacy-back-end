@@ -47,8 +47,6 @@ userRouter.post(
   userController.reactivateUser
 );
 
-userRouter.get("/isFavorite", userController.getFavoritesCompanies);
-
 userRouter.post(
   "/isFavorite/:userId?",
   authController.protect,

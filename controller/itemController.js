@@ -19,6 +19,9 @@ const itemAllowedFields = [
   "logo_url",
   "isActive",
   "warehouses",
+  "isFavorite",
+  "isNewest",
+  "isMostOrdered",
 ];
 
 // remove unwanted property from an object
@@ -43,6 +46,9 @@ exports.getItems = catchAsync(async (req, res, next) => {
     inWarehouse,
     outWarehouse,
     sort,
+    isFavorite,
+    isNewest,
+    isMostOrdered,
   } = req.query;
 
   let count;
@@ -60,6 +66,18 @@ exports.getItems = catchAsync(async (req, res, next) => {
 
   if (itemName) {
     conditionArray.push({ name: { $regex: itemName, $options: "i" } });
+  }
+
+  if (isFavorite !== undefined) {
+    conditionArray.push({ isFavorite: isFavorite });
+  }
+
+  if (isNewest !== undefined) {
+    conditionArray.push({ isNewest: isNewest });
+  }
+
+  if (isMostOrdered !== undefined) {
+    conditionArray.push({ isMostOrdered: isMostOrdered });
   }
 
   // active condition
@@ -372,7 +390,15 @@ exports.updateItem = catchAsync(async (req, res, next) => {
   const updatedItem = await Item.findByIdAndUpdate(itemId, filteredItem, {
     new: true,
     runValidators: true,
-  });
+  })
+    .populate({
+      path: "warehouses.warehouse",
+      model: "User",
+    })
+    .populate({
+      path: "company",
+      model: "User",
+    });
 
   // response with the updated item
   res.status(200).json({
@@ -630,6 +656,31 @@ exports.uploadImage = catchAsync(async (req, res, next) => {
     status: "success",
     data: {
       item: updatedItem,
+    },
+  });
+});
+
+exports.changeIsFavoriteField = catchAsync(async (req, res, next) => {
+  const { option, id } = req.body;
+
+  const item = await Item.findByIdAndUpdate(
+    id,
+    { isFavorite: option },
+    { new: true }
+  )
+    .populate({
+      path: "warehouses.warehouse",
+      model: "User",
+    })
+    .populate({
+      path: "company",
+      model: "User",
+    });
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      item,
     },
   });
 });

@@ -177,20 +177,9 @@ exports.changeIsFavoriteField = catchAsync(async (req, res, next) => {
   );
 
   res.status(200).json({
-    status: "added successfully",
-    data: {
-      user,
-    },
-  });
-});
-
-exports.getFavoritesCompanies = catchAsync(async (req, res, next) => {
-  const favoritesCompanies = await User.find({ isFavorite: true });
-
-  res.status(200).json({
     status: "success",
     data: {
-      favoritesCompanies,
+      user,
     },
   });
 });
