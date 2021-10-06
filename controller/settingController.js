@@ -18,8 +18,6 @@ exports.getAllSettings = catchAsync(async (req, res, next) => {
 exports.updateSetting = catchAsync(async (req, res, next) => {
   const body = req.body;
 
-  console.log(body);
-
   const settings = await Setting.findOneAndUpdate({}, body, {
     new: true,
   });
