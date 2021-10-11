@@ -17,10 +17,13 @@ exports.getAllSettings = catchAsync(async (req, res, next) => {
 // update setting
 exports.updateSetting = catchAsync(async (req, res, next) => {
   const body = req.body;
+  const { field } = req.query;
 
-  const settings = await Setting.findOneAndUpdate({}, body, {
-    new: true,
-  });
+  const settings = await Setting.findOneAndUpdate(
+    {},
+    { [field]: body },
+    { new: true }
+  );
 
   res.status(200).json({
     status: "success",

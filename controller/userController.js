@@ -25,8 +25,8 @@ const userAllowedFields = [
   "selectedCount",
   "orderCount",
   "favoriteCount",
-  "isFavorite",
-  "isNewest",
+  "inSectionOne",
+  "inSectionTwo",
 ];
 
 // remove unwanted property from an object
@@ -167,12 +167,12 @@ exports.reactivateUser = catchAsync(async (req, res, next) => {
 });
 
 // update the isFavorite field for specific company
-exports.changeIsFavoriteField = catchAsync(async (req, res, next) => {
+exports.changeInSectionOne = catchAsync(async (req, res, next) => {
   const { option } = req.body;
 
   const user = await User.findByIdAndUpdate(
     req.params.userId,
-    { isFavorite: option },
+    { inSectionOne: option },
     { new: true }
   );
 
@@ -185,11 +185,11 @@ exports.changeIsFavoriteField = catchAsync(async (req, res, next) => {
 });
 
 // update the isNewest field for specific company
-exports.changeIsNewestField = catchAsync(async (req, res, next) => {
+exports.changeInSectionTwo = catchAsync(async (req, res, next) => {
   const { option } = req.body;
   const user = await User.findByIdAndUpdate(
     req.params.userId,
-    { isNewest: option },
+    { inSectionTwo: option },
     { new: true }
   );
 
@@ -201,16 +201,16 @@ exports.changeIsNewestField = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getNewestCompanies = catchAsync(async (req, res, next) => {
-  const newestCompanies = await User.find({ isNewest: true });
+// exports.getNewestCompanies = catchAsync(async (req, res, next) => {
+//   const newestCompanies = await User.find({ isNewest: true });
 
-  res.status(200).json({
-    status: "success",
-    data: {
-      newestCompanies,
-    },
-  });
-});
+//   res.status(200).json({
+//     status: "success",
+//     data: {
+//       newestCompanies,
+//     },
+//   });
+// });
 
 exports.getUserById = catchAsync(async (req, res, next) => {
   const { userId } = req.params;
@@ -244,12 +244,12 @@ exports.getUsers = catchAsync(async (req, res, next) => {
     delete query.name;
   }
 
-  if (query.isFavorite !== undefined) {
-    conditionArray.push({ isFavorite: query.isFavorite });
+  if (query.inSectionOne !== undefined) {
+    conditionArray.push({ inSectionOne: query.inSectionOne });
   }
 
-  if (query.isNewest !== undefined) {
-    conditionArray.push({ isNewest: query.isNewest });
+  if (query.inSectionTwo !== undefined) {
+    conditionArray.push({ inSectionTwo: query.inSectionTwo });
   }
 
   // approve condition

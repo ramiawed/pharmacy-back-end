@@ -19,9 +19,9 @@ const itemAllowedFields = [
   "logo_url",
   "isActive",
   "warehouses",
-  "isFavorite",
-  "isNewest",
-  "isMostOrdered",
+  "inSectionOne",
+  "inSectionTwo",
+  "inSectionThree",
 ];
 
 // remove unwanted property from an object
@@ -46,9 +46,9 @@ exports.getItems = catchAsync(async (req, res, next) => {
     inWarehouse,
     outWarehouse,
     sort,
-    isFavorite,
-    isNewest,
-    isMostOrdered,
+    inSectionOne,
+    inSectionTwo,
+    inSectionThree,
   } = req.query;
 
   let count;
@@ -68,16 +68,16 @@ exports.getItems = catchAsync(async (req, res, next) => {
     conditionArray.push({ name: { $regex: itemName, $options: "i" } });
   }
 
-  if (isFavorite !== undefined) {
-    conditionArray.push({ isFavorite: isFavorite });
+  if (inSectionOne !== undefined) {
+    conditionArray.push({ inSectionOne: inSectionOne });
   }
 
-  if (isNewest !== undefined) {
-    conditionArray.push({ isNewest: isNewest });
+  if (inSectionTwo !== undefined) {
+    conditionArray.push({ inSectionTwo: inSectionTwo });
   }
 
-  if (isMostOrdered !== undefined) {
-    conditionArray.push({ isMostOrdered: isMostOrdered });
+  if (inSectionThree !== undefined) {
+    conditionArray.push({ inSectionThree: inSectionThree });
   }
 
   // active condition
@@ -665,7 +665,7 @@ exports.changeIsFavoriteField = catchAsync(async (req, res, next) => {
 
   const item = await Item.findByIdAndUpdate(
     id,
-    { isFavorite: option },
+    { inSectionOne: option },
     { new: true }
   )
     .populate({

@@ -48,17 +48,17 @@ userRouter.post(
 );
 
 userRouter.post(
-  "/isFavorite/:userId?",
+  "/inSectionOne/:userId?",
   authController.protect,
   authController.restrictTo("admin"),
-  userController.changeIsFavoriteField
+  userController.changeInSectionOne
 );
 
 userRouter.post(
-  "/isNewest/:userId?",
+  "/inSectionTwo/:userId?",
   authController.protect,
   authController.restrictTo("admin"),
-  userController.changeIsNewestField
+  userController.changeInSectionTwo
 );
 
 userRouter.get("/", authController.protect, userController.getUsers);

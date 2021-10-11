@@ -96,17 +96,21 @@ var itemSchema = new mongoose.Schema(
       default: 0,
     },
     addedToFavoriteDates: [Date],
-    isFavorite: {
+    inSectionOne: {
       type: Boolean,
       default: false,
     },
-    isNewest: {
+    inSectionTwo: {
       type: Boolean,
       default: false,
     },
-    isMostOrdered: {
+    inSectionThree: {
       type: Boolean,
       default: false,
+    },
+    barcode: {
+      type: String,
+      default: "",
     },
   },
   {

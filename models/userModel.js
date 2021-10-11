@@ -113,11 +113,11 @@ var userSchema = new mongoose.Schema(
       default: 0,
     },
     addedToFavoriteDates: [Date],
-    isFavorite: {
+    inSectionOne: {
       type: Boolean,
       default: false,
     },
-    isNewest: {
+    inSectionTwo: {
       type: Boolean,
       default: false,
     },
