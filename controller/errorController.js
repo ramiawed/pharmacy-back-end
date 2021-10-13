@@ -11,8 +11,6 @@ const sendDevError = (err, res) => {
 };
 
 module.exports = (err, req, res, next) => {
-  console.log(err);
-
   if (err.name === "ValidationError") {
     const errors = Object.values(err.errors).map((el) => el.message);
     const message = `${errors.join("_")}`;

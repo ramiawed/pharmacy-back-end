@@ -111,6 +111,10 @@ const settingSchema = new mongoose.Schema({
       default: true,
     },
   },
+  showWarehouseItem: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const Setting = mongoose.model("Setting", settingSchema);

@@ -99,8 +99,6 @@ exports.changeApprovedState = catchAsync(async (req, res, next) => {
   // action may be enable, or disable
   const { action } = req.body;
 
-  console.log("approve");
-
   let user;
 
   if (action === "enable") {
@@ -457,8 +455,6 @@ exports.sendEmail = catchAsync(async (req, res, next) => {
   const user = req.user;
 
   const { cartItems = [] } = req.body;
-
-  console.log(cartItems);
 
   const filename = `Order ${Date.now()}.xlsx`;
   let workbook = new Excel.Workbook();

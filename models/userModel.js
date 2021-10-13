@@ -91,7 +91,7 @@ var userSchema = new mongoose.Schema(
     },
     allowAdmin: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     signinCount: {
       type: Number,
