@@ -115,6 +115,10 @@ const settingSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  saveOrders: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const Setting = mongoose.model("Setting", settingSchema);

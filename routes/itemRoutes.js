@@ -34,7 +34,7 @@ itemRoutes
   .post(
     authController.protect,
     authController.restrictTo("company", "admin"),
-    itemController.addItems
+    itemController.addAndUpdateItems
   );
 
 itemRoutes

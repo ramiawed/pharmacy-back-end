@@ -118,6 +118,8 @@ var itemSchema = new mongoose.Schema(
   }
 );
 
+itemSchema.index({ name: 1, caliber: 1, formula: 1 }, { unique: true });
+
 const Item = mongoose.model("Item", itemSchema);
 
 module.exports = Item;

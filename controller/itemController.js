@@ -362,19 +362,56 @@ exports.addItem = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.addItems = catchAsync(async (req, res, next) => {
-  const items = await Item.insertMany(req.body);
+exports.addAndUpdateItems = catchAsync(async (req, res, next) => {
+  const { withUpdate } = req.query;
+  const items = req.body;
 
-  if (!items) {
-    return next(new AppError("Something went wrong"));
+  if (withUpdate === "addUpdate") {
+    // for (let i = 0; i < items.length; ) {
+    //   await Item.findOneAndUpdate(
+    //     {
+    //       name: items[i].name,
+    //       caliber: items[i].caliber,
+    //       formula: items[i].formula,
+    //     },
+    //     items[i],
+    //     {
+    //       new: true,
+    //       upsert: true,
+    //     },
+    //     (error, doc) => {
+    //       if (doc) {
+    //         i = i + 1;
+    //       }
+    //     }
+    //   );
+    for (let i = 0; i < items.length; i++) {
+      const item = await Item.findOne({
+        name: items[i].name,
+        caliber: items[i].caliber,
+        formula: items[i].formula,
+      });
+
+      if (item) {
+        await Item.updateOne(
+          {
+            name: items[i].name,
+            caliber: items[i].caliber,
+            formula: items[i].formula,
+          },
+          items[i]
+        );
+      } else {
+        await Item.create(items[i]);
+      }
+    }
+  } else {
+    await Item.insertMany(items);
   }
 
   // response with the newly item
   res.status(200).json({
     status: "success",
-    data: {
-      items,
-    },
   });
 });
 
