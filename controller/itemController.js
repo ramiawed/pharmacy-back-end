@@ -65,7 +65,12 @@ exports.getItems = catchAsync(async (req, res, next) => {
   }
 
   if (itemName) {
-    conditionArray.push({ name: { $regex: itemName, $options: "i" } });
+    conditionArray.push({
+      $or: [
+        { name: { $regex: itemName, $options: "i" } },
+        { composition: { $regex: itemName, $options: "i" } },
+      ],
+    });
   }
 
   if (inSectionOne !== undefined) {
