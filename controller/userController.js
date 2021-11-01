@@ -262,7 +262,8 @@ exports.getUsers = catchAsync(async (req, res, next) => {
 
   // city
   if (query.city) {
-    conditionArray.push({ city: { $regex: query.city, $options: "i" } });
+    // conditionArray.push({ city: { $regex: query.city, $options: "i" } });
+    conditionArray.push({ city: query.city });
   } else {
     delete query.city;
   }
@@ -337,6 +338,7 @@ exports.getUsers = catchAsync(async (req, res, next) => {
     count = await User.countDocuments();
 
     users = await User.find()
+      .select("name  logo_url  _id")
       .sort(query.sort ? query.sort + " _id" : "-createdAt -name _id")
       .skip((page - 1) * (limit * 1))
       .limit(limit * 1);

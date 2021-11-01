@@ -138,12 +138,18 @@ exports.getItems = catchAsync(async (req, res, next) => {
     conditionArray.length > 0 ? { $and: conditionArray } : {}
   )
     .sort(sort ? sort + " _id" : "createdAt _id")
+    .select(
+      "_id name caliber formula company warehouses price customer_price logo_url packing"
+    )
     .populate({
       path: "company",
+      model: "User",
+      select: "_id name",
     })
     .populate({
       path: "warehouses.warehouse",
       model: "User",
+      select: "_id name city",
     })
     .skip((page - 1) * (limit * 1))
     .limit(limit * 1);
