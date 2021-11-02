@@ -55,7 +55,7 @@ itemRoutes
   );
 
 itemRoutes
-  .route("/warehouse/add-item/:itemId")
+  .route("/warehouse/add-item/:itemId/:city")
   .post(
     authController.protect,
     authController.restrictTo("warehouse"),
@@ -63,7 +63,7 @@ itemRoutes
   );
 
 itemRoutes
-  .route("/warehouse/remove-item/:itemId")
+  .route("/warehouse/remove-item/:itemId/:city")
   .post(
     authController.protect,
     authController.restrictTo("warehouse", "admin"),

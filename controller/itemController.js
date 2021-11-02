@@ -49,6 +49,7 @@ exports.getItems = catchAsync(async (req, res, next) => {
     inSectionOne,
     inSectionTwo,
     inSectionThree,
+    city,
   } = req.query;
 
   let count;
@@ -122,11 +123,24 @@ exports.getItems = catchAsync(async (req, res, next) => {
     });
   }
 
-  if (inWarehouse) {
-    conditionArray.push({ warehouses: { $ne: [] } });
-  }
+  // if (inWarehouse) {
+  //   conditionArray.push({ warehouses: { $ne: [] } });
+  // }
 
-  if (outWarehouse) {
+  // if (outWarehouse) {
+  //   conditionArray.push({ warehouses: [] });
+  // }
+
+  if (city) {
+    let cityCondition = "existing_place." + city;
+    if (inWarehouse) {
+      conditionArray.push({ [cityCondition]: { $gt: 0 } });
+    } else if (outWarehouse) {
+      conditionArray.push({ [cityCondition]: { $eq: 0 } });
+    }
+  } else if (inWarehouse) {
+    conditionArray.push({ warehouses: { $ne: [] } });
+  } else if (outWarehouse) {
     conditionArray.push({ warehouses: [] });
   }
 
@@ -139,7 +153,7 @@ exports.getItems = catchAsync(async (req, res, next) => {
   )
     .sort(sort ? sort + " _id" : "createdAt _id")
     .select(
-      "_id name caliber formula company warehouses price customer_price logo_url packing"
+      "_id name caliber formula company warehouses price customer_price logo_url packing isActive existing_place"
     )
     .populate({
       path: "company",
@@ -506,7 +520,8 @@ exports.changeItemActiveState = catchAsync(async (req, res, next) => {
 // add item to the warehouse
 exports.addItemToWarehouse = catchAsync(async (req, res, next) => {
   // get the item id from request parameters
-  const { itemId } = req.params;
+
+  const { itemId, city } = req.params;
 
   // get the warehouseId and caliber from request body
   const { warehouseId } = req.body;
@@ -528,6 +543,11 @@ exports.addItemToWarehouse = catchAsync(async (req, res, next) => {
     ...findItem.warehouses,
     { warehouse: warehouseId, maxQty: 0 },
   ];
+
+  findItem.existing_place = {
+    ...findItem.existing_place,
+    [city]: findItem.existing_place[city] + 1,
+  };
 
   await findItem.save();
 
@@ -634,7 +654,7 @@ exports.changeOffer = catchAsync(async (req, res, next) => {
 //remove item from the warehouse
 exports.removeItemFromWarehouse = catchAsync(async (req, res, next) => {
   // get the item id from request parameters
-  const { itemId } = req.params;
+  const { itemId, city } = req.params;
 
   // get the warehouseId and caliber from request body
   const { warehouseId } = req.body;
@@ -655,6 +675,11 @@ exports.removeItemFromWarehouse = catchAsync(async (req, res, next) => {
   findItem.warehouses = findItem.warehouses.filter((w) => {
     return !w.warehouse.equals(warehouseId);
   });
+
+  findItem.existing_place = {
+    ...findItem.existing_place,
+    [city]: findItem.existing_place[city] - 1,
+  };
 
   await findItem.save();
 

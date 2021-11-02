@@ -27,6 +27,7 @@ const userAllowedFields = [
   "favoriteCount",
   "inSectionOne",
   "inSectionTwo",
+  "details",
 ];
 
 // remove unwanted property from an object
@@ -229,6 +230,8 @@ exports.getUsers = catchAsync(async (req, res, next) => {
 
   const query = req.query;
 
+  const details = query.details;
+
   // array that contains all the conditions
   const conditionArray = [];
   if (query.type) {
@@ -338,7 +341,11 @@ exports.getUsers = catchAsync(async (req, res, next) => {
     count = await User.countDocuments();
 
     users = await User.find()
-      .select("name  logo_url  _id")
+      .select(
+        details === "all"
+          ? "-signinCount -signinDates -selectedDate -selectedCount -orderCount -orderDate -addedToFavoriteCount -addedToFavoriteDates -inSectionOne -inSectionTwo"
+          : "name  logo_url  _id city"
+      )
       .sort(query.sort ? query.sort + " _id" : "-createdAt -name _id")
       .skip((page - 1) * (limit * 1))
       .limit(limit * 1);
@@ -351,6 +358,11 @@ exports.getUsers = catchAsync(async (req, res, next) => {
       $and: conditionArray,
     })
       .sort(query.sort ? query.sort : "-createdAt -name ")
+      .select(
+        details === "all"
+          ? "-signinCount -signinDates -selectedDate -selectedCount -orderCount -orderDate -addedToFavoriteCount -addedToFavoriteDates -inSectionOne -inSectionTwo"
+          : "name  logo_url  _id city"
+      )
       .skip((page - 1) * (limit * 1))
       .limit(limit * 1);
   }

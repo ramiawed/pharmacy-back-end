@@ -133,11 +133,6 @@ exports.getUsersStatistics = catchAsync(async (req, res, next) => {
       },
     });
   }
-  // aggregateCondition.push({
-  //   $sort: {
-  //     [field]: -1,
-  //   },
-  // });
 
   // search by name
   if (query.name) {
@@ -292,50 +287,3 @@ exports.getItemsStatistics = catchAsync(async (req, res, next) => {
     },
   });
 });
-
-// if (query.compare && query.compare === "equals") {
-//   const date = query.date;
-//   let nextDay = new Date(date);
-//   nextDay.setDate(nextDay.getDate() + 1);
-
-//   aggregateCondition.push({
-//     $match: {
-//       [field]: {
-//         $gte: new Date(query.date),
-//         $lt: nextDay,
-//       },
-//     },
-//   });
-// }
-
-// if (query.compare && query.compare === "less") {
-//   aggregateCondition.push({
-//     $match: {
-//       [field]: {
-//         $lte: new Date(query.date),
-//       },
-//     },
-//   });
-// }
-
-// if (query.compare && query.compare === "greater") {
-//   aggregateCondition.push({
-//     $match: {
-//       [field]: {
-//         $gte: new Date(query.date),
-//       },
-//     },
-//   });
-// }
-
-// // search in a specific date
-// if (query.compare && query.compare === "between") {
-//   aggregateCondition.push({
-//     $match: {
-//       [field]: {
-//         $gte: new Date(query.date),
-//         $lte: new Date(query.date1),
-//       },
-//     },
-//   });
-// }
