@@ -45,6 +45,28 @@ const settingSchema = new mongoose.Schema({
       default: false,
     },
   },
+  warehousesSectionOne: {
+    show: {
+      type: Boolean,
+      default: true,
+    },
+    title: {
+      type: String,
+      default: "warehouse section one title",
+    },
+    description: {
+      type: String,
+      default: "warehouse section one description",
+    },
+    order: {
+      type: Number,
+      default: 3,
+    },
+    titleRight: {
+      type: Boolean,
+      default: false,
+    },
+  },
   itemsSectionOne: {
     show: {
       type: Boolean,
@@ -60,7 +82,7 @@ const settingSchema = new mongoose.Schema({
     },
     order: {
       type: Number,
-      default: 3,
+      default: 4,
     },
     titleRight: {
       type: Boolean,
@@ -82,7 +104,7 @@ const settingSchema = new mongoose.Schema({
     },
     order: {
       type: Number,
-      default: 4,
+      default: 5,
     },
     titleRight: {
       type: Boolean,
@@ -104,7 +126,7 @@ const settingSchema = new mongoose.Schema({
     },
     order: {
       type: Number,
-      default: 5,
+      default: 6,
     },
     titleRight: {
       type: Boolean,
