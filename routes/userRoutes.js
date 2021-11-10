@@ -12,6 +12,12 @@ userRouter.post("/signin", authController.signin);
 
 userRouter.post("/updateMe", authController.protect, userController.updateMe);
 userRouter.post(
+  "/update/:userId",
+  authController.protect,
+  authController.restrictTo("admin"),
+  userController.update
+);
+userRouter.post(
   "/changeMyPassword",
   authController.protect,
   userController.changeMyPassword
@@ -26,26 +32,26 @@ userRouter.post(
 
 userRouter.post("/deleteMe", authController.protect, userController.deleteMe);
 
-userRouter.post(
-  "/approve/:userId",
-  authController.protect,
-  authController.restrictTo("admin"),
-  userController.changeApprovedState
-);
+// userRouter.post(
+//   "/approve/:userId",
+//   authController.protect,
+//   authController.restrictTo("admin"),
+//   userController.changeApprovedState
+// );
 
-userRouter.post(
-  "/delete/:userId",
-  authController.protect,
-  authController.restrictTo("admin"),
-  userController.deleteUser
-);
+// userRouter.post(
+//   "/delete/:userId",
+//   authController.protect,
+//   authController.restrictTo("admin"),
+//   userController.deleteUser
+// );
 
-userRouter.post(
-  "/reactivate/:userId",
-  authController.protect,
-  authController.restrictTo("admin"),
-  userController.reactivateUser
-);
+// userRouter.post(
+//   "/reactivate/:userId",
+//   authController.protect,
+//   authController.restrictTo("admin"),
+//   userController.reactivateUser
+// );
 
 userRouter.post(
   "/inSectionOne/:userId?",

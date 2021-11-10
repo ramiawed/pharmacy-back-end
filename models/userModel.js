@@ -93,6 +93,10 @@ var userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    allowShowingMedicines: {
+      type: Boolean,
+      default: true,
+    },
     signinCount: {
       type: Number,
       default: 0,

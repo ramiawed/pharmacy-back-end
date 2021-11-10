@@ -28,6 +28,7 @@ const userAllowedFields = [
   "inSectionOne",
   "inSectionTwo",
   "details",
+  "allowShowingMedicines",
 ];
 
 // remove unwanted property from an object
@@ -95,36 +96,36 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
 // change approve property based on the query string
 // if action is enable, set the approve to true
 // if action is disable, set the approve to false
-exports.changeApprovedState = catchAsync(async (req, res, next) => {
-  // get the action from the request body
-  // action may be enable, or disable
-  const { action } = req.body;
+// exports.changeApprovedState = catchAsync(async (req, res, next) => {
+//   // get the action from the request body
+//   // action may be enable, or disable
+//   const { action } = req.body;
 
-  let user;
+//   let user;
 
-  if (action === "enable") {
-    // set the isApproved property to true for a specific user
-    user = await User.findByIdAndUpdate(
-      req.params.userId,
-      { isApproved: true },
-      { new: true }
-    );
-  } else if (action === "disable") {
-    // set the isApproved property to false for a specific user
-    user = await User.findByIdAndUpdate(
-      req.params.userId,
-      { isApproved: false },
-      { new: true }
-    );
-  }
+//   if (action === "enable") {
+//     // set the isApproved property to true for a specific user
+//     user = await User.findByIdAndUpdate(
+//       req.params.userId,
+//       { isApproved: true },
+//       { new: true }
+//     );
+//   } else if (action === "disable") {
+//     // set the isApproved property to false for a specific user
+//     user = await User.findByIdAndUpdate(
+//       req.params.userId,
+//       { isApproved: false },
+//       { new: true }
+//     );
+//   }
 
-  res.status(200).json({
-    status: action === "enable" ? "activation success" : "deactivation success",
-    data: {
-      user,
-    },
-  });
-});
+//   res.status(200).json({
+//     status: action === "enable" ? "activation success" : "deactivation success",
+//     data: {
+//       user,
+//     },
+//   });
+// });
 
 // delete a user by admin
 // get userId from request url parameters
@@ -150,15 +151,33 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
 
 // re activate deleted user
 // get userId from request url parameters
-exports.reactivateUser = catchAsync(async (req, res, next) => {
-  const user = await User.findByIdAndUpdate(
-    req.params.userId,
-    { isActive: true },
-    { new: true }
-  );
+// exports.reactivateUser = catchAsync(async (req, res, next) => {
+//   const user = await User.findByIdAndUpdate(
+//     req.params.userId,
+//     { isActive: true },
+//     { new: true }
+//   );
+
+//   res.status(200).json({
+//     status: "undo delete success",
+//     data: {
+//       user,
+//     },
+//   });
+// });
+
+exports.update = catchAsync(async (req, res, next) => {
+  const userId = req.params.userId;
+  const body = req.body;
+
+  console.log(body);
+
+  const user = await User.findByIdAndUpdate(userId, body, {
+    new: true,
+  });
 
   res.status(200).json({
-    status: "undo delete success",
+    status: "success",
     data: {
       user,
     },
@@ -199,17 +218,6 @@ exports.changeInSectionTwo = catchAsync(async (req, res, next) => {
     },
   });
 });
-
-// exports.getNewestCompanies = catchAsync(async (req, res, next) => {
-//   const newestCompanies = await User.find({ isNewest: true });
-
-//   res.status(200).json({
-//     status: "success",
-//     data: {
-//       newestCompanies,
-//     },
-//   });
-// });
 
 exports.getUserById = catchAsync(async (req, res, next) => {
   const { userId } = req.params;
@@ -344,7 +352,7 @@ exports.getUsers = catchAsync(async (req, res, next) => {
       .select(
         details === "all"
           ? "-signinCount -signinDates -selectedDate -selectedCount -orderCount -orderDate -addedToFavoriteCount -addedToFavoriteDates -inSectionOne -inSectionTwo"
-          : "name  logo_url  _id city"
+          : "name  logo_url  _id city type allowShowingMedicines"
       )
       .sort(query.sort ? query.sort + " _id" : "-createdAt -name _id")
       .skip((page - 1) * (limit * 1))
@@ -361,7 +369,7 @@ exports.getUsers = catchAsync(async (req, res, next) => {
       .select(
         details === "all"
           ? "-signinCount -signinDates -selectedDate -selectedCount -orderCount -orderDate -addedToFavoriteCount -addedToFavoriteDates -inSectionOne -inSectionTwo"
-          : "name  logo_url  _id city"
+          : "name  logo_url  _id city type allowShowingMedicines"
       )
       .skip((page - 1) * (limit * 1))
       .limit(limit * 1);
