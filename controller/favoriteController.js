@@ -13,7 +13,11 @@ exports.getFavorites = catchAsync(async (req, res, next) => {
   }
 
   const favorites = await Favorite.findOne({ userId })
-    .populate({ path: "favorites", model: "User", select: "_id name type" })
+    .populate({
+      path: "favorites",
+      model: "User",
+      select: "_id name type allowShowingMedicines",
+    })
     .populate({
       path: "favorites_items",
       model: "Item",
