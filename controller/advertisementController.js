@@ -1,6 +1,9 @@
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const Advertisement = require("../models/advertisementModel");
+const fs = require("fs");
+const { promisify } = require("util");
+const pipeline = promisify(require("stream").pipeline);
 
 exports.getAllAdvertisements = catchAsync((req, res, next) => {
   const advertisements = await Advertisement.find({});
