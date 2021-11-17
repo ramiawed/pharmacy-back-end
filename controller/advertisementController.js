@@ -5,8 +5,23 @@ const fs = require("fs");
 const { promisify } = require("util");
 const pipeline = promisify(require("stream").pipeline);
 
-exports.getAllAdvertisements = catchAsync((req, res, next) => {
-  const advertisements = await Advertisement.find({});
+exports.getAllAdvertisements = catchAsync(async (req, res, next) => {
+  const advertisements = await Advertisement.find({})
+    .populate({
+      path: "company",
+      model: "User",
+      select: "_id name type allowShowingMedicines",
+    })
+    .populate({
+      path: "warehouse",
+      model: "User",
+      select: "_id name type allowShowingMedicines",
+    })
+    .populate({
+      path: "medicine",
+      model: "Item",
+      select: "_id name",
+    });
 
   res.status(200).json({
     status: "success",
@@ -16,46 +31,86 @@ exports.getAllAdvertisements = catchAsync((req, res, next) => {
   });
 });
 
-exports.addAdvertisement = catchAsync((req, res, next) => {
+exports.deleteAdvertisement = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+
+  const advertisement = await Advertisement.findById(id);
+
+  const logo_url = advertisement.logo_url;
+
+  if (logo_url && logo_url !== "") {
+    if (fs.existsSync(`${__basedir}/public/${logo_url}`)) {
+      fs.unlinkSync(`${__basedir}/public/${logo_url}`);
+      await Advertisement.findByIdAndDelete(id);
+    }
+  }
+
   res.status(200).json({
     status: "success",
     data: {
-      data: [],
+      advertisement,
     },
   });
 });
 
 // change the advertisement logo
-exports.uploadImage = catchAsync(async (req, res, next) => {
-  const { logo_url, _id } = req.user;
+exports.addAdvertisement = catchAsync(async (req, res, next) => {
   const {
     file,
-    body: { name },
+    body: { company, warehouse, medicine, name },
   } = req;
-
-  // if the advertisement have a logo, delete it
-  if (logo_url && logo_url !== "") {
-    if (fs.existsSync(`${__basedir}/public/${logo_url}`)) {
-      fs.unlinkSync(`${__basedir}/public/${logo_url}`);
-      await Advertisement.findByIdAndUpdate(_id, { logo_url: "" });
-    }
-  }
 
   await pipeline(
     file.stream,
     fs.createWriteStream(`${__basedir}/public/${name}`)
   );
 
-  const updateAdvertisement = await Advertisement.findByIdAndUpdate(
-    _id,
-    { logo_url: name },
-    { new: true }
-  );
+  let newAdvertisement = {
+    logo_url: name,
+  };
+
+  if (company !== "null") {
+    newAdvertisement = {
+      ...newAdvertisement,
+      company: `${company}`,
+    };
+  }
+
+  if (warehouse !== "null") {
+    newAdvertisement = {
+      ...newAdvertisement,
+      warehouse: `${warehouse}`,
+    };
+  }
+
+  if (medicine !== "null") {
+    newAdvertisement = {
+      ...newAdvertisement,
+      medicine: `${medicine}`,
+    };
+  }
+
+  let advertisement;
+  try {
+    advertisement = await Advertisement.create(newAdvertisement);
+    advertisement = await advertisement
+      .populate({
+        path: "company",
+        model: "User",
+        select: "_id name type allowShowingMedicines",
+      })
+      .populate({
+        path: "warehouse",
+        model: "User",
+        select: "_id name type allowShowingMedicines",
+      })
+      .execPopulate();
+  } catch (err) {}
 
   res.status(200).json({
     status: "success",
     data: {
-      advertisement: updateAdvertisement,
+      advertisement,
     },
   });
 });

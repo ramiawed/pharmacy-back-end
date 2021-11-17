@@ -2,12 +2,17 @@ const mongoose = require("mongoose");
 
 const advertisementSchema = new mongoose.Schema(
   {
-    partner: {
+    company: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null,
     },
-    item: {
+    warehouse: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    medicine: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Item",
       default: null,
