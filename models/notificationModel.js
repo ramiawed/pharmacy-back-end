@@ -2,15 +2,21 @@ const mongoose = require("mongoose");
 
 const notificationSchema = new mongoose.Schema(
   {
-    text: {
+    header: {
       type: String,
       default: "",
     },
-    users: [
-      {
-        type: String,
-      },
-    ],
+    date: {
+      type: Date,
+      default: Date.now(),
+    },
+    body: {
+      type: String,
+    },
+    logo_url: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,

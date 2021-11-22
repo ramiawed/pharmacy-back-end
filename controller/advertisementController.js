@@ -41,9 +41,10 @@ exports.deleteAdvertisement = catchAsync(async (req, res, next) => {
   if (logo_url && logo_url !== "") {
     if (fs.existsSync(`${__basedir}/public/${logo_url}`)) {
       fs.unlinkSync(`${__basedir}/public/${logo_url}`);
-      await Advertisement.findByIdAndDelete(id);
     }
   }
+
+  await Advertisement.findByIdAndDelete(id);
 
   res.status(200).json({
     status: "success",
@@ -53,7 +54,7 @@ exports.deleteAdvertisement = catchAsync(async (req, res, next) => {
   });
 });
 
-// change the advertisement logo
+// add a new advertisement logo
 exports.addAdvertisement = catchAsync(async (req, res, next) => {
   const {
     file,

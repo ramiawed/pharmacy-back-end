@@ -11,6 +11,7 @@ const statisticsRouter = require("./routes/statisticsRoutes");
 const settingRouter = require("./routes/settingRoutes");
 const orderRouter = require("./routes/orderRoutes");
 const advertisementRouter = require("./routes/advertisementRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 global.__basedir = __dirname;
 
@@ -41,6 +42,7 @@ app.use("/api/v1/statistics", statisticsRouter);
 app.use("/api/v1/settings", settingRouter);
 app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/advertisement", advertisementRouter);
+app.use("/api/v1/notifications", notificationRoutes);
 
 // function to handle all the router that doesn't catch by
 // previous routes
