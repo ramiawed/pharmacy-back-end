@@ -23,6 +23,19 @@ exports.getNotifications = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getNotificationById = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+
+  const notification = await Notification.findById(id);
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      notification,
+    },
+  });
+});
+
 exports.getNotificationsAfterNow = catchAsync(async (req, res, next) => {
   const notifications = await Notification.find({
     date: { $gte: Date.now() },
@@ -42,7 +55,7 @@ exports.setReadNotification = catchAsync(async (req, res, next) => {
 
   const updatedNotification = await Notification.findById(notificationId);
 
-  updatedNotification.users = [...updatedNotification, _id];
+  updatedNotification.users = [...updatedNotification.users, _id];
 
   await updatedNotification.save();
 

@@ -14,10 +14,15 @@ notificationRoutes.get(
   notificationController.getNotifications
 );
 
+notificationRoutes.get(
+  "/:id",
+  authController.protect,
+  notificationController.getNotificationById
+);
+
 notificationRoutes.post(
   "/setread",
   authController.protect,
-  authController.restrictTo("admin"),
   notificationController.setReadNotification
 );
 

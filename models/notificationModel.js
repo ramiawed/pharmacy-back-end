@@ -17,6 +17,12 @@ const notificationSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    users: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     timestamps: true,
