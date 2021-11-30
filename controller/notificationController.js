@@ -109,3 +109,15 @@ exports.deleteNotification = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+exports.getUnreadNotifications = catchAsync(async (req, res, next) => {
+  const { _id } = req.user;
+  const count = await Notification.countDocuments({ users: { $ne: _id } });
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      count,
+    },
+  });
+});

@@ -15,6 +15,12 @@ notificationRoutes.get(
 );
 
 notificationRoutes.get(
+  "/unread",
+  authController.protect,
+  notificationController.getUnreadNotifications
+);
+
+notificationRoutes.get(
   "/:id",
   authController.protect,
   notificationController.getNotificationById
