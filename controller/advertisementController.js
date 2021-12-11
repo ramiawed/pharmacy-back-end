@@ -105,6 +105,11 @@ exports.addAdvertisement = catchAsync(async (req, res, next) => {
         model: "User",
         select: "_id name type allowShowingMedicines",
       })
+      .populate({
+        path: "medicine",
+        model: "Item",
+        select: "_id name",
+      })
       .execPopulate();
   } catch (err) {}
 

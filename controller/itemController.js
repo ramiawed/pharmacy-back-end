@@ -4,6 +4,7 @@ const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 const fs = require("fs");
 const { promisify } = require("util");
+const { truncate } = require("fs");
 const pipeline = promisify(require("stream").pipeline);
 
 const itemAllowedFields = [
@@ -158,7 +159,7 @@ exports.getItems = catchAsync(async (req, res, next) => {
     .populate({
       path: "company",
       model: "User",
-      select: "_id name",
+      select: "_id name allowAdmin",
     })
     .populate({
       path: "warehouses.warehouse",
@@ -392,43 +393,33 @@ exports.addAndUpdateItems = catchAsync(async (req, res, next) => {
   const items = req.body;
 
   if (withUpdate === "addUpdate") {
-    // for (let i = 0; i < items.length; ) {
-    //   await Item.findOneAndUpdate(
-    //     {
-    //       name: items[i].name,
-    //       caliber: items[i].caliber,
-    //       formula: items[i].formula,
-    //     },
-    //     items[i],
-    //     {
-    //       new: true,
-    //       upsert: true,
-    //     },
-    //     (error, doc) => {
-    //       if (doc) {
-    //         i = i + 1;
-    //       }
-    //     }
-    //   );
     for (let i = 0; i < items.length; i++) {
-      const item = await Item.findOne({
-        name: items[i].name,
-        caliber: items[i].caliber,
-        formula: items[i].formula,
-      });
+      const item = await Item.findOneAndUpdate(
+        {
+          name: items[i].name,
+          caliber: items[i].caliber,
+          formula: items[i].formula,
+          packing: items[i].packing,
+        },
+        items[i],
+        {
+          upsert: true,
+        }
+      );
 
-      if (item) {
-        await Item.updateOne(
-          {
-            name: items[i].name,
-            caliber: items[i].caliber,
-            formula: items[i].formula,
-          },
-          items[i]
-        );
-      } else {
-        await Item.create(items[i]);
-      }
+      // if (item) {
+      //   await Item.updateOne(
+      //     {
+      //       name: items[i].name,
+      //       caliber: items[i].caliber,
+      //       formula: items[i].formula,
+      //       packing: items[i].packing,
+      //     },
+      //     items[i]
+      //   );
+      // } else {
+      //   await Item.create(items[i]);
+      // }
     }
   } else {
     await Item.insertMany(items);
