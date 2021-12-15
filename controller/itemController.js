@@ -154,7 +154,7 @@ exports.getItems = catchAsync(async (req, res, next) => {
   )
     .sort(sort ? sort + " _id" : "createdAt _id")
     .select(
-      "_id name caliber formula company warehouses price customer_price logo_url packing isActive existing_place"
+      "_id name caliber formula company warehouses price customer_price logo_url packing isActive existing_place barcode"
     )
     .populate({
       path: "company",
@@ -300,7 +300,7 @@ exports.getItemsByCompanyId = catchAsync(async (req, res, next) => {
   });
 });
 
-// get items by warehouseId
+// // get items by warehouseId
 exports.getItemsByWarehouseId = catchAsync(async (req, res, next) => {
   const { page, limit } = req.query;
 

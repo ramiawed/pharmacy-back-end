@@ -503,7 +503,8 @@ exports.sendEmail = catchAsync(async (req, res, next) => {
   const buffer = await workbook.xlsx.writeBuffer();
 
   const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
+    service: "gmail",
+    // host: "smtp.gmail.com",
     port: 587,
     auth: {
       user: "companypharmalinkclient@gmail.com",
