@@ -17,6 +17,7 @@ const itemAllowedFields = [
   "packing",
   "price",
   "customer_price",
+  "barcode",
   "logo_url",
   "isActive",
   "warehouses",
