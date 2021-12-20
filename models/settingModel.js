@@ -141,6 +141,10 @@ const settingSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  showAdvertisements: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const Setting = mongoose.model("Setting", settingSchema);

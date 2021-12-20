@@ -170,8 +170,6 @@ exports.update = catchAsync(async (req, res, next) => {
   const userId = req.params.userId;
   const body = req.body;
 
-  console.log(body);
-
   const user = await User.findByIdAndUpdate(userId, body, {
     new: true,
   });

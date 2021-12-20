@@ -49,8 +49,6 @@ exports.getOrders = catchAsync(async (req, res, next) => {
     date1 = null,
   } = req.query;
 
-  console.log(req.query);
-
   const conditionArray = [];
 
   if (pharmacyId) {
@@ -155,9 +153,7 @@ exports.saveOrder = catchAsync(async (req, res, next) => {
 
   try {
     await Order.create(body);
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 
   res.status(200).json({
     status: "success",
