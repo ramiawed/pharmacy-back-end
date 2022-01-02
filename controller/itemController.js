@@ -395,18 +395,35 @@ exports.addAndUpdateItems = catchAsync(async (req, res, next) => {
 
   if (withUpdate === "addUpdate") {
     for (let i = 0; i < items.length; i++) {
-      const item = await Item.findOneAndUpdate(
-        {
-          name: items[i].name,
-          caliber: items[i].caliber,
-          formula: items[i].formula,
-          packing: items[i].packing,
-        },
-        items[i],
-        {
-          upsert: true,
-        }
-      );
+      const item = await Item.findOne({
+        name: items[i].name,
+        caliber: items[i].caliber,
+        formula: items[i].formula,
+        packing: items[i].packing,
+      });
+
+      if (item) {
+        await Item.findOneAndUpdate(
+          {
+            name: items[i].name,
+            caliber: items[i].caliber,
+            formula: items[i].formula,
+            packing: items[i].packing,
+          },
+          {
+            price: items[i].price,
+            customer_price: items[i].customer_price,
+            indication: items[i].indication,
+            composition: items[i].composition,
+            barcode: items[i].barcode,
+          },
+          {
+            new: true,
+          }
+        );
+      } else {
+        await Item.create(items[i]);
+      }
 
       // if (item) {
       //   await Item.updateOne(
