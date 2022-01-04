@@ -21,14 +21,9 @@ const app = express();
 app.use(express.json({ limit: "10mb" }));
 
 // MIDDLEWARE
-if (process.env.NODE_ENV.trim() === "development") {
-  app.use(
-    cors({
-      origin: "*",
-      methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    })
-  );
-}
+app.use(cors());
+// if (process.env.NODE_ENV.trim() === "development") {
+// }
 
 // Serving static files
 app.use(express.static(`${__dirname}/public`));
