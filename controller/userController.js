@@ -269,6 +269,10 @@ exports.getUsers = catchAsync(async (req, res, next) => {
     conditionArray.push({ isActive: query.isActive });
   }
 
+  if (query.allowShowingMedicines !== undefined) {
+    conditionArray.push({ allowShowingMedicines: query.allowShowingMedicines });
+  }
+
   // city
   if (query.city) {
     // conditionArray.push({ city: { $regex: query.city, $options: "i" } });
