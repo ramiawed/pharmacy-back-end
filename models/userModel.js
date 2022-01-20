@@ -63,13 +63,18 @@ var userSchema = new mongoose.Schema(
     ],
     city: {
       type: String,
+      required: [true, "You must supply a city"],
     },
-    district: {
+    addressDetails: {
       type: String,
+      required: [true, "You must supply a details address"],
     },
-    street: {
-      type: String,
-    },
+    // district: {
+    //   type: String,
+    // },
+    // street: {
+    //   type: String,
+    // },
     employeeName: {
       type: String,
     },

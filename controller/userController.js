@@ -16,8 +16,9 @@ const userAllowedFields = [
   "email",
   "type",
   "city",
-  "district",
-  "street",
+  "addressDetails",
+  // "district",
+  // "street",
   "employeeName",
   "certificateName",
   "allowAdmin",
@@ -282,21 +283,30 @@ exports.getUsers = catchAsync(async (req, res, next) => {
   }
 
   // district
-  if (query.district) {
-    conditionArray.push({
-      district: { $regex: query.district, $options: "i" },
-    });
-  } else {
-    delete query.district;
-  }
+  // if (query.district) {
+  //   conditionArray.push({
+  //     district: { $regex: query.district, $options: "i" },
+  //   });
+  // } else {
+  //   delete query.district;
+  // }
 
-  // street
-  if (query.street) {
+  // // street
+  // if (query.street) {
+  //   conditionArray.push({
+  //     street: { $regex: query.street, $options: "i" },
+  //   });
+  // } else {
+  //   delete query.street;
+  // }
+
+  // address details
+  if (query.addressDetails) {
     conditionArray.push({
-      street: { $regex: query.street, $options: "i" },
+      addressDetails: { $regex: query.addressDetails, $options: "i" },
     });
   } else {
-    delete query.street;
+    delete query.addressDetails;
   }
 
   // employee name
