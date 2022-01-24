@@ -38,9 +38,9 @@ exports.getOrderById = catchAsync(async (req, res, next) => {
 });
 
 exports.getOrders = catchAsync(async (req, res, next) => {
+  const user = req.user;
+  // console.log(user);
   const {
-    pharmacyId = null,
-    warehouseId = null,
     page,
     limit,
     pharmacyName = null,
@@ -51,12 +51,13 @@ exports.getOrders = catchAsync(async (req, res, next) => {
 
   const conditionArray = [];
 
-  if (pharmacyId) {
-    conditionArray.push({ pharmacy: pharmacyId });
+  if (user.type === "pharmacy") {
+    console.log("pharmacy");
+    conditionArray.push({ pharmacy: user._id });
   }
 
-  if (warehouseId) {
-    conditionArray.push({ warehouse: warehouseId });
+  if (user.type === "warehouse") {
+    conditionArray.push({ warehouse: user._id });
   }
 
   if (pharmacyName) {
