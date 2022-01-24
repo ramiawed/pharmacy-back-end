@@ -5,9 +5,26 @@ const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 
 exports.getOrderById = catchAsync(async (req, res, next) => {
+  const user = req.user;
   const { id } = req.query;
 
-  const order = await Order.findById(id)
+  let updatedField = {};
+
+  if (user.type === "warehouse") {
+    updatedField = {
+      seenByWarehouse: true,
+    };
+  }
+
+  if (user.type === "admin") {
+    updatedField = {
+      seenByAdmin: true,
+    };
+  }
+
+  const order = await Order.findByIdAndUpdate(id, updatedField, {
+    new: true,
+  })
     .populate({
       path: "pharmacy",
       model: "User",
@@ -113,7 +130,7 @@ exports.getOrders = catchAsync(async (req, res, next) => {
     .sort("-createdAt")
     .skip((page - 1) * (limit * 1))
     .limit(limit * 1)
-    .select("_id pharmacy warehouse orderDate")
+    .select("_id pharmacy warehouse orderDate seenByAdmin seenByWarehouse")
     .populate({
       path: "pharmacy",
       model: "User",
@@ -158,7 +175,7 @@ exports.getUnreadOrders = catchAsync(async (req, res, next) => {
     count = await Order.countDocuments({ seenByAdmin: false });
   } else {
     count = await Order.countDocuments({
-      seenByAdmin: false,
+      seenByWarehouse: false,
       warehouse: user._id,
     });
   }
