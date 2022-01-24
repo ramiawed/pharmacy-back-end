@@ -26,17 +26,10 @@ orderRouter.post(
 );
 
 orderRouter.get(
-  "/unread-admin",
+  "/unread",
   authController.protect,
-  authController.restrictTo("admin"),
-  orderController.getUnreadOrderForAdmin
-);
-
-orderRouter.get(
-  "/unread-warehouse/:warehouseId",
-  authController.protect,
-  authController.restrictTo("warehouse"),
-  orderController.getUnreadOrderForWarehouse
+  authController.restrictTo("admin", "warehouse"),
+  orderController.getUnreadOrders
 );
 
 module.exports = orderRouter;

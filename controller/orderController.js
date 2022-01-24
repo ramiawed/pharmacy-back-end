@@ -39,7 +39,6 @@ exports.getOrderById = catchAsync(async (req, res, next) => {
 
 exports.getOrders = catchAsync(async (req, res, next) => {
   const user = req.user;
-  // console.log(user);
   const {
     page,
     limit,
@@ -52,7 +51,6 @@ exports.getOrders = catchAsync(async (req, res, next) => {
   const conditionArray = [];
 
   if (user.type === "pharmacy") {
-    console.log("pharmacy");
     conditionArray.push({ pharmacy: user._id });
   }
 
@@ -151,24 +149,19 @@ exports.saveOrder = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getUnreadOrderForAdmin = catchAsync(async (req, res, next) => {
-  const count = await Order.countDocuments({ seenByAdmin: false });
+exports.getUnreadOrders = catchAsync(async (req, res, next) => {
+  const user = req.user;
 
-  res.status(200).json({
-    status: "success",
-    data: {
-      count,
-    },
-  });
-});
+  let count = 0;
 
-exports.getUnreadOrderForWarehouse = catchAsync(async (req, res, next) => {
-  const { warehouseId } = req.query;
-
-  const count = await Order.countDocuments({
-    seenByAdmin: false,
-    warehouse: warehouseId,
-  });
+  if (user.type === "admin") {
+    count = await Order.countDocuments({ seenByAdmin: false });
+  } else {
+    count = await Order.countDocuments({
+      seenByAdmin: false,
+      warehouse: warehouseId,
+    });
+  }
 
   res.status(200).json({
     status: "success",
