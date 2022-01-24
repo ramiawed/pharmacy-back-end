@@ -514,13 +514,22 @@ exports.sendEmail = catchAsync(async (req, res, next) => {
 
   const buffer = await workbook.xlsx.writeBuffer();
 
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    // host: "smtp.gmail.com",
-    port: 587,
+  // const transporter = nodemailer.createTransport({
+  //   service: "gmail",
+  //   // host: "smtp.gmail.com",
+  //   port: 587,
+  //   auth: {
+  //     user: "companypharmalinkclient@gmail.com",
+  //     pass: "C@mpany(2021)",
+  //   },
+  // });
+
+  const transport = nodemailer.createTransport({
+    host: "smtp.mailtrap.io",
+    port: 2525,
     auth: {
-      user: "companypharmalinkclient@gmail.com",
-      pass: "C@mpany(2021)",
+      user: "8c7107628803a8",
+      pass: "035831fa58bd82",
     },
   });
 
@@ -545,7 +554,7 @@ exports.sendEmail = catchAsync(async (req, res, next) => {
 
   // transporter.verify().then(console.log).catch(console.error);
 
-  await transporter.sendMail(mailOptions);
+  await transport.sendMail(mailOptions);
 
   res.status(200).json({
     status: "success",
