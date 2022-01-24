@@ -14,6 +14,14 @@ const orderSchema = new mongoose.Schema(
       type: Date,
       default: Date.now(),
     },
+    seenByAdmin: {
+      type: Boolean,
+      default: false,
+    },
+    seenByWarehouse: {
+      type: Boolean,
+      default: false,
+    },
 
     items: [
       {

@@ -25,4 +25,18 @@ orderRouter.post(
   orderController.saveOrder
 );
 
+orderRouter.get(
+  "/unread-admin",
+  authController.protect,
+  authController.restrictTo("admin"),
+  orderController.getUnreadOrderForAdmin
+);
+
+orderRouter.get(
+  "/unread-warehouse/:warehouseId",
+  authController.protect,
+  authController.restrictTo("warehouse"),
+  orderController.getUnreadOrderForWarehouse
+);
+
 module.exports = orderRouter;

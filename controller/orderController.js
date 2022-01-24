@@ -126,16 +126,6 @@ exports.getOrders = catchAsync(async (req, res, next) => {
       select: { name: 1 },
     });
 
-  // .populate({
-  //   path: "items.item",
-  //   model: "Item",
-  //   select: { name: 1, formula: 1, caliber: 1, price: 1, customer_price: 1 },
-  //   populate: {
-  //     path: "company",
-  //     model: "User",
-  //     select: { name: 1 },
-  //   },
-  // })
   const count = await Order.countDocuments(
     conditionArray.length > 0 ? { $and: conditionArray } : {}
   );
@@ -157,5 +147,32 @@ exports.saveOrder = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: "success",
+  });
+});
+
+exports.getUnreadOrderForAdmin = catchAsync(async (req, res, next) => {
+  const count = await Order.countDocuments({ seenByAdmin: false });
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      count,
+    },
+  });
+});
+
+exports.getUnreadOrderForWarehouse = catchAsync(async (req, res, next) => {
+  const { warehouseId } = req.query;
+
+  const count = await Order.countDocuments({
+    seenByAdmin: false,
+    warehouse: warehouseId,
+  });
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      count,
+    },
   });
 });

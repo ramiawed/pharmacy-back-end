@@ -32,27 +32,6 @@ userRouter.post(
 
 userRouter.post("/deleteMe", authController.protect, userController.deleteMe);
 
-// userRouter.post(
-//   "/approve/:userId",
-//   authController.protect,
-//   authController.restrictTo("admin"),
-//   userController.changeApprovedState
-// );
-
-// userRouter.post(
-//   "/delete/:userId",
-//   authController.protect,
-//   authController.restrictTo("admin"),
-//   userController.deleteUser
-// );
-
-// userRouter.post(
-//   "/reactivate/:userId",
-//   authController.protect,
-//   authController.restrictTo("admin"),
-//   userController.reactivateUser
-// );
-
 userRouter.post(
   "/inSectionOne/:userId?",
   authController.protect,
