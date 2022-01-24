@@ -159,7 +159,7 @@ exports.getUnreadOrders = catchAsync(async (req, res, next) => {
   } else {
     count = await Order.countDocuments({
       seenByAdmin: false,
-      warehouse: warehouseId,
+      warehouse: user._id,
     });
   }
 
