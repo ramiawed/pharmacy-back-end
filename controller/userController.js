@@ -30,6 +30,7 @@ const userAllowedFields = [
   "inSectionTwo",
   "details",
   "allowShowingMedicines",
+  "paper_url",
 ];
 
 // remove unwanted property from an object
@@ -94,40 +95,6 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
   });
 });
 
-// change approve property based on the query string
-// if action is enable, set the approve to true
-// if action is disable, set the approve to false
-// exports.changeApprovedState = catchAsync(async (req, res, next) => {
-//   // get the action from the request body
-//   // action may be enable, or disable
-//   const { action } = req.body;
-
-//   let user;
-
-//   if (action === "enable") {
-//     // set the isApproved property to true for a specific user
-//     user = await User.findByIdAndUpdate(
-//       req.params.userId,
-//       { isApproved: true },
-//       { new: true }
-//     );
-//   } else if (action === "disable") {
-//     // set the isApproved property to false for a specific user
-//     user = await User.findByIdAndUpdate(
-//       req.params.userId,
-//       { isApproved: false },
-//       { new: true }
-//     );
-//   }
-
-//   res.status(200).json({
-//     status: action === "enable" ? "activation success" : "deactivation success",
-//     data: {
-//       user,
-//     },
-//   });
-// });
-
 // delete a user by admin
 // get userId from request url parameters
 exports.deleteUser = catchAsync(async (req, res, next) => {
@@ -149,23 +116,6 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
     },
   });
 });
-
-// re activate deleted user
-// get userId from request url parameters
-// exports.reactivateUser = catchAsync(async (req, res, next) => {
-//   const user = await User.findByIdAndUpdate(
-//     req.params.userId,
-//     { isActive: true },
-//     { new: true }
-//   );
-
-//   res.status(200).json({
-//     status: "undo delete success",
-//     data: {
-//       user,
-//     },
-//   });
-// });
 
 exports.update = catchAsync(async (req, res, next) => {
   const userId = req.params.userId;
@@ -281,24 +231,6 @@ exports.getUsers = catchAsync(async (req, res, next) => {
   } else {
     delete query.city;
   }
-
-  // district
-  // if (query.district) {
-  //   conditionArray.push({
-  //     district: { $regex: query.district, $options: "i" },
-  //   });
-  // } else {
-  //   delete query.district;
-  // }
-
-  // // street
-  // if (query.street) {
-  //   conditionArray.push({
-  //     street: { $regex: query.street, $options: "i" },
-  //   });
-  // } else {
-  //   delete query.street;
-  // }
 
   // address details
   if (query.addressDetails) {
@@ -484,6 +416,34 @@ exports.uploadImage = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.uploadPaper = catchAsync(async (req, res, next) => {
+  const {
+    file,
+    body: { name, id },
+  } = req;
+
+  const user = await User.findById(id);
+
+  // if the user have a logo, delete it
+  if (user?.paper_url && user?.paper_url !== "") {
+    if (fs.existsSync(`${__basedir}/public/${user.paper_url}`)) {
+      fs.unlinkSync(`${__basedir}/public/${user.paper_url}`);
+      await User.findByIdAndUpdate(id, { paper_url: "" });
+    }
+  }
+
+  await pipeline(
+    file.stream,
+    fs.createWriteStream(`${__basedir}/public/${name}`)
+  );
+
+  await User.findByIdAndUpdate(id, { paper_url: name }, { new: true });
+
+  res.status(200).json({
+    status: "success",
+  });
+});
+
 // send email
 exports.sendEmail = catchAsync(async (req, res, next) => {
   const user = req.user;
@@ -554,7 +514,7 @@ exports.sendEmail = catchAsync(async (req, res, next) => {
 
   // transporter.verify().then(console.log).catch(console.error);
 
-  await transport.sendMail(mailOptions);
+  transport.sendMail(mailOptions);
 
   res.status(200).json({
     status: "success",

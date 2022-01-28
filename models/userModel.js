@@ -130,6 +130,10 @@ var userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    paper_url: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,

@@ -58,6 +58,12 @@ userRouter.post(
 );
 
 userRouter.post(
+  "/upload-paper",
+  upload.single("file"),
+  userController.uploadPaper
+);
+
+userRouter.post(
   "/sendemail",
   authController.protect,
   authController.restrictTo("pharmacy"),
