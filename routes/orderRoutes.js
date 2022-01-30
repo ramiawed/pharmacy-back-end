@@ -32,4 +32,11 @@ orderRouter.get(
   orderController.getUnreadOrders
 );
 
+orderRouter.post(
+  "/delete",
+  authController.protect,
+  authController.restrictTo("admin"),
+  orderController.deleteOrder
+);
+
 module.exports = orderRouter;

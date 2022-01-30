@@ -187,3 +187,16 @@ exports.getUnreadOrders = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+exports.deleteOrder = catchAsync(async (req, res, next) => {
+  const { orderId } = req.body;
+
+  await Order.findByIdAndDelete(orderId);
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      orderId,
+    },
+  });
+});
