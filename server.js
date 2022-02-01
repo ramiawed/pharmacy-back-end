@@ -13,6 +13,40 @@ dotenv.config({ path: "./config.env" });
 
 const app = require("./app");
 
+const httpServer = require("http").createServer(app);
+let io = require("socket.io")(httpServer, {
+  cors: {
+    origin: "http://localhost:3000/",
+    methods: ["GET", "POST"],
+  },
+});
+
+const User = require("./models/userModel");
+const Order = require("./models/orderModel");
+const Item = require("./models/itemModel");
+
+const userStream = User.watch();
+const orderStream = Order.watch();
+// const itemStream = Item.watch();
+
+userStream.on("change", (change) => {
+  // console.log(change); // You could parse out the needed info and send only that data.
+  io.emit("changeData", change);
+});
+
+orderStream.on("change", (change) => {
+  console.log(change); // You could parse out the needed info and send only that data.
+  io.emit("order-changed", change);
+});
+
+// itemStream.on("change", (change) => {
+//   console.log(change);
+// });
+
+// io.on("connection", function () {
+//   console.log("connected");
+// });
+
 // DATABASE CONFIGURATION OPTION {USERNAME, PASSWORD, DBNAME}
 const DB_USER = process.env.DATABASE_USER;
 const DB_PASSWORD = process.env.DATABASE_PASSWORD;
@@ -39,12 +73,13 @@ mongoose
     console.log(err);
   });
 
-require("./socket");
+// require("./socket");
 
 const port = process.env.PORT || 8000;
-const server = app.listen(port, () => {
-  console.log(`App running on port ${port}`);
-});
+httpServer.listen(8000);
+// const server = app.listen(port, () => {
+//   console.log(`App running on port ${port}`);
+// });
 
 // handle all promise rejection
 process.on("unhandledRejection", (err) => {
