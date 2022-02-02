@@ -21,7 +21,7 @@ const app = express();
 app.use(express.json({ limit: "10mb" }));
 
 // MIDDLEWARE
-// app.use(cors());
+app.use(cors());
 // if (process.env.NODE_ENV.trim() === "development") {
 // }
 
