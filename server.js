@@ -14,12 +14,7 @@ dotenv.config({ path: "./config.env" });
 const app = require("./app");
 
 const httpServer = require("http").createServer(app);
-let io = require("socket.io")(httpServer, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"],
-  },
-});
+let io = require("socket.io")(httpServer, {});
 
 const User = require("./models/userModel");
 const Order = require("./models/orderModel");
