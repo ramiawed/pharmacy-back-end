@@ -24,7 +24,6 @@ let io = require("socket.io")(httpServer, {
 const User = require("./models/userModel");
 const Order = require("./models/orderModel");
 const Notification = require("./models/notificationModel");
-const Item = require("./models/itemModel");
 
 const userStream = User.watch();
 const orderStream = Order.watch();
@@ -45,14 +44,6 @@ notificationStream.on("change", (change) => {
   console.log(change);
   io.emit("notification-changed", change);
 });
-
-// itemStream.on("change", (change) => {
-//   console.log(change);
-// });
-
-// io.on("connection", function () {
-//   console.log("connected");
-// });
 
 // DATABASE CONFIGURATION OPTION {USERNAME, PASSWORD, DBNAME}
 const DB_USER = process.env.DATABASE_USER;
@@ -83,7 +74,7 @@ mongoose
 // require("./socket");
 
 const port = process.env.PORT || 8000;
-httpServer.listen(8000);
+httpServer.listen(port);
 // const server = app.listen(port, () => {
 //   console.log(`App running on port ${port}`);
 // });
