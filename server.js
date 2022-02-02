@@ -16,7 +16,7 @@ const app = require("./app");
 const httpServer = require("http").createServer(app);
 let io = require("socket.io")(httpServer, {
   cors: {
-    origin: "https://ramiawed.github.io/pharmacy-frontend",
+    origin: "https://ramiawed.github.io/",
     methods: ["GET", "POST"],
   },
 });
