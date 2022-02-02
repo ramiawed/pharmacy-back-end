@@ -14,7 +14,12 @@ dotenv.config({ path: "./config.env" });
 const app = require("./app");
 
 const httpServer = require("http").createServer(app);
-let io = require("socket.io")(httpServer, {});
+let io = require("socket.io")(httpServer, {
+  cors: {
+    origin: "https://ramiawed.github.io/pharmacy-frontend",
+    methods: ["GET", "POST"],
+  },
+});
 
 const User = require("./models/userModel");
 const Order = require("./models/orderModel");
