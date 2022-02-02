@@ -145,6 +145,7 @@ exports.getOrders = catchAsync(async (req, res, next) => {
   const count = await Order.countDocuments(
     conditionArray.length > 0 ? { $and: conditionArray } : {}
   );
+
   res.status(200).json({
     status: "success",
     count,
