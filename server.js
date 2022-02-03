@@ -16,8 +16,16 @@ const app = require("./app");
 const httpServer = require("http").createServer(app);
 let io = require("socket.io")(httpServer, {
   cors: {
-    origin: "*:*",
-    methods: ["GET", "POST"],
+    origin: ["*"],
+    handlePreflightRequest: (req, res) => {
+      res.writeHead(200, {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET,POST",
+        "Access-Control-Allow-Headers": "my-custom-header",
+        "Access-Control-Allow-Credentials": true,
+      });
+      res.end();
+    },
   },
 });
 
@@ -74,7 +82,7 @@ mongoose
 // require("./socket");
 
 const port = process.env.PORT || 8000;
-httpServer.listen();
+httpServer.listen(port);
 // const server = app.listen(port, () => {
 //   console.log(`App running on port ${port}`);
 // });
