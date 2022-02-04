@@ -19,6 +19,13 @@ orderRouter.get(
 );
 
 orderRouter.post(
+  "/update",
+  authController.protect,
+  authController.restrictTo("admin", "warehouse", "pharmacy"),
+  orderController.updateOrder
+);
+
+orderRouter.post(
   "/",
   authController.protect,
   authController.restrictTo("pharmacy"),

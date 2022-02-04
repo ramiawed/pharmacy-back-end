@@ -22,6 +22,14 @@ const orderSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    warehouseStatus: {
+      type: String,
+      default: "unread",
+    },
+    pharmacyStatus: {
+      type: String,
+      default: "sent",
+    },
 
     items: [
       {

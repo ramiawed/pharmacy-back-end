@@ -5,26 +5,24 @@ const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 
 exports.getOrderById = catchAsync(async (req, res, next) => {
-  const user = req.user;
+  // const user = req.user;
   const { id } = req.query;
 
-  let updatedField = {};
+  // let updatedField = {};
 
-  if (user.type === "warehouse") {
-    updatedField = {
-      seenByWarehouse: true,
-    };
-  }
+  // if (user.type === "warehouse") {
+  //   updatedField = {
+  //     seenByWarehouse: true,
+  //   };
+  // }
 
-  if (user.type === "admin") {
-    updatedField = {
-      seenByAdmin: true,
-    };
-  }
+  // if (user.type === "admin") {
+  //   updatedField = {
+  //     seenByAdmin: true,
+  //   };
+  // }
 
-  const order = await Order.findByIdAndUpdate(id, updatedField, {
-    new: true,
-  })
+  const order = await Order.findById(id)
     .populate({
       path: "pharmacy",
       model: "User",
@@ -50,6 +48,35 @@ exports.getOrderById = catchAsync(async (req, res, next) => {
     status: "success",
     data: {
       order,
+    },
+  });
+});
+
+exports.updateOrder = catchAsync(async (req, res, next) => {
+  const { id } = req.query;
+  const body = req.body;
+
+  const updatedOrder = await Order.findByIdAndUpdate(id, body, {
+    new: true,
+  })
+    .select(
+      "_id pharmacy warehouse orderDate seenByAdmin seenByWarehouse warehouseStatus pharmacyStatus"
+    )
+    .populate({
+      path: "pharmacy",
+      model: "User",
+      select: { name: 1 },
+    })
+    .populate({
+      path: "warehouse",
+      model: "User",
+      select: { name: 1 },
+    });
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      order: updatedOrder,
     },
   });
 });
@@ -130,7 +157,9 @@ exports.getOrders = catchAsync(async (req, res, next) => {
     .sort("-createdAt")
     .skip((page - 1) * (limit * 1))
     .limit(limit * 1)
-    .select("_id pharmacy warehouse orderDate seenByAdmin seenByWarehouse")
+    .select(
+      "_id pharmacy warehouse orderDate seenByAdmin seenByWarehouse warehouseStatus pharmacyStatus"
+    )
     .populate({
       path: "pharmacy",
       model: "User",
