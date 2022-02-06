@@ -49,7 +49,7 @@ orderRouter.get(
 orderRouter.post(
   "/delete",
   authController.protect,
-  authController.restrictTo("admin"),
+  authController.restrictTo("admin", "pharmacy", "warehouse"),
   orderController.deleteOrder
 );
 
