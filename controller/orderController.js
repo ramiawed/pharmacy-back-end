@@ -8,20 +8,6 @@ exports.getOrderById = catchAsync(async (req, res, next) => {
   // const user = req.user;
   const { id } = req.query;
 
-  // let updatedField = {};
-
-  // if (user.type === "warehouse") {
-  //   updatedField = {
-  //     seenByWarehouse: true,
-  //   };
-  // }
-
-  // if (user.type === "admin") {
-  //   updatedField = {
-  //     seenByAdmin: true,
-  //   };
-  // }
-
   const order = await Order.findById(id)
     .populate({
       path: "pharmacy",
@@ -78,6 +64,18 @@ exports.updateOrder = catchAsync(async (req, res, next) => {
     data: {
       order: updatedOrder,
     },
+  });
+});
+
+exports.updateOrders = catchAsync(async (req, res, next) => {
+  const { ids, body } = req.body;
+
+  for (let i = 0; i < ids.length; i++) {
+    await Order.findByIdAndUpdate(ids[i], body, {});
+  }
+
+  res.status(200).json({
+    status: "success",
   });
 });
 
@@ -158,7 +156,7 @@ exports.getOrders = catchAsync(async (req, res, next) => {
     .skip((page - 1) * (limit * 1))
     .limit(limit * 1)
     .select(
-      "_id pharmacy warehouse orderDate seenByAdmin seenByWarehouse warehouseStatus pharmacyStatus"
+      "_id pharmacy warehouse orderDate seenByAdmin seenByWarehouse warehouseStatus pharmacyStatus updatedAt createdAt"
     )
     .populate({
       path: "pharmacy",
@@ -205,7 +203,7 @@ exports.getUnreadOrders = catchAsync(async (req, res, next) => {
     count = await Order.countDocuments({ seenByAdmin: false });
   } else {
     count = await Order.countDocuments({
-      seenByWarehouse: false,
+      warehouseStatus: "unread",
       warehouse: user._id,
     });
   }

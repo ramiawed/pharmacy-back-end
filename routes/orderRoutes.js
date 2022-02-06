@@ -26,6 +26,13 @@ orderRouter.post(
 );
 
 orderRouter.post(
+  "/updates",
+  authController.protect,
+  authController.restrictTo("admin", "warehouse", "pharmacy"),
+  orderController.updateOrders
+);
+
+orderRouter.post(
   "/",
   authController.protect,
   authController.restrictTo("pharmacy"),
