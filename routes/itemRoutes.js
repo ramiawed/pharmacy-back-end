@@ -29,6 +29,12 @@ itemRoutes
   .route("/:companyId")
   .get(authController.protect, itemController.getItemsByCompanyId);
 
+itemRoutes.get(
+  "/allItem/:companyId",
+  authController.protect,
+  itemController.getAllItemsForCompany
+);
+
 itemRoutes
   .route("/excel")
   .post(

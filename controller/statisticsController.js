@@ -1,6 +1,26 @@
 const User = require("../models/userModel");
 const Item = require("../models/itemModel");
+const Statistic = require("../models/statisticModel");
 const catchAsync = require("../utils/catchAsync");
+
+exports.addStatistics = catchAsync(async (req, res, next) => {
+  const body = req.body;
+  await Statistic.create(body);
+
+  res.status(200).json({
+    status: "success",
+  });
+});
+
+exports.getStatistics = catchAsync(async (req, res, next) => {
+  const statistics = await Statistic.find({});
+  res.status(200).json({
+    status: "success",
+    data: {
+      statistics,
+    },
+  });
+});
 
 // signin count
 exports.incrementSigninCount = catchAsync(async (req, res, next) => {

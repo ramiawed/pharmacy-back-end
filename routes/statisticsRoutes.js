@@ -46,6 +46,19 @@ statisticsRouter.post(
   statisticsController.incrementSelectedItem
 );
 
+statisticsRouter.post(
+  "/",
+  authController.protect,
+  statisticsController.addStatistics
+);
+
+statisticsRouter.get(
+  "/",
+  authController.protect,
+  authController.restrictTo("admin"),
+  statisticsController.getStatistics
+);
+
 statisticsRouter.get("/users", statisticsController.getUsersStatistics);
 statisticsRouter.get("/items", statisticsController.getItemsStatistics);
 

@@ -301,6 +301,19 @@ exports.getItemsByCompanyId = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getAllItemsForCompany = catchAsync(async (req, res, next) => {
+  const items = await Item.find({ company: req.params.companyId }).select(
+    "_id name caliber formula indication composition packing price customer_price"
+  );
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      items,
+    },
+  });
+});
+
 // // get items by warehouseId
 exports.getItemsByWarehouseId = catchAsync(async (req, res, next) => {
   const { page, limit } = req.query;
@@ -395,49 +408,13 @@ exports.addAndUpdateItems = catchAsync(async (req, res, next) => {
 
   if (withUpdate === "addUpdate") {
     for (let i = 0; i < items.length; i++) {
-      const item = await Item.findOne({
-        name: items[i].name,
-        caliber: items[i].caliber,
-        formula: items[i].formula,
-        packing: items[i].packing,
+      await Item.findByIdAndUpdate(items[i]._id, {
+        price: items[i].price,
+        customer_price: items[i].customer_price,
+        indication: items[i].indication,
+        composition: items[i].composition,
+        barcode: items[i].barcode,
       });
-
-      if (item) {
-        await Item.findOneAndUpdate(
-          {
-            name: items[i].name,
-            caliber: items[i].caliber,
-            formula: items[i].formula,
-            packing: items[i].packing,
-          },
-          {
-            price: items[i].price,
-            customer_price: items[i].customer_price,
-            indication: items[i].indication,
-            composition: items[i].composition,
-            barcode: items[i].barcode,
-          },
-          {
-            new: true,
-          }
-        );
-      } else {
-        await Item.create(items[i]);
-      }
-
-      // if (item) {
-      //   await Item.updateOne(
-      //     {
-      //       name: items[i].name,
-      //       caliber: items[i].caliber,
-      //       formula: items[i].formula,
-      //       packing: items[i].packing,
-      //     },
-      //     items[i]
-      //   );
-      // } else {
-      //   await Item.create(items[i]);
-      // }
     }
   } else {
     await Item.insertMany(items);
@@ -448,6 +425,52 @@ exports.addAndUpdateItems = catchAsync(async (req, res, next) => {
     status: "success",
   });
 });
+
+// exports.addAndUpdateItems = catchAsync(async (req, res, next) => {
+//   const { withUpdate } = req.query;
+//   const items = req.body;
+
+//   if (withUpdate === "addUpdate") {
+//     for (let i = 0; i < items.length; i++) {
+//       const item = await Item.findOne({
+//         name: items[i].name,
+//         caliber: items[i].caliber,
+//         formula: items[i].formula,
+//         packing: items[i].packing,
+//       });
+
+//       if (item) {
+//         await Item.findOneAndUpdate(
+//           {
+//             name: items[i].name,
+//             caliber: items[i].caliber,
+//             formula: items[i].formula,
+//             packing: items[i].packing,
+//           },
+//           {
+//             price: items[i].price,
+//             customer_price: items[i].customer_price,
+//             indication: items[i].indication,
+//             composition: items[i].composition,
+//             barcode: items[i].barcode,
+//           },
+//           {
+//             new: true,
+//           }
+//         );
+//       } else {
+//         await Item.create(items[i]);
+//       }
+//     }
+//   } else {
+//     await Item.insertMany(items);
+//   }
+
+//   // response with the newly item
+//   res.status(200).json({
+//     status: "success",
+//   });
+// });
 
 // update an item
 exports.updateItem = catchAsync(async (req, res, next) => {
