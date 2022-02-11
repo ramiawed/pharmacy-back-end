@@ -171,6 +171,8 @@ exports.changeInSectionTwo = catchAsync(async (req, res, next) => {
 exports.getUserById = catchAsync(async (req, res, next) => {
   const { userId } = req.params;
 
+  console.log(userId);
+
   const user = await User.findById(userId);
 
   res.status(200).json({
