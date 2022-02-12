@@ -72,6 +72,7 @@ exports.getItems = catchAsync(async (req, res, next) => {
       $or: [
         { name: { $regex: itemName, $options: "i" } },
         { composition: { $regex: itemName, $options: "i" } },
+        { barcode: itemName },
       ],
     });
   }
