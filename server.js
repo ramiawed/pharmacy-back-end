@@ -33,12 +33,13 @@ const User = require("./models/userModel");
 const Order = require("./models/orderModel");
 const Notification = require("./models/notificationModel");
 const Setting = require("./models/settingModel");
+const Item = require("./models/itemModel");
 
 const userStream = User.watch();
 const orderStream = Order.watch();
 const notificationStream = Notification.watch();
 const settingStream = Setting.watch();
-// const itemStream = Item.watch();
+const itemStream = Item.watch();
 
 userStream.on("change", async (change) => {
   console.log(change); // You could parse out the needed info and send only that data.
@@ -133,6 +134,78 @@ notificationStream.on("change", (change) => {
 settingStream.on("change", (change) => {
   console.log(change);
   io.emit("settings-changed", change);
+});
+
+itemStream.on("change", async (change) => {
+  console.log(change);
+
+  if (change.operationType === "update") {
+    // item added to section one
+    if (
+      Object.keys(change.updateDescription.updatedFields).includes(
+        "inSectionOne"
+      ) &&
+      change.updateDescription.updatedFields.inSectionOne === true
+    ) {
+      const item = await Item.findById(change.documentKey._id);
+      io.emit("item-added-to-section-one", item);
+    }
+
+    // item remove from section one
+    if (
+      Object.keys(change.updateDescription.updatedFields).includes(
+        "inSectionOne"
+      ) &&
+      change.updateDescription.updatedFields.inSectionOne === false
+    ) {
+      const item = await Item.findById(change.documentKey._id).select("_id");
+      io.emit("item-removed-from-section-one", item._id);
+    }
+
+    // item added to section two
+    if (
+      Object.keys(change.updateDescription.updatedFields).includes(
+        "inSectionTwo"
+      ) &&
+      change.updateDescription.updatedFields.inSectionTwo === true
+    ) {
+      const item = await Item.findById(change.documentKey._id);
+      io.emit("item-added-to-section-two", item);
+    }
+
+    // item remove from section two
+    if (
+      Object.keys(change.updateDescription.updatedFields).includes(
+        "inSectionTwo"
+      ) &&
+      change.updateDescription.updatedFields.inSectionTwo === false
+    ) {
+      const item = await Item.findById(change.documentKey._id).select("_id");
+      io.emit("item-removed-from-section-two", item._id);
+    }
+
+    // item added to section three
+    if (
+      Object.keys(change.updateDescription.updatedFields).includes(
+        "inSectionThree"
+      ) &&
+      change.updateDescription.updatedFields.inSectionThree === true
+    ) {
+      const item = await Item.findById(change.documentKey._id);
+      io.emit("item-added-to-section-three", item);
+    }
+
+    // item remove from section three
+    if (
+      Object.keys(change.updateDescription.updatedFields).includes(
+        "inSectionThree"
+      ) &&
+      change.updateDescription.updatedFields.inSectionThree === false
+    ) {
+      const item = await Item.findById(change.documentKey._id).select("_id");
+      io.emit("item-removed-from-section-three", item._id);
+    }
+  }
 });
 
 // DATABASE CONFIGURATION OPTION {USERNAME, PASSWORD, DBNAME}
