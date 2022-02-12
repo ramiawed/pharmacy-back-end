@@ -187,12 +187,18 @@ exports.getItemById = catchAsync(async (req, res, next) => {
   }
 
   const item = await Item.findById(itemId)
+    .select(
+      "_id name caliber formula company warehouses price customer_price logo_url packing isActive existing_place barcode"
+    )
     .populate({
       path: "company",
+      model: "User",
+      select: "_id name allowAdmin",
     })
     .populate({
       path: "warehouses.warehouse",
       model: "User",
+      select: "_id name city",
     });
 
   if (!item) {
@@ -207,100 +213,6 @@ exports.getItemById = catchAsync(async (req, res, next) => {
   });
 });
 
-// get items by companyId
-exports.getItemsByCompanyId = catchAsync(async (req, res, next) => {
-  const { page, limit } = req.query;
-  const { _id, type } = req.user;
-
-  const query = req.query;
-
-  // array that contains all the conditions
-  const conditionArray = [];
-
-  conditionArray.push({ company: req.params.companyId });
-
-  // name condition
-  if (query.name) {
-    conditionArray.push({ name: { $regex: query.name, $options: "i" } });
-  } else {
-    delete query.name;
-  }
-
-  // in and out warehouse
-  if (query.inWarehouse && type === "warehouse") {
-    conditionArray.push({ "warehouses.warehouse": _id });
-  }
-
-  if (query.inWarehouse && type !== "warehouse") {
-    conditionArray.push({ warehouses: { $ne: [] } });
-  }
-
-  if (query.outWarehouse && type === "warehouse") {
-    conditionArray.push({ "warehouses.warehouse": { $ne: _id } });
-  }
-
-  if (query.outWarehouse && type !== "warehouse") {
-    conditionArray.push({ warehouses: [] });
-  }
-
-  // has an offer
-  if (query.hasOffer) {
-  }
-
-  if (query.noOffer) {
-  }
-
-  // active condition
-  conditionArray.push({ isActive: true });
-
-  let count;
-  let items;
-
-  if (conditionArray.length === 0) {
-    count = await Item.countDocuments();
-
-    items = await Item.find({})
-      .sort({ createdAt: -1, _id: 1 })
-      .skip((page - 1) * (limit * 1))
-      .limit(limit * 1)
-      .populate({
-        path: "warehouses.warehouse",
-        model: "User",
-      })
-      .populate({
-        path: "company",
-        model: "User",
-      });
-  } else {
-    count = await Item.countDocuments({
-      $and: conditionArray,
-    });
-
-    items = await Item.find({
-      $and: conditionArray,
-    })
-      .sort({ createdAt: -1, _id: 1 })
-      .skip((page - 1) * (limit * 1))
-      .limit(limit * 1)
-      .populate({
-        path: "warehouses.warehouse",
-        model: "User",
-      })
-      .populate({
-        path: "company",
-        model: "User",
-      });
-  }
-
-  res.status(200).json({
-    status: "success",
-    count,
-    data: {
-      items,
-    },
-  });
-});
-
 exports.getAllItemsForCompany = catchAsync(async (req, res, next) => {
   const items = await Item.find({ company: req.params.companyId }).select(
     "_id name caliber formula indication composition packing price customer_price"
@@ -308,72 +220,6 @@ exports.getAllItemsForCompany = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: "success",
-    data: {
-      items,
-    },
-  });
-});
-
-// // get items by warehouseId
-exports.getItemsByWarehouseId = catchAsync(async (req, res, next) => {
-  const { page, limit } = req.query;
-
-  const query = req.query;
-
-  let items;
-  let count;
-
-  const conditionArray = [];
-
-  conditionArray.push({ isActive: true });
-
-  conditionArray.push({
-    "warehouses.warehouse": req.user._id,
-  });
-
-  // search by name
-  if (query.name) {
-    conditionArray.push({
-      name: { $regex: query.name, $options: "i" },
-    });
-  }
-
-  // search by company name
-  if (query.companyName) {
-    // get the ids for all company that there name match the companyName
-    const companiesArray = await User.find({
-      name: { $regex: query.companyName, $options: "i" },
-    });
-
-    // map each company object to it's id
-    const arr = companiesArray.map((company) => company._id);
-
-    // get all items that company id in the companies ids array
-    conditionArray.push({
-      company: { $in: arr },
-    });
-  }
-
-  count = await Item.countDocuments({
-    $and: conditionArray,
-  });
-
-  items = await Item.find({ $and: conditionArray })
-    .populate({
-      path: "warehouses.warehouse",
-      model: "User",
-    })
-    .populate({
-      path: "company",
-      model: "User",
-    })
-    .sort({ "company.name": -1, _id: 1 })
-    .skip((page - 1) * (limit * 1))
-    .limit(limit * 1);
-
-  res.status(200).json({
-    status: "success",
-    count,
     data: {
       items,
     },

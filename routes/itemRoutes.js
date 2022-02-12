@@ -17,18 +17,6 @@ itemRoutes
     itemController.addItem
   );
 
-itemRoutes
-  .route("/warehouseItems")
-  .get(
-    authController.protect,
-    authController.restrictTo("warehouse"),
-    itemController.getItemsByWarehouseId
-  );
-
-itemRoutes
-  .route("/:companyId")
-  .get(authController.protect, itemController.getItemsByCompanyId);
-
 itemRoutes.get(
   "/allItem/:companyId",
   authController.protect,
