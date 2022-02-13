@@ -52,6 +52,7 @@ exports.getItems = catchAsync(async (req, res, next) => {
     inSectionTwo,
     inSectionThree,
     city,
+    barcode,
   } = req.query;
 
   let count;
@@ -216,7 +217,7 @@ exports.getItemById = catchAsync(async (req, res, next) => {
 
 exports.getAllItemsForCompany = catchAsync(async (req, res, next) => {
   const items = await Item.find({ company: req.params.companyId }).select(
-    "_id name caliber formula indication composition packing price customer_price"
+    "_id name caliber formula indication composition packing price customer_price barcode"
   );
 
   res.status(200).json({
