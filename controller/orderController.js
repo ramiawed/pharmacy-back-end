@@ -88,6 +88,9 @@ exports.getOrders = catchAsync(async (req, res, next) => {
     warehouseName = null,
     date = null,
     date1 = null,
+    pharmacyStatus = "",
+    warehouseStatus = "",
+    adminOrderStatus = "",
   } = req.query;
 
   const conditionArray = [];
@@ -137,6 +140,20 @@ exports.getOrders = catchAsync(async (req, res, next) => {
     // get all items that company id in the companies ids array
     conditionArray.push({
       warehouse: { $in: arr },
+    });
+  }
+
+  if (pharmacyStatus !== "") {
+    conditionArray.push({ pharmacyStatus: pharmacyStatus });
+  }
+
+  if (warehouseStatus !== "") {
+    conditionArray.push({ warehouseStatus: warehouseStatus });
+  }
+
+  if (adminOrderStatus !== "") {
+    conditionArray.push({
+      seenByAdmin: adminOrderStatus === "seen" ? true : false,
     });
   }
 
