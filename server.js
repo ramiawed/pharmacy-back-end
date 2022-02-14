@@ -34,12 +34,14 @@ const Order = require("./models/orderModel");
 const Notification = require("./models/notificationModel");
 const Setting = require("./models/settingModel");
 const Item = require("./models/itemModel");
+const Advertisement = require("./models/advertisementModel");
 
 const userStream = User.watch();
 const orderStream = Order.watch();
 const notificationStream = Notification.watch();
 const settingStream = Setting.watch();
 const itemStream = Item.watch();
+const advertisementStream = Advertisement.watch();
 
 userStream.on("change", async (change) => {
   console.log(change); // You could parse out the needed info and send only that data.
@@ -205,6 +207,13 @@ itemStream.on("change", async (change) => {
       const item = await Item.findById(change.documentKey._id).select("_id");
       io.emit("item-removed-from-section-three", item._id);
     }
+  }
+});
+
+advertisementStream.on("change", (change) => {
+  console.log(change);
+  if (change.operationType === "insert") {
+    io.emit("new-advertisement", change.fullDocument);
   }
 });
 
