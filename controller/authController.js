@@ -88,11 +88,6 @@ exports.signup = catchAsync(async (req, res, next) => {
     return next(new AppError("provide unique username", 400, ["username"]));
   }
 
-  // get the approve automatically to normal user
-  if (filterUser.type === "normal") {
-    filterUser.isApproved = true;
-  }
-
   // create a new user
   const newUser = await User.create(filterUser);
 
