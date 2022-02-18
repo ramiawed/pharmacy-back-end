@@ -129,12 +129,6 @@ exports.signin = catchAsync(async (req, res, next) => {
     );
   }
 
-  // user = await User.findByIdAndUpdate(
-  //   user._id,
-  //   { signinCount: user.signinCount + 1 },
-  //   { runValidators: false, new: true }
-  // );
-
   // 3- if everything ok, send token to client
   createSendToken(user, 200, res);
 });

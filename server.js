@@ -120,7 +120,11 @@ userStream.on("change", async (change) => {
     }
   }
 
-  io.emit("user-changed", change);
+  if (change.operationType === "insert") {
+    io.emit("user-added", change.fullDocument);
+  }
+
+  // io.emit("user-changed", change);
 });
 
 orderStream.on("change", (change) => {
@@ -206,6 +210,30 @@ itemStream.on("change", async (change) => {
     ) {
       const item = await Item.findById(change.documentKey._id).select("_id");
       io.emit("item-removed-from-section-three", item._id);
+    }
+
+    // warehouse add a bonus to item
+    if (
+      Object.keys(change.updateDescription.updatedFields).includes("warehouses")
+    ) {
+      const warehouses = [];
+      for (
+        let i = 0;
+        i < change.updateDescription.updatedFields["warehouses"].length;
+        i++
+      ) {
+        const warehouse = await User.findById(
+          change.updateDescription.updatedFields["warehouses"][i].warehouse
+        ).select("_id name city");
+        warehouses.push({
+          ...change.updateDescription.updatedFields["warehouses"][i],
+          warehouse,
+        });
+      }
+      io.emit("warehouse-add-bonus", {
+        itemId: change.documentKey._id,
+        warehouses,
+      });
     }
   }
 });

@@ -12,7 +12,7 @@ exports.getOrderById = catchAsync(async (req, res, next) => {
     .populate({
       path: "pharmacy",
       model: "User",
-      select: { name: 1 },
+      select: { name: 1, addressDetails: 1 },
     })
     .populate({
       path: "warehouse",
@@ -51,7 +51,7 @@ exports.updateOrder = catchAsync(async (req, res, next) => {
     .populate({
       path: "pharmacy",
       model: "User",
-      select: { name: 1 },
+      select: { name: 1, addressDetails: 1 },
     })
     .populate({
       path: "warehouse",
@@ -178,7 +178,7 @@ exports.getOrders = catchAsync(async (req, res, next) => {
     .populate({
       path: "pharmacy",
       model: "User",
-      select: { name: 1 },
+      select: { name: 1, addressDetails: 1 },
     })
     .populate({
       path: "warehouse",
