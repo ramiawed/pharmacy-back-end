@@ -9,6 +9,7 @@ const userRouter = express.Router();
 
 userRouter.post("/signup", authController.signup);
 userRouter.post("/signin", authController.signin);
+userRouter.get("/me", authController.protect, userController.getMyDetails);
 
 userRouter.post("/updateMe", authController.protect, userController.updateMe);
 userRouter.post(

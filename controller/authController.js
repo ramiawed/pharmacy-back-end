@@ -20,10 +20,14 @@ const userAllowedFields = [
   "certificateName",
   "guestDetails",
   "allowAdmin",
-  "signinCount",
-  "selectedCount",
-  "orderCount",
-  "favoriteCount",
+  "allowShowingMedicines",
+  "paper_url",
+  "inSectionOne",
+  "inSectionTwo",
+  // "signinCount",
+  // "selectedCount",
+  // "orderCount",
+  // "favoriteCount",
 ];
 
 // remove unwanted property from object
@@ -58,11 +62,20 @@ const createSendToken = async (user, statusCode, res) => {
   // remove password from the output
   user.password = undefined;
 
+  console.log(user);
+
   res.status(statusCode).json({
     status: "success",
     token,
     data: {
-      user,
+      user: {
+        _id: user._id,
+        name: user.name,
+        username: user.username,
+        type: user.type,
+        logo_url: user.logo_url,
+        city: user.city,
+      },
     },
   });
 };

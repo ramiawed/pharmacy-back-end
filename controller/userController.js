@@ -17,8 +17,6 @@ const userAllowedFields = [
   "type",
   "city",
   "addressDetails",
-  // "district",
-  // "street",
   "employeeName",
   "certificateName",
   "allowAdmin",
@@ -92,28 +90,6 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: "success",
-  });
-});
-
-// delete a user by admin
-// get userId from request url parameters
-exports.deleteUser = catchAsync(async (req, res, next) => {
-  const user = await User.findByIdAndUpdate(
-    req.params.userId,
-    {
-      isActive: false,
-      isApproved: false,
-    },
-    {
-      new: true,
-    }
-  );
-
-  res.status(200).json({
-    status: "delete success",
-    data: {
-      user,
-    },
   });
 });
 
@@ -357,9 +333,9 @@ exports.changeMyPassword = catchAsync(async (req, res, next) => {
   // 4- return succeeded
   res.status(200).json({
     status: "success",
-    data: {
-      user: updateUser,
-    },
+    // data: {
+    //   user: updateUser,
+    // },
   });
 });
 
@@ -379,6 +355,17 @@ exports.resetUserPassword = catchAsync(async (req, res, next) => {
     status: "success",
     data: {
       user: updateUser,
+    },
+  });
+});
+
+exports.getMyDetails = catchAsync(async (req, res, next) => {
+  const user = req.user;
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      user,
     },
   });
 });
