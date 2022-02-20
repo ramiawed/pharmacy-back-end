@@ -147,12 +147,6 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-// userSchema.pre("save", function (next) {
-//   if (!this.isModified("password") || this.isNew) return next();
-
-//   this.passwordChangedAt = Date.now() - 1000;
-// });
-
 // check if the entered password correct
 userSchema.methods.correctPassword = async function (
   candidatePassword,

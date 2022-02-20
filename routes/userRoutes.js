@@ -1,8 +1,8 @@
 const express = require("express");
 const authController = require("../controller/authController");
 const userController = require("../controller/userController");
-const multer = require("multer");
 
+const multer = require("multer");
 const upload = multer();
 
 const userRouter = express.Router();
@@ -32,20 +32,6 @@ userRouter.post(
 );
 
 userRouter.post("/deleteMe", authController.protect, userController.deleteMe);
-
-userRouter.post(
-  "/inSectionOne/:userId?",
-  authController.protect,
-  authController.restrictTo("admin"),
-  userController.changeInSectionOne
-);
-
-userRouter.post(
-  "/inSectionTwo/:userId?",
-  authController.protect,
-  authController.restrictTo("admin"),
-  userController.changeInSectionTwo
-);
 
 userRouter.get("/", authController.protect, userController.getUsers);
 

@@ -20,10 +20,6 @@ const userAllowedFields = [
   "employeeName",
   "certificateName",
   "allowAdmin",
-  "signinCount",
-  "selectedCount",
-  "orderCount",
-  "favoriteCount",
   "inSectionOne",
   "inSectionTwo",
   "details",
@@ -79,9 +75,6 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
     return next(new AppError("password is wrong", 401));
   }
 
-  // findUser.isApproved = false;
-  // findUser.isActive = false;
-
   await User.findByIdAndUpdate(
     req.user._id,
     { isActive: false, isApproved: false },
@@ -109,41 +102,7 @@ exports.update = catchAsync(async (req, res, next) => {
   });
 });
 
-// update the isFavorite field for specific company
-exports.changeInSectionOne = catchAsync(async (req, res, next) => {
-  const { option } = req.body;
-
-  const user = await User.findByIdAndUpdate(
-    req.params.userId,
-    { inSectionOne: option },
-    { new: true }
-  );
-
-  res.status(200).json({
-    status: "success",
-    data: {
-      user,
-    },
-  });
-});
-
-// update the isNewest field for specific company
-exports.changeInSectionTwo = catchAsync(async (req, res, next) => {
-  const { option } = req.body;
-  const user = await User.findByIdAndUpdate(
-    req.params.userId,
-    { inSectionTwo: option },
-    { new: true }
-  );
-
-  res.status(200).json({
-    status: "added successfully",
-    data: {
-      user,
-    },
-  });
-});
-
+// get a user by id
 exports.getUserById = catchAsync(async (req, res, next) => {
   const { userId } = req.params;
 
@@ -176,14 +135,14 @@ exports.getUsers = catchAsync(async (req, res, next) => {
   // name condition
   if (query.name) {
     conditionArray.push({ name: { $regex: query.name, $options: "i" } });
-  } else {
-    delete query.name;
   }
 
+  // inSectionOne condition
   if (query.inSectionOne !== undefined) {
     conditionArray.push({ inSectionOne: query.inSectionOne });
   }
 
+  // inSectionTwo condition
   if (query.inSectionTwo !== undefined) {
     conditionArray.push({ inSectionTwo: query.inSectionTwo });
   }
@@ -198,16 +157,14 @@ exports.getUsers = catchAsync(async (req, res, next) => {
     conditionArray.push({ isActive: query.isActive });
   }
 
+  //
   if (query.allowShowingMedicines !== undefined) {
     conditionArray.push({ allowShowingMedicines: query.allowShowingMedicines });
   }
 
-  // city
+  // city condition
   if (query.city) {
-    // conditionArray.push({ city: { $regex: query.city, $options: "i" } });
     conditionArray.push({ city: query.city });
-  } else {
-    delete query.city;
   }
 
   // address details
@@ -215,8 +172,6 @@ exports.getUsers = catchAsync(async (req, res, next) => {
     conditionArray.push({
       addressDetails: { $regex: query.addressDetails, $options: "i" },
     });
-  } else {
-    delete query.addressDetails;
   }
 
   // employee name
@@ -224,8 +179,6 @@ exports.getUsers = catchAsync(async (req, res, next) => {
     conditionArray.push({
       employeeName: { $regex: query.employeeName, $options: "i" },
     });
-  } else {
-    delete query.employeeName;
   }
 
   // certificate name
@@ -233,8 +186,6 @@ exports.getUsers = catchAsync(async (req, res, next) => {
     conditionArray.push({
       certificateName: { $regex: query.certificateName, $options: "i" },
     });
-  } else {
-    delete query.certificateName;
   }
 
   // job
@@ -242,8 +193,6 @@ exports.getUsers = catchAsync(async (req, res, next) => {
     conditionArray.push({
       "guestDetails.job": query.job,
     });
-  } else {
-    delete query.job;
   }
 
   // company name
@@ -251,8 +200,6 @@ exports.getUsers = catchAsync(async (req, res, next) => {
     conditionArray.push({
       "guestDetails.companyName": { $regex: query.companyName, $options: "i" },
     });
-  } else {
-    delete query.companyName;
   }
 
   // job title
@@ -260,8 +207,6 @@ exports.getUsers = catchAsync(async (req, res, next) => {
     conditionArray.push({
       "guestDetails.jobTitle": { $regex: query.jobTitle, $options: "i" },
     });
-  } else {
-    delete query.jobTitle;
   }
 
   let count;
@@ -273,7 +218,7 @@ exports.getUsers = catchAsync(async (req, res, next) => {
     users = await User.find()
       .select(
         details === "all"
-          ? "-signinCount -signinDates -selectedDate -selectedCount -orderCount -orderDate -addedToFavoriteCount -addedToFavoriteDates -inSectionOne -inSectionTwo"
+          ? "-inSectionOne -inSectionTwo"
           : "name  logo_url  _id city type allowShowingMedicines"
       )
       .sort(query.sort ? query.sort + " _id" : "-createdAt -name _id")
@@ -290,13 +235,12 @@ exports.getUsers = catchAsync(async (req, res, next) => {
       .sort(query.sort ? query.sort : "-createdAt -name ")
       .select(
         details === "all"
-          ? "-signinCount -signinDates -selectedDate -selectedCount -orderCount -orderDate -addedToFavoriteCount -addedToFavoriteDates -inSectionOne -inSectionTwo"
+          ? "-inSectionOne -inSectionTwo"
           : "name  logo_url  _id city type allowShowingMedicines"
       )
       .skip((page - 1) * (limit * 1))
       .limit(limit * 1);
   }
-  // [query.type, { name: { $regex: name, $options: "i" } }]
 
   res.status(200).json({
     status: "success",
@@ -333,9 +277,6 @@ exports.changeMyPassword = catchAsync(async (req, res, next) => {
   // 4- return succeeded
   res.status(200).json({
     status: "success",
-    // data: {
-    //   user: updateUser,
-    // },
   });
 });
 
@@ -353,12 +294,10 @@ exports.resetUserPassword = catchAsync(async (req, res, next) => {
   // 4- return succeeded
   res.status(200).json({
     status: "success",
-    data: {
-      user: updateUser,
-    },
   });
 });
 
+// get info for a user defined by id
 exports.getMyDetails = catchAsync(async (req, res, next) => {
   const user = req.user;
 

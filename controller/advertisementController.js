@@ -1,6 +1,6 @@
 const catchAsync = require("../utils/catchAsync");
-const AppError = require("../utils/appError");
 const Advertisement = require("../models/advertisementModel");
+
 const fs = require("fs");
 const { promisify } = require("util");
 const pipeline = promisify(require("stream").pipeline);
@@ -10,12 +10,12 @@ exports.getAllAdvertisements = catchAsync(async (req, res, next) => {
     .populate({
       path: "company",
       model: "User",
-      select: "_id name type allowShowingMedicines",
+      select: "_id name type allowShowingMedicines city",
     })
     .populate({
       path: "warehouse",
       model: "User",
-      select: "_id name type allowShowingMedicines",
+      select: "_id name type allowShowingMedicines city",
     })
     .populate({
       path: "medicine",
@@ -98,12 +98,12 @@ exports.addAdvertisement = catchAsync(async (req, res, next) => {
       .populate({
         path: "company",
         model: "User",
-        select: "_id name type allowShowingMedicines",
+        select: "_id name type allowShowingMedicines city",
       })
       .populate({
         path: "warehouse",
         model: "User",
-        select: "_id name type allowShowingMedicines",
+        select: "_id name type allowShowingMedicines city",
       })
       .populate({
         path: "medicine",
