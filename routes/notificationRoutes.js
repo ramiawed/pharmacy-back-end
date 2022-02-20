@@ -32,11 +32,11 @@ notificationRoutes.post(
   notificationController.setReadNotification
 );
 
-notificationRoutes.get(
-  "/new",
-  authController.protect,
-  notificationController.getNotificationsAfterNow
-);
+// notificationRoutes.get(
+//   "/new",
+//   authController.protect,
+//   notificationController.getNotificationsAfterNow
+// );
 
 notificationRoutes.post(
   "/add",

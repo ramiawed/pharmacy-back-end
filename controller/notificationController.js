@@ -36,18 +36,18 @@ exports.getNotificationById = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getNotificationsAfterNow = catchAsync(async (req, res, next) => {
-  const notifications = await Notification.find({
-    date: { $gte: Date.now() },
-  });
+// exports.getNotificationsAfterNow = catchAsync(async (req, res, next) => {
+//   const notifications = await Notification.find({
+//     date: { $gte: Date.now() },
+//   });
 
-  res.status(200).json({
-    status: "success",
-    data: {
-      notifications,
-    },
-  });
-});
+//   res.status(200).json({
+//     status: "success",
+//     data: {
+//       notifications,
+//     },
+//   });
+// });
 
 exports.setReadNotification = catchAsync(async (req, res, next) => {
   const { _id } = req.user;
