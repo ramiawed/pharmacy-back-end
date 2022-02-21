@@ -18,10 +18,6 @@ const orderSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    seenByWarehouse: {
-      type: Boolean,
-      default: false,
-    },
     warehouseStatus: {
       type: String,
       default: "unread",
