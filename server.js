@@ -57,8 +57,6 @@ mongoose
     console.log(err);
   });
 
-// require("./socket");
-
 const port = process.env.PORT || 8000;
 httpServer.listen(port);
 // const server = app.listen(port, () => {
