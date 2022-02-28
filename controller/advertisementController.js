@@ -63,7 +63,7 @@ exports.addAdvertisement = catchAsync(async (req, res, next) => {
 
   await pipeline(
     file.stream,
-    fs.createWriteStream(`${__basedir}/public/${name}`)
+    fs.createWriteStream(`${__basedir}/public/images/${name}`)
   );
 
   let newAdvertisement = {
