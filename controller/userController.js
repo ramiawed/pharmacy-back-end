@@ -327,7 +327,7 @@ exports.uploadImage = catchAsync(async (req, res, next) => {
 
   await pipeline(
     file.stream,
-    fs.createWriteStream(`${__basedir}/public/${name}`)
+    fs.createWriteStream(`${__basedir}/public/profiles/${name}`)
   );
 
   const updateUser = await User.findByIdAndUpdate(
