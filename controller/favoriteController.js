@@ -28,7 +28,7 @@ exports.getFavorites = catchAsync(async (req, res, next) => {
       populate: {
         path: "company",
         model: "User",
-        select: "_id",
+        select: "_id name",
       },
     })
     .populate({
@@ -112,10 +112,13 @@ exports.addFavoriteItem = catchAsync(async (req, res, next) => {
   const item = await Item.findById(favoriteItemId)
     .populate({
       path: "company",
+      model: "User",
+      select: "_id name",
     })
     .populate({
       path: "warehouses.warehouse",
       model: "User",
+      select: "_id name city",
     });
 
   res.status(200).json({

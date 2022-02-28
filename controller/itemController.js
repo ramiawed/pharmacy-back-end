@@ -127,14 +127,6 @@ exports.getItems = catchAsync(async (req, res, next) => {
     });
   }
 
-  // if (inWarehouse) {
-  //   conditionArray.push({ warehouses: { $ne: [] } });
-  // }
-
-  // if (outWarehouse) {
-  //   conditionArray.push({ warehouses: [] });
-  // }
-
   if (city) {
     let cityCondition = "existing_place." + city;
     if (inWarehouse) {
@@ -157,7 +149,7 @@ exports.getItems = catchAsync(async (req, res, next) => {
   )
     .sort(sort ? sort + " _id" : "createdAt _id")
     .select(
-      "_id name caliber formula company warehouses price customer_price logo_url packing isActive existing_place barcode"
+      "_id name caliber formula company warehouses price customer_price logo_url packing isActive existing_place composition barcode"
     )
     .populate({
       path: "company",
@@ -190,7 +182,7 @@ exports.getItemById = catchAsync(async (req, res, next) => {
 
   const item = await Item.findById(itemId)
     .select(
-      "_id name caliber formula company warehouses price customer_price logo_url packing isActive existing_place barcode"
+      "_id name caliber formula company warehouses price customer_price logo_url packing isActive existing_place composition indication barcode"
     )
     .populate({
       path: "company",
@@ -273,52 +265,6 @@ exports.addAndUpdateItems = catchAsync(async (req, res, next) => {
     status: "success",
   });
 });
-
-// exports.addAndUpdateItems = catchAsync(async (req, res, next) => {
-//   const { withUpdate } = req.query;
-//   const items = req.body;
-
-//   if (withUpdate === "addUpdate") {
-//     for (let i = 0; i < items.length; i++) {
-//       const item = await Item.findOne({
-//         name: items[i].name,
-//         caliber: items[i].caliber,
-//         formula: items[i].formula,
-//         packing: items[i].packing,
-//       });
-
-//       if (item) {
-//         await Item.findOneAndUpdate(
-//           {
-//             name: items[i].name,
-//             caliber: items[i].caliber,
-//             formula: items[i].formula,
-//             packing: items[i].packing,
-//           },
-//           {
-//             price: items[i].price,
-//             customer_price: items[i].customer_price,
-//             indication: items[i].indication,
-//             composition: items[i].composition,
-//             barcode: items[i].barcode,
-//           },
-//           {
-//             new: true,
-//           }
-//         );
-//       } else {
-//         await Item.create(items[i]);
-//       }
-//     }
-//   } else {
-//     await Item.insertMany(items);
-//   }
-
-//   // response with the newly item
-//   res.status(200).json({
-//     status: "success",
-//   });
-// });
 
 // update an item
 exports.updateItem = catchAsync(async (req, res, next) => {
@@ -435,10 +381,12 @@ exports.addItemToWarehouse = catchAsync(async (req, res, next) => {
     .populate({
       path: "warehouses.warehouse",
       model: "User",
+      select: "_id name city",
     })
     .populate({
       path: "company",
       model: "User",
+      select: "_id name",
     });
 
   res.status(200).json({
@@ -521,6 +469,7 @@ exports.changeOffer = catchAsync(async (req, res, next) => {
     .populate({
       path: "company",
       model: "User",
+      select: "_id name",
     });
 
   res.status(200).json({
@@ -545,7 +494,17 @@ exports.removeItemFromWarehouse = catchAsync(async (req, res, next) => {
   }
 
   // find the item specified by itemId
-  const findItem = await Item.findById(itemId);
+  const findItem = await Item.findById(itemId)
+    .populate({
+      path: "warehouses.warehouse",
+      model: "User",
+      select: "_id name city",
+    })
+    .populate({
+      path: "company",
+      model: "User",
+      select: "_id name",
+    });
 
   // if the item doesn't exist
   if (!findItem) {
