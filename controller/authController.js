@@ -146,6 +146,47 @@ exports.signin = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
+exports.signinWithToken = catchAsync(async (req, res, next) => {
+  const { token } = req.body;
+
+  console.log(token);
+  try {
+    // 2- verification token
+    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+    // 3- check if the user still exists
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return next(
+        new AppError(
+          "The user belonging to this token does no longer exist.",
+          401
+        )
+      );
+    }
+
+    // return success
+    res.status(200).json({
+      status: "success",
+      token,
+      data: {
+        user: {
+          _id: user._id,
+          name: user.name,
+          username: user.username,
+          type: user.type,
+          logo_url: user.logo_url,
+          city: user.city,
+        },
+      },
+    });
+  } catch (err) {
+    console.log(err);
+    return next(
+      new AppError("You are not logged in! Please log in to get access", 401)
+    );
+  }
+});
+
 // this middleware use to grant access to protected routes
 exports.protect = catchAsync(async (req, res, next) => {
   // 1- Getting the token and check
