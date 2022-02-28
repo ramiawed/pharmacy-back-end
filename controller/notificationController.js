@@ -36,19 +36,6 @@ exports.getNotificationById = catchAsync(async (req, res, next) => {
   });
 });
 
-// exports.getNotificationsAfterNow = catchAsync(async (req, res, next) => {
-//   const notifications = await Notification.find({
-//     date: { $gte: Date.now() },
-//   });
-
-//   res.status(200).json({
-//     status: "success",
-//     data: {
-//       notifications,
-//     },
-//   });
-// });
-
 exports.setReadNotification = catchAsync(async (req, res, next) => {
   const { _id } = req.user;
   const { notificationId } = req.query;
@@ -74,7 +61,7 @@ exports.addNotification = catchAsync(async (req, res, next) => {
   if (file) {
     await pipeline(
       file.stream,
-      fs.createWriteStream(`${__basedir}/public/${body.logo_url}`)
+      fs.createWriteStream(`${__basedir}/public/notifications/${body.logo_url}`)
     );
   }
 
@@ -96,8 +83,8 @@ exports.deleteNotification = catchAsync(async (req, res, next) => {
   const logo_url = notification.logo_url;
 
   if (logo_url && logo_url !== "") {
-    if (fs.existsSync(`${__basedir}/public/${logo_url}`)) {
-      fs.unlinkSync(`${__basedir}/public/${logo_url}`);
+    if (fs.existsSync(`${__basedir}/public/notifications/${logo_url}`)) {
+      fs.unlinkSync(`${__basedir}/public/notifications/${logo_url}`);
     }
   }
   await Notification.findByIdAndDelete(id);

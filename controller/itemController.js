@@ -547,15 +547,15 @@ exports.uploadImage = catchAsync(async (req, res, next) => {
 
   // if the user have a logo, delete it
   if (item.logo_url && item.logo_url !== "") {
-    if (fs.existsSync(`${__basedir}/public/${item.logo_url}`)) {
-      fs.unlinkSync(`${__basedir}/public/${item.logo_url}`);
+    if (fs.existsSync(`${__basedir}/public/items/${item.logo_url}`)) {
+      fs.unlinkSync(`${__basedir}/public/items/${item.logo_url}`);
       await Item.findByIdAndUpdate(itemId, { logo_url: "" });
     }
   }
 
   await pipeline(
     file.stream,
-    fs.createWriteStream(`${__basedir}/public/${name}`)
+    fs.createWriteStream(`${__basedir}/public/items/${name}`)
   );
 
   const updatedItem = await Item.findByIdAndUpdate(

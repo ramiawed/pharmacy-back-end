@@ -39,8 +39,8 @@ exports.deleteAdvertisement = catchAsync(async (req, res, next) => {
   const logo_url = advertisement.logo_url;
 
   if (logo_url && logo_url !== "") {
-    if (fs.existsSync(`${__basedir}/public/${logo_url}`)) {
-      fs.unlinkSync(`${__basedir}/public/${logo_url}`);
+    if (fs.existsSync(`${__basedir}/public/advertisements/${logo_url}`)) {
+      fs.unlinkSync(`${__basedir}/public/advertisements/${logo_url}`);
     }
   }
 
@@ -63,7 +63,7 @@ exports.addAdvertisement = catchAsync(async (req, res, next) => {
 
   await pipeline(
     file.stream,
-    fs.createWriteStream(`${__basedir}/public/images/${name}`)
+    fs.createWriteStream(`${__basedir}/public/advertisements/${name}`)
   );
 
   let newAdvertisement = {

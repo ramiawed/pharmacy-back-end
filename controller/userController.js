@@ -319,8 +319,8 @@ exports.uploadImage = catchAsync(async (req, res, next) => {
 
   // if the user have a logo, delete it
   if (logo_url && logo_url !== "") {
-    if (fs.existsSync(`${__basedir}/public/${logo_url}`)) {
-      fs.unlinkSync(`${__basedir}/public/${logo_url}`);
+    if (fs.existsSync(`${__basedir}/public/profiles/${logo_url}`)) {
+      fs.unlinkSync(`${__basedir}/public/profiles/${logo_url}`);
       await User.findByIdAndUpdate(_id, { logo_url: "" });
     }
   }
@@ -354,15 +354,15 @@ exports.uploadPaper = catchAsync(async (req, res, next) => {
 
   // if the user have a logo, delete it
   if (user?.paper_url && user?.paper_url !== "") {
-    if (fs.existsSync(`${__basedir}/public/${user.paper_url}`)) {
-      fs.unlinkSync(`${__basedir}/public/${user.paper_url}`);
+    if (fs.existsSync(`${__basedir}/public/profiles/${user.paper_url}`)) {
+      fs.unlinkSync(`${__basedir}/public/profiles/${user.paper_url}`);
       await User.findByIdAndUpdate(id, { paper_url: "" });
     }
   }
 
   await pipeline(
     file.stream,
-    fs.createWriteStream(`${__basedir}/public/${name}`)
+    fs.createWriteStream(`${__basedir}/public/profiles/${name}`)
   );
 
   await User.findByIdAndUpdate(id, { paper_url: name }, { new: true });
