@@ -59,6 +59,8 @@ mongoose
 
 const port = process.env.PORT || 8000;
 httpServer.listen(port);
+httpServer.keepAliveTimeout = 61 * 1000;
+httpServer.headersTimeout = 65 * 1000;
 // const server = app.listen(port, () => {
 //   console.log(`App running on port ${port}`);
 // });
