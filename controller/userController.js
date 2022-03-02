@@ -315,22 +315,23 @@ exports.uploadImage = catchAsync(async (req, res, next) => {
     body: { name },
   } = req;
 
-  try {
-    // if the user have a logo, delete it
-    if (logo_url && logo_url !== "") {
-      if (fs.existsSync(`${__basedir}/public/profiles/${logo_url}`)) {
-        fs.unlinkSync(`${__basedir}/public/profiles/${logo_url}`);
-        await User.findByIdAndUpdate(_id, { logo_url: "" });
-      }
-    }
-  } catch (err) {
-    console.log(err);
-  }
+  // try {
+  //   // if the user have a logo, delete it
+  //   if (logo_url && logo_url !== "") {
+  //     if (fs.existsSync(`${__basedir}/public/profiles/${logo_url}`)) {
+  //       fs.unlinkSync(`${__basedir}/public/profiles/${logo_url}`);
+  //       await User.findByIdAndUpdate(_id, { logo_url: "" });
+  //     }
+  //   }
+  // } catch (err) {
+  //   console.log(err);
+  // }
 
   try {
     await pipeline(
       file.stream,
-      fs.createWriteStream(`${__basedir}/public/profiles/${name}`)
+      // fs.createWriteStream(`${__basedir}/public/profiles/${name}`)
+      fs.createWriteStream(`public/profiles/${name}`)
     );
   } catch (err) {
     console.log(err);
