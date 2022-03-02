@@ -3,7 +3,7 @@ const authController = require("../controller/authController");
 const userController = require("../controller/userController");
 
 const multer = require("multer");
-const upload = multer({ dest: "./public/profiles/" });
+const upload = multer();
 
 const userRouter = express.Router();
 
