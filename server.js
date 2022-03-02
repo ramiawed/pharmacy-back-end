@@ -59,8 +59,8 @@ mongoose
 
 const port = process.env.PORT || 8000;
 httpServer.listen(port);
-httpServer.keepAliveTimeout = 61 * 1000;
-httpServer.headersTimeout = 65 * 1000;
+// httpServer.keepAliveTimeout = 61 * 1000;
+// httpServer.headersTimeout = 65 * 1000;
 // const server = app.listen(port, () => {
 //   console.log(`App running on port ${port}`);
 // });
@@ -69,7 +69,7 @@ httpServer.headersTimeout = 65 * 1000;
 process.on("unhandledRejection", (err) => {
   console.log("UNHANDLED REJECTION! SHUTTING DOWN...");
   console.log(err.name, err.message);
-  server.close(() => {
+  httpServer.close(() => {
     process.exit(1);
   });
 });
