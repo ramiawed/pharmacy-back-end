@@ -1,6 +1,7 @@
 const express = require("express");
 const authController = require("../controller/authController");
 const userController = require("../controller/userController");
+const fs = require("fs");
 
 const multer = require("multer");
 const User = require("../models/userModel");
@@ -65,10 +66,16 @@ userRouter.post(
     const name = req.name;
     const user = req.user;
 
-    // let price = req.body.price;
-    // let filename = req.body.filename;
-
-    // const user = req.user;
+    try {
+      // if the user have a logo, delete it
+      if (user.logo_url && user.logo_url !== "") {
+        if (fs.existsSync(`${__basedir}/public/profiles/${user.logo_url}`)) {
+          fs.unlinkSync(`${__basedir}/public/profiles/${user.logo_url}`);
+        }
+      }
+    } catch (err) {
+      console.log(err);
+    }
 
     await User.findByIdAndUpdate(user._id, {
       logo_url: name,
