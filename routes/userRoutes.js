@@ -9,7 +9,9 @@ const storage = multer.diskStorage({
     cb(null, "public/profiles");
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + file.originalname);
+    const name = Date.now() + file.originalname;
+    cb(null, name);
+    req.name = name;
   },
 });
 const upload = multer({ storage: storage });
@@ -60,7 +62,7 @@ userRouter.post(
   authController.protect,
   async (req, res) => {
     // console.log(req.body);
-    let name = req.body.name;
+    const name = req.name;
     const user = req.user;
 
     // let price = req.body.price;
