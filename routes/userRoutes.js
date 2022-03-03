@@ -47,18 +47,19 @@ userRouter.get("/", authController.protect, userController.getUsers);
 
 userRouter.get("/:userId", authController.protect, userController.getUserById);
 
-userRouter.post(
-  "/upload",
-  upload.single("file"),
-  authController.protect,
-  userController.uploadImage
-);
+// userRouter.post(
+//   "/upload",
+//   upload.single("file"),
+//   authController.protect,
+//   userController.uploadImage
+// );
 
 userRouter.post(
   "/upload",
   upload.single("file"),
   authController.protect,
   async (req, res) => {
+    console.log(req.body);
     // let name = req.body.name;
     // let price = req.body.price;
     // let filename = req.body.filename;

@@ -354,48 +354,48 @@ exports.getMyDetails = catchAsync(async (req, res, next) => {
 // });
 
 // change the user logo
-exports.uploadImage = catchAsync(async (req, res, next) => {
-  const { logo_url, _id } = req.user;
-  const {
-    file,
-    body: { name },
-  } = req;
+// exports.uploadImage = catchAsync(async (req, res, next) => {
+//   const { logo_url, _id } = req.user;
+//   const {
+//     file,
+//     body: { name },
+//   } = req;
 
-  try {
-    // if the user have a logo, delete it
-    if (logo_url && logo_url !== "") {
-      if (fs.existsSync(`${__basedir}/public/profiles/${logo_url}`)) {
-        fs.unlinkSync(`${__basedir}/public/profiles/${logo_url}`);
-        await User.findByIdAndUpdate(_id, { logo_url: "" });
-      }
-    }
-  } catch (err) {
-    console.log(err);
-  }
+//   try {
+//     // if the user have a logo, delete it
+//     if (logo_url && logo_url !== "") {
+//       if (fs.existsSync(`${__basedir}/public/profiles/${logo_url}`)) {
+//         fs.unlinkSync(`${__basedir}/public/profiles/${logo_url}`);
+//         await User.findByIdAndUpdate(_id, { logo_url: "" });
+//       }
+//     }
+//   } catch (err) {
+//     console.log(err);
+//   }
 
-  try {
-    await pipeline(
-      file.stream,
-      fs.createWriteStream(`${__basedir}/public/profiles/${name}`)
-      // fs.createWriteStream(`public/profiles/${name}`)
-    );
-  } catch (err) {
-    console.log(err);
-  }
+//   try {
+//     await pipeline(
+//       file.stream,
+//       fs.createWriteStream(`${__basedir}/public/profiles/${name}`)
+//       // fs.createWriteStream(`public/profiles/${name}`)
+//     );
+//   } catch (err) {
+//     console.log(err);
+//   }
 
-  const updateUser = await User.findByIdAndUpdate(
-    _id,
-    { logo_url: name },
-    { new: true }
-  );
+//   const updateUser = await User.findByIdAndUpdate(
+//     _id,
+//     { logo_url: name },
+//     { new: true }
+//   );
 
-  res.status(200).json({
-    status: "success",
-    data: {
-      user: updateUser,
-    },
-  });
-});
+//   res.status(200).json({
+//     status: "success",
+//     data: {
+//       user: updateUser,
+//     },
+//   });
+// });
 
 exports.uploadPaper = catchAsync(async (req, res, next) => {
   const {
