@@ -58,7 +58,7 @@ userRouter.post(
   "/upload",
   upload.single("file"),
   authController.protect,
-  (req, res) => {
+  async (req, res) => {
     // let name = req.body.name;
     // let price = req.body.price;
     let filename = req.body.filename;
