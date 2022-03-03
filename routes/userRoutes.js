@@ -3,7 +3,16 @@ const authController = require("../controller/authController");
 const userController = require("../controller/userController");
 
 const multer = require("multer");
-const upload = multer();
+const User = require("../models/userModel");
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "public/profiles");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + file.originalname);
+  },
+});
+const upload = multer({ storage: storage });
 
 const userRouter = express.Router();
 
@@ -43,6 +52,25 @@ userRouter.post(
   upload.single("file"),
   authController.protect,
   userController.uploadImage
+);
+
+userRouter.post(
+  "/upload",
+  upload.single("file"),
+  authController.protect,
+  (req, res) => {
+    // let name = req.body.name;
+    // let price = req.body.price;
+    let filename = req.body.filename;
+
+    const user = req.user;
+
+    await User.findByIdAndUpdate(user._id, {
+      logo_url: filename,
+    });
+
+    res.send("Response has been recorded...");
+  }
 );
 
 userRouter.post(
