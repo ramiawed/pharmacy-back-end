@@ -74,7 +74,12 @@ userRouter.post(
       logo_url: name,
     });
 
-    res.send("Response has been recorded...");
+    res.status(200).json({
+      status: "success",
+      data: {
+        name: name,
+      },
+    });
   }
 );
 
