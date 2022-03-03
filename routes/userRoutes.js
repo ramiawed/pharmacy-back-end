@@ -59,15 +59,15 @@ userRouter.post(
   upload.single("file"),
   authController.protect,
   async (req, res) => {
-    let name = req.body.name;
+    // let name = req.body.name;
     // let price = req.body.price;
     // let filename = req.body.filename;
 
-    const user = req.user;
+    // const user = req.user;
 
-    await User.findByIdAndUpdate(user._id, {
-      logo_url: name,
-    });
+    // await User.findByIdAndUpdate(user._id, {
+    //   logo_url: name,
+    // });
 
     res.send("Response has been recorded...");
   }
