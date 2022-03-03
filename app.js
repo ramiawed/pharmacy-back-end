@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const AppError = require("./utils/appError");
 const globalErrorHandler = require("./controller/errorController");
+const multer = require("multer");
 
 // routers
 const userRouter = require("./routes/userRoutes");
@@ -17,6 +18,18 @@ const testRoutes = require("./routes/testRoutes");
 global.__basedir = __dirname;
 
 const app = express();
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "public");
+  },
+  filename: function (req, file, cb) {
+    console.log(file);
+    cb(null, file.originalname);
+  },
+});
+
+const upload = multer({ storage: storage });
 
 // body parser, reading data from body into req.body
 app.use(express.json({ limit: "10mb" }));
@@ -40,6 +53,28 @@ app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/advertisement", advertisementRouter);
 app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1/test", testRoutes);
+
+app.post("/api/v1/upload", upload.single("file"), (req, res) => {
+  // let name = req.body.name;
+  // let price = req.body.price;
+  // let filename = req.body.filename;
+
+  // let postQuery =
+  //   "INSERT INTO products (name,price,file) VALUES ('" +
+  //   name +
+  //   "', '" +
+  //   price +
+  //   "', '" +
+  //   filename.substring(filename.length, 11) +
+  //   "');";
+  // console.log(postQuery);
+  // connection.query(postQuery, (err, result, fields) => {
+  //   if (err) {
+  //     throw err;
+  //   }
+  // });
+  res.send("Response has been recorded...");
+});
 
 // function to handle all the router that doesn't catch by
 // previous routes
