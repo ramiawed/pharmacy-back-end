@@ -90,7 +90,7 @@ itemRoutes
     itemController.changeOffer
   );
 
-userRouter.post(
+itemRoutes.post(
   "/upload/:itemId",
   upload.single("file"),
   authController.protect,
