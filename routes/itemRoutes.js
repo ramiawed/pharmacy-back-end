@@ -1,9 +1,10 @@
 const express = require("express");
 const itemController = require("../controller/itemController");
 const authController = require("../controller/authController");
+const Item = require("../models/itemModel");
+const fs = require("fs");
 
 const multer = require("multer");
-const Item = require("../models/itemModel");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "public/items");
