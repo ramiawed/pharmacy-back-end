@@ -84,21 +84,21 @@ userRouter.post(
 
 userRouter.post("/upload-paper", upload.single("file"), async (req, res) => {
   const name = req.name;
+  const id = req.body.id;
+  // try {
+  //   // if the user have a logo, delete it
+  //   if (user.logo_url && user.logo_url !== "") {
+  //     if (fs.existsSync(`${__basedir}/public/profiles/${user.logo_url}`)) {
+  //       fs.unlinkSync(`${__basedir}/public/profiles/${user.logo_url}`);
+  //     }
+  //   }
+  // } catch (err) {
+  //   console.log(err);
+  // }
 
-  try {
-    // if the user have a logo, delete it
-    if (user.logo_url && user.logo_url !== "") {
-      if (fs.existsSync(`${__basedir}/public/profiles/${user.logo_url}`)) {
-        fs.unlinkSync(`${__basedir}/public/profiles/${user.logo_url}`);
-      }
-    }
-  } catch (err) {
-    console.log(err);
-  }
-
-  await User.findByIdAndUpdate(user._id, {
-    logo_url: name,
-  });
+  // await User.findByIdAndUpdate(user._id, {
+  //   logo_url: name,
+  // });
 
   res.status(200).json({
     status: "success",
