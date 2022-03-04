@@ -82,36 +82,31 @@ userRouter.post(
   }
 );
 
-userRouter.post(
-  "/upload-paper",
-  upload.single("file"),
-  authController.protect,
-  async (req, res) => {
-    const name = req.name;
+userRouter.post("/upload-paper", upload.single("file"), async (req, res) => {
+  const name = req.name;
 
-    try {
-      // if the user have a logo, delete it
-      if (user.logo_url && user.logo_url !== "") {
-        if (fs.existsSync(`${__basedir}/public/profiles/${user.logo_url}`)) {
-          fs.unlinkSync(`${__basedir}/public/profiles/${user.logo_url}`);
-        }
+  try {
+    // if the user have a logo, delete it
+    if (user.logo_url && user.logo_url !== "") {
+      if (fs.existsSync(`${__basedir}/public/profiles/${user.logo_url}`)) {
+        fs.unlinkSync(`${__basedir}/public/profiles/${user.logo_url}`);
       }
-    } catch (err) {
-      console.log(err);
     }
-
-    await User.findByIdAndUpdate(user._id, {
-      logo_url: name,
-    });
-
-    res.status(200).json({
-      status: "success",
-      data: {
-        name: name,
-      },
-    });
+  } catch (err) {
+    console.log(err);
   }
-);
+
+  await User.findByIdAndUpdate(user._id, {
+    logo_url: name,
+  });
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      name: name,
+    },
+  });
+});
 
 // userRouter.post(
 //   "/upload-paper",
