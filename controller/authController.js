@@ -62,8 +62,6 @@ const createSendToken = async (user, statusCode, res) => {
   // remove password from the output
   user.password = undefined;
 
-  console.log(user);
-
   res.status(statusCode).json({
     status: "success",
     token,
@@ -149,7 +147,6 @@ exports.signin = catchAsync(async (req, res, next) => {
 exports.signinWithToken = catchAsync(async (req, res, next) => {
   const { token } = req.body;
 
-  console.log(token);
   try {
     // 2- verification token
     const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
@@ -180,7 +177,6 @@ exports.signinWithToken = catchAsync(async (req, res, next) => {
       },
     });
   } catch (err) {
-    console.log(err);
     return next(
       new AppError("You are not logged in! Please log in to get access", 401)
     );

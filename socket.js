@@ -14,7 +14,6 @@ const socket = (io) => {
   const advertisementStream = Advertisement.watch();
 
   userStream.on("change", async (change) => {
-    console.log(change); // You could parse out the needed info and send only that data.
     if (change.operationType === "update") {
       if (
         (Object.keys(change.updateDescription.updatedFields).includes(
@@ -98,23 +97,18 @@ const socket = (io) => {
   });
 
   orderStream.on("change", (change) => {
-    console.log(change); // You could parse out the needed info and send only that data.
     io.emit("order-changed", change);
   });
 
   notificationStream.on("change", (change) => {
-    console.log(change);
     io.emit("notification-changed", change);
   });
 
   settingStream.on("change", (change) => {
-    console.log(change);
     io.emit("settings-changed", change);
   });
 
   itemStream.on("change", async (change) => {
-    console.log(change);
-
     if (change.operationType === "update") {
       // item added to section one
       if (
@@ -224,7 +218,6 @@ const socket = (io) => {
   });
 
   advertisementStream.on("change", (change) => {
-    console.log(change);
     if (change.operationType === "insert") {
       io.emit("new-advertisement", change.fullDocument);
     }

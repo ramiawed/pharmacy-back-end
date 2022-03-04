@@ -1,10 +1,10 @@
 const express = require("express");
 const authController = require("../controller/authController");
 const userController = require("../controller/userController");
+const User = require("../models/userModel");
 const fs = require("fs");
 
 const multer = require("multer");
-const User = require("../models/userModel");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "public/profiles");
@@ -50,19 +50,11 @@ userRouter.get("/", authController.protect, userController.getUsers);
 
 userRouter.get("/:userId", authController.protect, userController.getUserById);
 
-// userRouter.post(
-//   "/upload",
-//   upload.single("file"),
-//   authController.protect,
-//   userController.uploadImage
-// );
-
 userRouter.post(
   "/upload",
   upload.single("file"),
   authController.protect,
   async (req, res) => {
-    // console.log(req.body);
     const name = req.name;
     const user = req.user;
 
