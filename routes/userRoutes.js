@@ -100,6 +100,10 @@ userRouter.post("/upload-paper", upload.single("file"), async (req, res) => {
   //   logo_url: name,
   // });
 
+  await User.findByIdAndUpdate(id, {
+    paper_url: name,
+  });
+
   res.status(200).json({
     status: "success",
     data: {
