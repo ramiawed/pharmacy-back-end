@@ -3,8 +3,6 @@ const authController = require("../controller/authController");
 const notificationController = require("../controller/notificationController");
 const Notification = require("../models/notificationModel");
 
-const fs = require("fs");
-
 const multer = require("multer");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
