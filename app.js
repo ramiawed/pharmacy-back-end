@@ -55,24 +55,6 @@ app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1/test", testRoutes);
 
 app.post("/api/v1/upload", upload.single("file"), (req, res) => {
-  // let name = req.body.name;
-  // let price = req.body.price;
-  // let filename = req.body.filename;
-
-  // let postQuery =
-  //   "INSERT INTO products (name,price,file) VALUES ('" +
-  //   name +
-  //   "', '" +
-  //   price +
-  //   "', '" +
-  //   filename.substring(filename.length, 11) +
-  //   "');";
-  // console.log(postQuery);
-  // connection.query(postQuery, (err, result, fields) => {
-  //   if (err) {
-  //     throw err;
-  //   }
-  // });
   res.send("Response has been recorded...");
 });
 
