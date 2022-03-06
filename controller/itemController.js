@@ -530,35 +530,33 @@ exports.removeItemFromWarehouse = catchAsync(async (req, res, next) => {
   });
 });
 
-// change the user logo
 exports.uploadImage = catchAsync(async (req, res, next) => {
-  async (req, res) => {
-    const name = req.name;
-    const itemId = req.params.itemId;
-    const item = await Item.findById(itemId);
+  const name = req.name;
+  const itemId = req.params.itemId;
+  const item = await Item.findById(itemId);
 
-    try {
-      // if the user have a logo, delete it
-      if (item.logo_url && item.logo_url !== "") {
-        if (fs.existsSync(`${__basedir}/public/items/${item.logo_url}`)) {
-          fs.unlinkSync(`${__basedir}/public/items/${item.logo_url}`);
-        }
+  try {
+    // if the user have a logo, delete it
+    if (item.logo_url && item.logo_url !== "") {
+      if (fs.existsSync(`${__basedir}/public/items/${item.logo_url}`)) {
+        fs.unlinkSync(`${__basedir}/public/items/${item.logo_url}`);
       }
-    } catch (err) {
-      console.log(err);
     }
+  } catch (err) {
+    console.log(err);
+  }
 
-    await Item.findByIdAndUpdate(itemId, {
-      logo_url: name,
-    });
-
-    res.status(200).json({
-      status: "success",
-      data: {
-        name: name,
-      },
-    });
+  await Item.findByIdAndUpdate(itemId, {
+    logo_url: name,
   });
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      name: name,
+    },
+  });
+});
 
 exports.changeIsFavoriteField = catchAsync(async (req, res, next) => {
   const { option, id } = req.body;

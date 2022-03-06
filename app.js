@@ -51,7 +51,6 @@ app.use("/api/v1/settings", settingRouter);
 app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/advertisement", advertisementRouter);
 app.use("/api/v1/notifications", notificationRoutes);
-app.use("/api/v1/test", testRoutes);
 
 app.post("/api/v1/upload", upload.single("file"), (req, res) => {
   res.send("Response has been recorded...");
