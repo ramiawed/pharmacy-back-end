@@ -1,8 +1,8 @@
 const express = require("express");
 const authController = require("../controller/authController");
 const notificationController = require("../controller/notificationController");
-const Notification = require("../models/notificationModel");
 
+// multer configurations
 const multer = require("multer");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -47,23 +47,7 @@ notificationRoutes.post(
   upload.single("file"),
   authController.protect,
   authController.restrictTo("admin"),
-  async (req, res) => {
-    const name = req.name;
-    const { title, description } = req.body;
-
-    const notification = await Notification.create({
-      header: title,
-      body: description,
-      logo_url: name,
-    });
-
-    res.status(200).json({
-      status: "success",
-      data: {
-        notification,
-      },
-    });
-  }
+  notificationController.addNotification
 );
 
 notificationRoutes.post(

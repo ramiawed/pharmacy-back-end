@@ -13,7 +13,6 @@ const settingRouter = require("./routes/settingRoutes");
 const orderRouter = require("./routes/orderRoutes");
 const advertisementRouter = require("./routes/advertisementRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
-const testRoutes = require("./routes/testRoutes");
 
 global.__basedir = __dirname;
 

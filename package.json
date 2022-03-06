@@ -1,5 +1,5 @@
 {
-  "name": "pharmacy-backend",
+  "name": "smartpharma-sy-backend",
   "version": "1.0.0",
   "description": "Backend for the Pharmacy Application",
   "main": "app.js",

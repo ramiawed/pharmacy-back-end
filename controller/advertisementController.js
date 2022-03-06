@@ -55,16 +55,9 @@ exports.deleteAdvertisement = catchAsync(async (req, res, next) => {
 });
 
 // add a new advertisement logo
-exports.addAdvertisement = catchAsync(async (req, res, next) => {
-  const {
-    file,
-    body: { company, warehouse, medicine, name },
-  } = req;
-
-  await pipeline(
-    file.stream,
-    fs.createWriteStream(`${__basedir}/public/advertisements/${name}`)
-  );
+exports.addAdvertisement = catchAsync(async (req, res) => {
+  const name = req.name;
+  const { company, warehouse, medicine } = req.body;
 
   let newAdvertisement = {
     logo_url: name,

@@ -307,32 +307,49 @@ exports.getMyDetails = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.uploadPaper = catchAsync(async (req, res, next) => {
-  const {
-    file,
-    body: { name, id },
-  } = req;
+exports.uploadProfilePicture = catchAsync(async (req, res) => {
+  const name = req.name;
+  const user = req.user;
 
-  const user = await User.findById(id);
-
-  // if the user have a logo, delete it
-  if (user?.paper_url && user?.paper_url !== "") {
-    if (fs.existsSync(`${__basedir}/public/profiles/${user.paper_url}`)) {
-      fs.unlinkSync(`${__basedir}/public/profiles/${user.paper_url}`);
-      await User.findByIdAndUpdate(id, { paper_url: "" });
+  try {
+    // if the user have a logo, delete it
+    if (user.logo_url && user.logo_url !== "") {
+      if (fs.existsSync(`${__basedir}/public/profiles/${user.logo_url}`)) {
+        fs.unlinkSync(`${__basedir}/public/profiles/${user.logo_url}`);
+      }
     }
+  } catch (err) {
+    console.log(err);
   }
 
-  await pipeline(
-    file.stream,
-    fs.createWriteStream(`${__basedir}/public/profiles/${name}`)
-  );
-
-  await User.findByIdAndUpdate(id, { paper_url: name }, { new: true });
+  await User.findByIdAndUpdate(user._id, {
+    logo_url: name,
+  });
 
   res.status(200).json({
     status: "success",
+    data: {
+      name: name,
+    },
   });
+});
+
+exports.uploadLicense = catchAsync(async (req, res, next) => {
+  async (req, res) => {
+    const name = req.name;
+    const id = req.body.id;
+
+    await User.findByIdAndUpdate(id, {
+      paper_url: name,
+    });
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        name: name,
+      },
+    });
+  };
 });
 
 // send email

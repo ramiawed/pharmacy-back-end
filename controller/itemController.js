@@ -532,45 +532,33 @@ exports.removeItemFromWarehouse = catchAsync(async (req, res, next) => {
 
 // change the user logo
 exports.uploadImage = catchAsync(async (req, res, next) => {
-  const itemId = req.params.itemId;
+  async (req, res) => {
+    const name = req.name;
+    const itemId = req.params.itemId;
+    const item = await Item.findById(itemId);
 
-  const {
-    file,
-    body: { name },
-  } = req;
-
-  const item = await Item.findById(itemId);
-
-  if (!item) {
-    return next(new AppError("no such item"));
-  }
-
-  // if the user have a logo, delete it
-  if (item.logo_url && item.logo_url !== "") {
-    if (fs.existsSync(`${__basedir}/public/items/${item.logo_url}`)) {
-      fs.unlinkSync(`${__basedir}/public/items/${item.logo_url}`);
-      await Item.findByIdAndUpdate(itemId, { logo_url: "" });
+    try {
+      // if the user have a logo, delete it
+      if (item.logo_url && item.logo_url !== "") {
+        if (fs.existsSync(`${__basedir}/public/items/${item.logo_url}`)) {
+          fs.unlinkSync(`${__basedir}/public/items/${item.logo_url}`);
+        }
+      }
+    } catch (err) {
+      console.log(err);
     }
-  }
 
-  await pipeline(
-    file.stream,
-    fs.createWriteStream(`${__basedir}/public/items/${name}`)
-  );
+    await Item.findByIdAndUpdate(itemId, {
+      logo_url: name,
+    });
 
-  const updatedItem = await Item.findByIdAndUpdate(
-    itemId,
-    { logo_url: name },
-    { new: true }
-  );
-
-  res.status(200).json({
-    status: "success",
-    data: {
-      item: updatedItem,
-    },
+    res.status(200).json({
+      status: "success",
+      data: {
+        name: name,
+      },
+    });
   });
-});
 
 exports.changeIsFavoriteField = catchAsync(async (req, res, next) => {
   const { option, id } = req.body;

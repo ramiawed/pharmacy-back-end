@@ -56,23 +56,23 @@ exports.setReadNotification = catchAsync(async (req, res, next) => {
 
 // add a new notification logo
 exports.addNotification = catchAsync(async (req, res, next) => {
-  const { file, body } = req;
+  async (req, res) => {
+    const name = req.name;
+    const { title, description } = req.body;
 
-  if (file) {
-    await pipeline(
-      file.stream,
-      fs.createWriteStream(`${__basedir}/public/notifications/${body.logo_url}`)
-    );
-  }
+    const notification = await Notification.create({
+      header: title,
+      body: description,
+      logo_url: name,
+    });
 
-  const notification = await Notification.create(body);
-
-  res.status(200).json({
-    status: "success",
-    data: {
-      notification,
-    },
-  });
+    res.status(200).json({
+      status: "success",
+      data: {
+        notification,
+      },
+    });
+  };
 });
 
 exports.deleteNotification = catchAsync(async (req, res, next) => {

@@ -1,9 +1,8 @@
 const express = require("express");
 const authController = require("../controller/authController");
 const userController = require("../controller/userController");
-const User = require("../models/userModel");
-const fs = require("fs");
 
+// multer configurations
 const multer = require("multer");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -54,55 +53,14 @@ userRouter.post(
   "/upload",
   upload.single("file"),
   authController.protect,
-  async (req, res) => {
-    const name = req.name;
-    const user = req.user;
-
-    try {
-      // if the user have a logo, delete it
-      if (user.logo_url && user.logo_url !== "") {
-        if (fs.existsSync(`${__basedir}/public/profiles/${user.logo_url}`)) {
-          fs.unlinkSync(`${__basedir}/public/profiles/${user.logo_url}`);
-        }
-      }
-    } catch (err) {
-      console.log(err);
-    }
-
-    await User.findByIdAndUpdate(user._id, {
-      logo_url: name,
-    });
-
-    res.status(200).json({
-      status: "success",
-      data: {
-        name: name,
-      },
-    });
-  }
+  userController.uploadProfilePicture
 );
 
-userRouter.post("/upload-paper", upload.single("file"), async (req, res) => {
-  const name = req.name;
-  const id = req.body.id;
-
-  await User.findByIdAndUpdate(id, {
-    paper_url: name,
-  });
-
-  res.status(200).json({
-    status: "success",
-    data: {
-      name: name,
-    },
-  });
-});
-
-// userRouter.post(
-//   "/upload-paper",
-//   upload.single("file"),
-//   userController.uploadPaper
-// );
+userRouter.post(
+  "/upload-license",
+  upload.single("file"),
+  userController.uploadLicense
+);
 
 userRouter.post(
   "/sendemail",
