@@ -318,9 +318,7 @@ exports.uploadProfilePicture = catchAsync(async (req, res) => {
         fs.unlinkSync(`${__basedir}/public/profiles/${user.logo_url}`);
       }
     }
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 
   await User.findByIdAndUpdate(user._id, {
     logo_url: name,

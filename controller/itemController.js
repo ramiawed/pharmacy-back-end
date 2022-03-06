@@ -542,9 +542,7 @@ exports.uploadImage = catchAsync(async (req, res, next) => {
         fs.unlinkSync(`${__basedir}/public/items/${item.logo_url}`);
       }
     }
-  } catch (err) {
-    console.log(err);
-  }
+  } catch (err) {}
 
   await Item.findByIdAndUpdate(itemId, {
     logo_url: name,

@@ -23,7 +23,6 @@ const storage = multer.diskStorage({
     cb(null, "public");
   },
   filename: function (req, file, cb) {
-    console.log(file);
     cb(null, file.originalname);
   },
 });
@@ -42,7 +41,6 @@ app.use(cors());
 app.use(express.static(`${__dirname}/public`));
 
 // routes
-
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/items", itemRoutes);
 app.use("/api/v1/favorites", favoriteRouter);
@@ -51,7 +49,6 @@ app.use("/api/v1/settings", settingRouter);
 app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/advertisement", advertisementRouter);
 app.use("/api/v1/notifications", notificationRoutes);
-
 app.post("/api/v1/upload", upload.single("file"), (req, res) => {
   res.send("Response has been recorded...");
 });

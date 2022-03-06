@@ -56,23 +56,21 @@ exports.setReadNotification = catchAsync(async (req, res, next) => {
 
 // add a new notification logo
 exports.addNotification = catchAsync(async (req, res, next) => {
-  async (req, res) => {
-    const name = req.name;
-    const { title, description } = req.body;
+  const name = req.name;
+  const { title, description } = req.body;
 
-    const notification = await Notification.create({
-      header: title,
-      body: description,
-      logo_url: name,
-    });
+  const notification = await Notification.create({
+    header: title,
+    body: description,
+    logo_url: name,
+  });
 
-    res.status(200).json({
-      status: "success",
-      data: {
-        notification,
-      },
-    });
-  };
+  res.status(200).json({
+    status: "success",
+    data: {
+      notification,
+    },
+  });
 });
 
 exports.deleteNotification = catchAsync(async (req, res, next) => {
