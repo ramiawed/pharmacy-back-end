@@ -39,7 +39,7 @@ const DB_NAME = process.env.DATABASE_NAME;
 // BUILD THE CONNECTION STRING
 let DB = process.env.DATABASE.replace("<user>", DB_USER);
 DB = DB.replace("<password>", DB_PASSWORD);
-DB = DB.replace("<dbname>", DB_NAME);
+DB = DB.replace("<dbName>", DB_NAME);
 
 // const DB = process.env.DATABASE;
 
