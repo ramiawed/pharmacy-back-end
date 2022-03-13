@@ -333,21 +333,19 @@ exports.uploadProfilePicture = catchAsync(async (req, res) => {
 });
 
 exports.uploadLicense = catchAsync(async (req, res, next) => {
-  async (req, res) => {
-    const name = req.name;
-    const id = req.body.id;
+  const name = req.name;
+  const id = req.body.id;
 
-    await User.findByIdAndUpdate(id, {
-      paper_url: name,
-    });
+  await User.findByIdAndUpdate(id, {
+    paper_url: name,
+  });
 
-    res.status(200).json({
-      status: "success",
-      data: {
-        name: name,
-      },
-    });
-  };
+  res.status(200).json({
+    status: "success",
+    data: {
+      name,
+    },
+  });
 });
 
 // send email
