@@ -6,7 +6,7 @@ var userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      unique: [true, "You must supply a unique name"],
+      // unique: [true, "You must supply a unique name"],
       required: [true, "You must supply a name"],
     },
     username: {
