@@ -79,12 +79,12 @@ exports.signup = catchAsync(async (req, res, next) => {
   // remove all fields that doesn't matter
   const filterUser = filterObj(req.body);
 
-  // check if the name is unique
-  // if doesn't return an Error
-  const findUserByName = await User.findOne({ name: req.body.name });
-  if (findUserByName) {
-    return next(new AppError("provide unique name", 400, ["name"]));
-  }
+  // // check if the name is unique
+  // // if doesn't return an Error
+  // const findUserByName = await User.findOne({ name: req.body.name });
+  // if (findUserByName) {
+  //   return next(new AppError("provide unique name", 400, ["name"]));
+  // }
 
   // check if the username is unique
   // if doesn't return an Error
