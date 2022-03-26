@@ -53,6 +53,7 @@ exports.getItems = catchAsync(async (req, res, next) => {
     inSectionThree,
     city,
     barcode,
+    isAllowed,
   } = req.query;
 
   let count;
@@ -75,6 +76,21 @@ exports.getItems = catchAsync(async (req, res, next) => {
         { composition: { $regex: itemName, $options: "i" } },
         { barcode: itemName },
       ],
+    });
+  }
+
+  // get all items that is in the active and approve companies
+  if (isAllowed) {
+    const activeCompanies = await User.find({
+      isActive: true,
+      isApproved: true,
+    });
+
+    // map each company object to it's id
+    const activeCompaniesArr = activeCompanies.map((company) => company._id);
+
+    conditionArray.push({
+      company: { $in: activeCompaniesArr },
     });
   }
 
@@ -159,7 +175,7 @@ exports.getItems = catchAsync(async (req, res, next) => {
     .populate({
       path: "warehouses.warehouse",
       model: "User",
-      select: "_id name city",
+      select: "_id name city isActive isApproved",
     })
     .skip((page - 1) * (limit * 1))
     .limit(limit * 1);
@@ -192,7 +208,7 @@ exports.getItemById = catchAsync(async (req, res, next) => {
     .populate({
       path: "warehouses.warehouse",
       model: "User",
-      select: "_id name city",
+      select: "_id name city isActive isApproved",
     });
 
   if (!item) {

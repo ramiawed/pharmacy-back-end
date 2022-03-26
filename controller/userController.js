@@ -118,6 +118,7 @@ exports.getUserById = catchAsync(async (req, res, next) => {
 
 // get users specified by type (Company, Warehouse, Normal, Admin)
 exports.getUsers = catchAsync(async (req, res, next) => {
+  const user = req.user;
   const { page, limit } = req.query;
 
   const query = req.query;
@@ -217,7 +218,7 @@ exports.getUsers = catchAsync(async (req, res, next) => {
       .select(
         details === "all"
           ? "-inSectionOne -inSectionTwo"
-          : "name  logo_url  _id city type allowShowingMedicines"
+          : "name  logo_url  _id city type allowShowingMedicines isActive isApproved"
       )
       .sort(query.sort ? query.sort + " _id" : "-createdAt -name _id")
       .skip((page - 1) * (limit * 1))
@@ -234,7 +235,7 @@ exports.getUsers = catchAsync(async (req, res, next) => {
       .select(
         details === "all"
           ? "-inSectionOne -inSectionTwo"
-          : "name  logo_url  _id city type allowShowingMedicines"
+          : "name  logo_url  _id city type allowShowingMedicines isActive isApproved"
       )
       .skip((page - 1) * (limit * 1))
       .limit(limit * 1);
