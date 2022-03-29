@@ -379,16 +379,6 @@ exports.sendEmail = catchAsync(async (req, res, next) => {
 
   const buffer = await workbook.xlsx.writeBuffer();
 
-  // const transporter = nodemailer.createTransport({
-  //   service: "gmail",
-  //   // host: "smtp.gmail.com",
-  //   port: 587,
-  //   auth: {
-  //     user: "companypharmalinkclient@gmail.com",
-  //     pass: "C@mpany(2021)",
-  //   },
-  // });
-
   const transport = nodemailer.createTransport({
     host: "smtp.mailtrap.io",
     port: 2525,

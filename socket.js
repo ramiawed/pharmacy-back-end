@@ -196,23 +196,23 @@ const socket = (io) => {
             warehouse,
           });
         }
-        if (
-          Object.keys(change.updateDescription.updatedFields).includes(
-            "existing_place"
-          )
-        ) {
-          io.emit("warehouse-add-or-delete-item", {
-            itemId: change.documentKey._id,
-            warehouses,
-            existing_place:
-              change.updateDescription.updatedFields["existing_place"],
-          });
-        } else {
-          io.emit("warehouse-add-bonus", {
-            itemId: change.documentKey._id,
-            warehouses,
-          });
-        }
+        // if (
+        //   Object.keys(change.updateDescription.updatedFields).includes(
+        //     "existing_place"
+        //   )
+        // ) {
+        //   io.emit("warehouse-add-or-delete-item", {
+        //     itemId: change.documentKey._id,
+        //     warehouses,
+        //     existing_place:
+        //       change.updateDescription.updatedFields["existing_place"],
+        //   });
+        // } else {
+        //   io.emit("warehouse-add-bonus", {
+        //     itemId: change.documentKey._id,
+        //     warehouses,
+        //   });
+        // }
       }
     }
   });
