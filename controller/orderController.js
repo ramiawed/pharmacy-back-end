@@ -55,7 +55,7 @@ exports.updateOrder = catchAsync(async (req, res, next) => {
     new: true,
   })
     .select(
-      "_id pharmacy warehouse seenByAdmin seenByWarehouse warehouseStatus pharmacyStatus"
+      "_id pharmacy warehouse seenByAdmin seenByWarehouse warehouseStatus pharmacyStatus createdAt"
     )
     .populate({
       path: "pharmacy",
@@ -182,7 +182,7 @@ exports.getOrders = catchAsync(async (req, res, next) => {
     .skip((page - 1) * (limit * 1))
     .limit(limit * 1)
     .select(
-      "_id pharmacy warehouse orderDate seenByAdmin warehouseStatus pharmacyStatus updatedAt createdAt"
+      "_id pharmacy warehouse seenByAdmin warehouseStatus pharmacyStatus updatedAt createdAt"
     )
     .populate({
       path: "pharmacy",
