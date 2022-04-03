@@ -31,6 +31,17 @@ exports.getAllAdvertisements = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getBackupAdvertisements = catchAsync(async (req, res, next) => {
+  const advertisements = await Advertisement.find({});
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      data: advertisements,
+    },
+  });
+});
+
 exports.deleteAdvertisement = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
@@ -111,5 +122,17 @@ exports.addAdvertisement = catchAsync(async (req, res) => {
     data: {
       advertisement,
     },
+  });
+});
+
+exports.restoreData = catchAsync(async (req, res, next) => {
+  const body = req.body;
+
+  await Advertisement.deleteMany({});
+
+  await Advertisement.insertMany(body);
+
+  res.status(200).json({
+    status: "success",
   });
 });

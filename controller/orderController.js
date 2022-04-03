@@ -1,8 +1,6 @@
 const Order = require("../models/orderModel");
-const Item = require("../models/itemModel");
 const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
-const AppError = require("../utils/appError");
 
 exports.getOrderById = catchAsync(async (req, res, next) => {
   // const user = req.user;
@@ -12,7 +10,7 @@ exports.getOrderById = catchAsync(async (req, res, next) => {
     .populate({
       path: "pharmacy",
       model: "User",
-      select: { name: 1, addressDetails: 1 },
+      select: { name: 1, addressDetails: 1, mobile: 1 },
     })
     .populate({
       path: "warehouse",
@@ -38,6 +36,17 @@ exports.getOrderById = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getAllOrders = catchAsync(async (req, res, next) => {
+  const orders = await Order.find({});
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      data: orders,
+    },
+  });
+});
+
 exports.updateOrder = catchAsync(async (req, res, next) => {
   const { id } = req.query;
   const body = req.body;
@@ -46,7 +55,7 @@ exports.updateOrder = catchAsync(async (req, res, next) => {
     new: true,
   })
     .select(
-      "_id pharmacy warehouse orderDate seenByAdmin seenByWarehouse warehouseStatus pharmacyStatus"
+      "_id pharmacy warehouse seenByAdmin seenByWarehouse warehouseStatus pharmacyStatus"
     )
     .populate({
       path: "pharmacy",
@@ -159,7 +168,7 @@ exports.getOrders = catchAsync(async (req, res, next) => {
 
   if (date) {
     conditionArray.push({
-      orderDate: {
+      createdAt: {
         $gte: new Date(date),
         $lt: new Date(date1),
       },
@@ -243,5 +252,17 @@ exports.deleteOrder = catchAsync(async (req, res, next) => {
     data: {
       orderId,
     },
+  });
+});
+
+exports.restoreData = catchAsync(async (req, res, next) => {
+  const body = req.body;
+
+  await Order.deleteMany({});
+
+  await Order.insertMany(body);
+
+  res.status(200).json({
+    status: "success",
   });
 });

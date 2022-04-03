@@ -15,10 +15,24 @@ statisticsRouter.post(
   statisticsController.incrementSelectedCompany
 );
 
+statisticsRouter.get(
+  "/all",
+  authController.protect,
+  authController.restrictTo("admin"),
+  statisticsController.getAllStatistics
+);
+
 statisticsRouter.post(
   "/orders",
   authController.protect,
   statisticsController.incrementOrders
+);
+
+statisticsRouter.post(
+  "/restore",
+  authController.protect,
+  authController.restrictTo("admin"),
+  statisticsController.restoreData
 );
 
 statisticsRouter.post(

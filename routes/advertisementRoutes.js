@@ -23,6 +23,20 @@ advertisementRouter
   .route("/")
   .get(authController.protect, advertisementController.getAllAdvertisements);
 
+advertisementRouter.get(
+  "/all",
+  authController.protect,
+  authController.restrictTo("admin"),
+  advertisementController.getBackupAdvertisements
+);
+
+advertisementRouter.post(
+  "/restore",
+  authController.protect,
+  authController.restrictTo("admin"),
+  advertisementController.restoreData
+);
+
 advertisementRouter.post(
   "/upload",
   upload.single("file"),

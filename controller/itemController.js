@@ -314,6 +314,17 @@ exports.getItems = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getAllItems = catchAsync(async (req, res, next) => {
+  const items = await Item.find({});
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      data: items,
+    },
+  });
+});
+
 exports.getItemById = catchAsync(async (req, res, next) => {
   const { itemId } = req.params;
 
@@ -398,7 +409,7 @@ exports.addAndUpdateItems = catchAsync(async (req, res, next) => {
       });
     }
   } else {
-    await Item.insertMany(items);
+    await Item.insertMany(items, { lean: false });
   }
 
   // response with the newly item
@@ -719,5 +730,17 @@ exports.changeIsFavoriteField = catchAsync(async (req, res, next) => {
     data: {
       item,
     },
+  });
+});
+
+exports.restoreData = catchAsync(async (req, res, next) => {
+  const body = req.body;
+
+  await Item.deleteMany({});
+
+  await Item.insertMany(body);
+
+  res.status(200).json({
+    status: "success",
   });
 });

@@ -10,10 +10,6 @@ const orderSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    orderDate: {
-      type: Date,
-      default: Date.now(),
-    },
     seenByAdmin: {
       type: Boolean,
       default: false,

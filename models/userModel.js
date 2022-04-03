@@ -147,6 +147,14 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
+// Encrypt password before save it to DB
+userSchema.pre("insertMany", async function (next) {
+  console.log("pre insert many");
+  // delete password confirm field
+  this.passwordConfirm = undefined;
+  next();
+});
+
 // check if the entered password correct
 userSchema.methods.correctPassword = async function (
   candidatePassword,

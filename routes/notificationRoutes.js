@@ -25,6 +25,20 @@ notificationRoutes.get(
 );
 
 notificationRoutes.get(
+  "/all",
+  authController.protect,
+  authController.restrictTo("admin"),
+  notificationController.getAllNotifications
+);
+
+notificationRoutes.post(
+  "/restore",
+  authController.protect,
+  authController.restrictTo("admin"),
+  notificationController.restoreData
+);
+
+notificationRoutes.get(
   "/unread",
   authController.protect,
   notificationController.getUnreadNotifications

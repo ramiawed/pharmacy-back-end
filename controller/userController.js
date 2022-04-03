@@ -250,6 +250,17 @@ exports.getUsers = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getAllUsers = catchAsync(async (req, res, next) => {
+  const users = await User.find({}).select("+password");
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      data: users,
+    },
+  });
+});
+
 // change my password
 exports.changeMyPassword = catchAsync(async (req, res, next) => {
   // 1- check if the old password and the new password in the body
@@ -408,6 +419,18 @@ exports.sendEmail = catchAsync(async (req, res, next) => {
   };
 
   transport.sendMail(mailOptions);
+
+  res.status(200).json({
+    status: "success",
+  });
+});
+
+exports.restoreData = catchAsync(async (req, res, next) => {
+  const body = req.body;
+
+  await User.deleteMany({});
+
+  await User.insertMany(body);
 
   res.status(200).json({
     status: "success",

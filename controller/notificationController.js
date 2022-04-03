@@ -23,6 +23,17 @@ exports.getNotifications = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getAllNotifications = catchAsync(async (req, res, next) => {
+  const notifications = await Notification.find({});
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      data: notifications,
+    },
+  });
+});
+
 exports.getNotificationById = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
@@ -104,5 +115,17 @@ exports.getUnreadNotifications = catchAsync(async (req, res, next) => {
     data: {
       count,
     },
+  });
+});
+
+exports.restoreData = catchAsync(async (req, res, next) => {
+  const body = req.body;
+
+  await Notification.deleteMany({});
+
+  await Notification.insertMany(body);
+
+  res.status(200).json({
+    status: "success",
   });
 });

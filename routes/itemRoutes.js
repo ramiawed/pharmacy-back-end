@@ -33,6 +33,20 @@ itemRoutes.get(
   itemController.getAllItemsForCompany
 );
 
+itemRoutes.get(
+  "/all",
+  authController.protect,
+  authController.restrictTo("admin"),
+  itemController.getAllItems
+);
+
+itemRoutes.post(
+  "/restore",
+  authController.protect,
+  authController.restrictTo("admin"),
+  itemController.restoreData
+);
+
 itemRoutes
   .route("/excel")
   .post(

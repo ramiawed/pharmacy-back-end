@@ -48,6 +48,17 @@ exports.getFavorites = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getAllFavorites = catchAsync(async (req, res, next) => {
+  const favorites = await Favorite.find({});
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      data: favorites,
+    },
+  });
+});
+
 // add favorite to a user's favorites
 exports.addFavorite = catchAsync(async (req, res, next) => {
   const userId = req.user._id;
@@ -194,5 +205,17 @@ exports.removeFavoriteItem = catchAsync(async (req, res, next) => {
     data: {
       favorite: favoriteItemId,
     },
+  });
+});
+
+exports.restoreData = catchAsync(async (req, res, next) => {
+  const body = req.body;
+
+  await Favorite.deleteMany({});
+
+  await Favorite.insertMany(body);
+
+  res.status(200).json({
+    status: "success",
   });
 });

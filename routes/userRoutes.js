@@ -22,6 +22,18 @@ userRouter.post("/signup", authController.signup);
 userRouter.post("/signin", authController.signin);
 userRouter.post("/signinwithtoken", authController.signinWithToken);
 userRouter.get("/me", authController.protect, userController.getMyDetails);
+userRouter.get(
+  "/all",
+  authController.protect,
+  authController.restrictTo("admin"),
+  userController.getAllUsers
+);
+userRouter.post(
+  "/restore",
+  authController.protect,
+  authController.restrictTo("admin"),
+  userController.restoreData
+);
 
 userRouter.post("/updateMe", authController.protect, userController.updateMe);
 userRouter.post(

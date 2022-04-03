@@ -11,9 +11,23 @@ favoriteRouter.get(
 );
 
 favoriteRouter.get(
+  "/all",
+  authController.protect,
+  authController.restrictTo("admin"),
+  favoriteController.getAllFavorites
+);
+
+favoriteRouter.get(
   "/items",
   authController.protect,
   favoriteController.addFavoriteItem
+);
+
+favoriteRouter.post(
+  "/restore",
+  authController.protect,
+  authController.restrictTo("admin"),
+  favoriteController.restoreData
 );
 
 favoriteRouter.post(

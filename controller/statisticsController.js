@@ -22,6 +22,16 @@ exports.getStatistics = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.getAllStatistics = catchAsync(async (req, res, next) => {
+  const statistics = await Statistic.find({});
+  res.status(200).json({
+    status: "success",
+    data: {
+      data: statistics,
+    },
+  });
+});
+
 // signin count
 exports.incrementSigninCount = catchAsync(async (req, res, next) => {
   const { _id } = req.user;
@@ -305,5 +315,17 @@ exports.getItemsStatistics = catchAsync(async (req, res, next) => {
     data: {
       data,
     },
+  });
+});
+
+exports.restoreData = catchAsync(async (req, res, next) => {
+  const body = req.body;
+
+  await Statistic.deleteMany({});
+
+  await Statistic.insertMany(body);
+
+  res.status(200).json({
+    status: "success",
   });
 });

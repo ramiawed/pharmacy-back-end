@@ -12,10 +12,24 @@ orderRouter.get(
 );
 
 orderRouter.get(
+  "/all",
+  authController.protect,
+  authController.restrictTo("admin"),
+  orderController.getAllOrders
+);
+
+orderRouter.get(
   "/details",
   authController.protect,
   authController.restrictTo("admin", "warehouse", "pharmacy"),
   orderController.getOrderById
+);
+
+orderRouter.post(
+  "/restore",
+  authController.protect,
+  authController.restrictTo("admin"),
+  orderController.restoreData
 );
 
 orderRouter.post(
