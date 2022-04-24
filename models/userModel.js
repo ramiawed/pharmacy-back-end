@@ -96,26 +96,6 @@ var userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    // signinCount: {
-    //   type: Number,
-    //   default: 0,
-    // },
-    // signinDates: [Date],
-    // selectedCount: {
-    //   type: Number,
-    //   default: 0,
-    // },
-    // selectedDates: [Date],
-    // orderCount: {
-    //   type: Number,
-    //   default: 0,
-    // },
-    // orderDates: [Date],
-    // addedToFavoriteCount: {
-    //   type: Number,
-    //   default: 0,
-    // },
-    // addedToFavoriteDates: [Date],
     inSectionOne: {
       type: Boolean,
       default: false,

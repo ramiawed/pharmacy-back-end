@@ -141,6 +141,15 @@ exports.getItems = catchAsync(async (req, res, next) => {
       company: { $in: activeApprovedCompany },
     });
 
+    if (companyId) {
+      conditionArray.push({ company: companyId });
+    }
+
+    // get the items for a specific warehouse
+    if (warehouseId) {
+      conditionArray.push({ "warehouses.warehouse": warehouseId });
+    }
+
     // search by item name
     if (itemName) {
       conditionArray.push({
