@@ -55,6 +55,8 @@ userRouter.post(
   userController.resetUserPassword
 );
 
+userRouter.post("delete-user", userController.deleteUser);
+
 userRouter.post("/deleteMe", authController.protect, userController.deleteMe);
 
 userRouter.get("/", authController.protect, userController.getUsers);

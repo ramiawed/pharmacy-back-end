@@ -11,6 +11,7 @@ const userAllowedFields = [
   "passwordConfirm",
   "type",
   "logo_url",
+  "paper_url",
   "phone",
   "mobile",
   "email",

@@ -86,6 +86,16 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
   });
 });
 
+exports.deleteUser = catchAsync(async (req, res, next) => {
+  const { id } = req.query;
+
+  await User.findByIdAndDelete(id);
+
+  res.status(200).json({
+    status: "success",
+  });
+});
+
 exports.update = catchAsync(async (req, res, next) => {
   const userId = req.params.userId;
   const body = req.body;
@@ -346,11 +356,6 @@ exports.uploadProfilePicture = catchAsync(async (req, res) => {
 
 exports.uploadLicense = catchAsync(async (req, res, next) => {
   const name = req.name;
-  const id = req.body.id;
-
-  await User.findByIdAndUpdate(id, {
-    paper_url: name,
-  });
 
   res.status(200).json({
     status: "success",
