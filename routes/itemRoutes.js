@@ -104,6 +104,10 @@ itemRoutes
     itemController.changeOffer
   );
 
+itemRoutes
+  .route("/items-with-offer")
+  .get(authController.protect, itemController.getItemsWithOffer);
+
 itemRoutes.post(
   "/upload/:itemId",
   upload.single("file"),

@@ -5,6 +5,7 @@ const catchAsync = require("../utils/catchAsync");
 
 const itemAllowedFields = [
   "name",
+  "nameAr",
   "company",
   "caliber",
   "formula",
@@ -47,8 +48,6 @@ exports.getItems = catchAsync(async (req, res, next) => {
     inSectionOne,
     inSectionTwo,
     inSectionThree,
-    city,
-    barcode,
     forAdmin,
   } = req.query;
 
@@ -77,6 +76,7 @@ exports.getItems = catchAsync(async (req, res, next) => {
       conditionArray.push({
         $or: [
           { name: { $regex: itemName, $options: "i" } },
+          { nameAr: { $regex: itemName, $options: "i" } },
           { composition: { $regex: itemName, $options: "i" } },
           { barcode: itemName },
         ],
@@ -155,6 +155,7 @@ exports.getItems = catchAsync(async (req, res, next) => {
       conditionArray.push({
         $or: [
           { name: { $regex: itemName, $options: "i" } },
+          { nameAr: { $regex: itemName, $options: "i" } },
           { composition: { $regex: itemName, $options: "i" } },
           { barcode: itemName },
         ],
@@ -299,7 +300,7 @@ exports.getItems = catchAsync(async (req, res, next) => {
   )
     .sort(sort ? sort + " _id" : "createdAt _id")
     .select(
-      "_id name caliber formula company warehouses price customer_price logo_url packing isActive existing_place composition barcode"
+      "_id name caliber formula company warehouses price customer_price logo_url packing isActive  composition barcode nameAr"
     )
     .populate({
       path: "company",
@@ -343,7 +344,7 @@ exports.getItemById = catchAsync(async (req, res, next) => {
 
   const item = await Item.findById(itemId)
     .select(
-      "_id name caliber formula company warehouses price customer_price logo_url packing isActive existing_place composition indication barcode"
+      "_id name caliber formula company warehouses price customer_price logo_url packing isActive  composition indication barcode nameAr"
     )
     .populate({
       path: "company",
@@ -370,7 +371,7 @@ exports.getItemById = catchAsync(async (req, res, next) => {
 
 exports.getAllItemsForCompany = catchAsync(async (req, res, next) => {
   const items = await Item.find({ company: req.params.companyId }).select(
-    "_id name caliber formula indication composition packing price customer_price barcode"
+    "_id name caliber formula indication composition packing price customer_price barcode nameAr"
   );
 
   res.status(200).json({
@@ -415,6 +416,7 @@ exports.addAndUpdateItems = catchAsync(async (req, res, next) => {
         indication: items[i].indication,
         composition: items[i].composition,
         barcode: items[i].barcode,
+        nameAr: items[i].nameAr,
       });
     }
   } else {
@@ -530,11 +532,6 @@ exports.addItemToWarehouse = catchAsync(async (req, res, next) => {
     ...findItem.warehouses,
     { warehouse: warehouseId, maxQty: 0 },
   ];
-
-  // findItem.existing_place = {
-  //   ...findItem.existing_place,
-  //   [city]: findItem.existing_place[city] + 1,
-  // };
 
   await findItem.save();
 
@@ -676,11 +673,6 @@ exports.removeItemFromWarehouse = catchAsync(async (req, res, next) => {
     return !w.warehouse.equals(warehouseId);
   });
 
-  // findItem.existing_place = {
-  //   ...findItem.existing_place,
-  //   [city]: findItem.existing_place[city] - 1,
-  // };
-
   await findItem.save();
 
   res.status(200).json({
@@ -751,5 +743,148 @@ exports.restoreData = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: "success",
+  });
+});
+
+exports.getItemsWithOffer = catchAsync(async (req, res, next) => {
+  const { page, limit, itemName, companyName, warehouseName, isActive } =
+    req.query;
+
+  const user = req.user;
+
+  let aggregateCondition = [];
+
+  let activeApprovedCompany = await User.find({
+    type: "company",
+    isApproved: true,
+    isActive: true,
+    name: { $regex: companyName ? companyName : "", $options: "i" },
+  });
+
+  activeApprovedCompany = activeApprovedCompany.map((c) => c._id);
+  aggregateCondition.push({
+    $match: {
+      company: {
+        $in: activeApprovedCompany,
+      },
+    },
+  });
+
+  if (itemName?.trim().length > 0) {
+    aggregateCondition.push({
+      $match: {
+        $or: [
+          { name: { $regex: itemName, $options: "i" } },
+          { nameAr: { $regex: itemName, $options: "i" } },
+          { composition: { $regex: itemName, $options: "i" } },
+          { barcode: itemName },
+        ],
+      },
+    });
+  }
+
+  aggregateCondition.push({
+    $unwind: {
+      path: "$warehouses",
+      preserveNullAndEmptyArrays: true,
+    },
+  });
+
+  aggregateCondition.push({
+    $match: {
+      "warehouses.offer.mode": {
+        $ne: null,
+      },
+    },
+  });
+
+  let activeApprovedWarehouse = await User.find({
+    type: "warehouse",
+    isApproved: true,
+    isActive: true,
+    name: { $regex: warehouseName ? warehouseName : "", $options: "i" },
+    city: { $regex: user.type === "pharmacy" ? user.city : "", $options: "i" },
+  });
+
+  activeApprovedWarehouse = activeApprovedWarehouse.map((c) => c._id);
+  aggregateCondition.push({
+    $match: {
+      "warehouses.warehouse": {
+        $in: activeApprovedWarehouse,
+      },
+    },
+  });
+
+  aggregateCondition.push({
+    $lookup: {
+      from: "users",
+      localField: "company",
+      foreignField: "_id",
+      as: "company",
+    },
+  });
+
+  aggregateCondition.push({
+    $lookup: {
+      from: "users",
+      localField: "warehouses.warehouse",
+      foreignField: "_id",
+      as: "warehouses.warehouse",
+    },
+  });
+
+  aggregateCondition.push({
+    $project: {
+      _id: 1,
+      price: 1,
+      customer_price: 1,
+      logo_url: 1,
+      isActive: 1,
+      barcode: 1,
+      name: 1,
+      formula: 1,
+      packing: 1,
+      composition: 1,
+      "company._id": 1,
+      "company.name": 1,
+      caliber: 1,
+      indication: 1,
+      warehouses: 1,
+      nameAr: 1,
+      warehouses: {
+        "warehouse._id": 1,
+        "warehouse.name": 1,
+        "warehouse.city": 1,
+        "warehouse.isActive": 1,
+        "warehouse.isApproved": 1,
+        maxQty: 1,
+        orderNumber: 1,
+        offer: 1,
+      },
+    },
+  });
+
+  const countAggregateCondition = [
+    ...aggregateCondition,
+    {
+      $count: "itemName",
+    },
+  ];
+
+  aggregateCondition.push({
+    $skip: (page - 1) * (limit * 1),
+  });
+
+  aggregateCondition.push({ $limit: limit * 1 });
+
+  const data = await Item.aggregate(aggregateCondition);
+  const count = await Item.aggregate(countAggregateCondition);
+
+  res.status(200).json({
+    status: "success",
+    count: count[0]?.itemName ? count[0].itemName : 0,
+    data: {
+      data,
+    },
   });
 });

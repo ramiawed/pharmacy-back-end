@@ -6,6 +6,10 @@ var itemSchema = new mongoose.Schema(
       type: String,
       required: [true, "An item must have a trade name"],
     },
+    nameAr: {
+      type: String,
+      default: "",
+    },
     company: {
       type: mongoose.Schema.Types.ObjectId,
       required: [true, "An Item must have a company"],
@@ -52,10 +56,6 @@ var itemSchema = new mongoose.Schema(
           type: Date,
           default: new Date(),
         },
-        orderNumber: {
-          type: Number,
-          default: 1,
-        },
         offer: {
           mode: {
             type: String,
@@ -73,24 +73,6 @@ var itemSchema = new mongoose.Schema(
         },
       },
     ],
-    // existing_place: {
-    //   type: Object,
-    //   default: {
-    //     aleppo: 0,
-    //     damascus: 0,
-    //     daraa: 0,
-    //     deir_ez_zor: 0,
-    //     hama: 0,
-    //     al_hasakah: 0,
-    //     homs: 0,
-    //     idlib: 0,
-    //     latakia: 0,
-    //     quneitra: 0,
-    //     raqqa: 0,
-    //     al_suwayda: 0,
-    //     tartus: 0,
-    //   },
-    // },
     logo_url: {
       type: String,
       default: "",
@@ -99,21 +81,6 @@ var itemSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    selectedCount: {
-      type: Number,
-      default: 0,
-    },
-    selectedDates: [Date],
-    addedToCartCount: {
-      type: Number,
-      default: 0,
-    },
-    addedToCartDates: [Date],
-    addedToFavoriteCount: {
-      type: Number,
-      default: 0,
-    },
-    addedToFavoriteDates: [Date],
     inSectionOne: {
       type: Boolean,
       default: false,
