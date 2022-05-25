@@ -14,7 +14,8 @@ const storage = multer.diskStorage({
     req.name = name;
   },
 });
-const upload = multer({ storage: storage, limits: { fieldSize: 2048000 } });
+
+const upload = multer({ storage: storage });
 
 const userRouter = express.Router();
 
