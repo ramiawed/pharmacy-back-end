@@ -356,6 +356,11 @@ exports.uploadProfilePicture = catchAsync(async (req, res) => {
 
 exports.uploadLicense = catchAsync(async (req, res, next) => {
   const name = req.name;
+  const { id } = req.body;
+
+  await User.findByIdAndUpdate(id, {
+    paper_url: name,
+  });
 
   res.status(200).json({
     status: "success",
