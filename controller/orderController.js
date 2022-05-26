@@ -20,7 +20,14 @@ exports.getOrderById = catchAsync(async (req, res, next) => {
     .populate({
       path: "items.item",
       model: "Item",
-      select: { name: 1, formula: 1, caliber: 1, price: 1, customer_price: 1 },
+      select: {
+        name: 1,
+        formula: 1,
+        caliber: 1,
+        price: 1,
+        customer_price: 1,
+        nameAr: 1,
+      },
       populate: {
         path: "company",
         model: "User",
