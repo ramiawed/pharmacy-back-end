@@ -56,6 +56,17 @@ userRouter.post(
   userController.resetUserPassword
 );
 
+userRouter.post(
+  "/add-company-to-ours",
+  authController.protect,
+  userController.addCompanyToOurCompanies
+);
+userRouter.post(
+  "/remove-company-from-ours",
+  authController.protect,
+  userController.removeCompanyFromOurCompanies
+);
+
 userRouter.post("delete-user", userController.deleteUser);
 
 userRouter.post("/deleteMe", authController.protect, userController.deleteMe);

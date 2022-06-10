@@ -16,7 +16,15 @@ exports.getFavorites = catchAsync(async (req, res, next) => {
     .populate({
       path: "favorites",
       model: "User",
-      select: "_id name type allowShowingMedicines",
+      select: "_id name type allowShowingMedicines ourCompanies",
+    })
+    .populate({
+      path: "favorites",
+      populate: {
+        path: "ourCompanies",
+        model: "User",
+        select: "_id name",
+      },
     })
     .populate({
       path: "favorites_items",
@@ -83,7 +91,11 @@ exports.addFavorite = catchAsync(async (req, res, next) => {
     return next(new AppError("this favorite is already done"));
   }
 
-  const user = await User.findById(favoriteId);
+  const user = await User.findById(favoriteId).populate({
+    path: "ourCompanies",
+    model: "User",
+    select: "_id name",
+  });
 
   res.status(200).json({
     status: "success",

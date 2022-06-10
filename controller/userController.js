@@ -25,6 +25,7 @@ const userAllowedFields = [
   "details",
   "allowShowingMedicines",
   "paper_url",
+  "ourCompanies",
 ];
 
 // remove unwanted property from an object
@@ -228,8 +229,13 @@ exports.getUsers = catchAsync(async (req, res, next) => {
       .select(
         details === "all"
           ? "-inSectionOne -inSectionTwo"
-          : "name  logo_url  _id city type allowShowingMedicines isActive isApproved"
+          : "name  logo_url  _id city type allowShowingMedicines isActive isApproved ourCompanies"
       )
+      .populate({
+        path: "ourCompanies",
+        model: "User",
+        select: "_id name",
+      })
       .sort(query.sort ? query.sort + " _id" : "-createdAt -name _id")
       .skip((page - 1) * (limit * 1))
       .limit(limit * 1);
@@ -245,8 +251,13 @@ exports.getUsers = catchAsync(async (req, res, next) => {
       .select(
         details === "all"
           ? "-inSectionOne -inSectionTwo"
-          : "name  logo_url  _id city type allowShowingMedicines isActive isApproved"
+          : "name  logo_url  _id city type allowShowingMedicines isActive isApproved ourCompanies"
       )
+      .populate({
+        path: "ourCompanies",
+        model: "User",
+        select: "_id name",
+      })
       .skip((page - 1) * (limit * 1))
       .limit(limit * 1);
   }
@@ -444,5 +455,49 @@ exports.restoreData = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: "success",
+  });
+});
+
+exports.addCompanyToOurCompanies = catchAsync(async (req, res, next) => {
+  const { companyId } = req.query;
+  const { _id } = req.user;
+
+  const findUser = await User.findById(_id);
+
+  if (findUser) {
+    findUser.ourCompanies = [...findUser.ourCompanies, companyId];
+    await findUser.save({ validateBeforeSave: false });
+  } else {
+    return next(new AppError("enter a user id", 401));
+  }
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      companyId,
+    },
+  });
+});
+
+exports.removeCompanyFromOurCompanies = catchAsync(async (req, res, next) => {
+  const { companyId } = req.query;
+  const { _id } = req.user;
+
+  const findUser = await User.findById(_id);
+
+  if (findUser) {
+    findUser.ourCompanies = findUser.ourCompanies.filter(
+      (company) => company != companyId
+    );
+    await findUser.save({ validateBeforeSave: false });
+  } else {
+    return next(new AppError("enter a user id", 401));
+  }
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      companyId,
+    },
   });
 });

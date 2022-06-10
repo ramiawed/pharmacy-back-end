@@ -69,6 +69,7 @@ const createSendToken = async (user, statusCode, res) => {
         type: user.type,
         logo_url: user.logo_url,
         city: user.city,
+        ourCompanies: user.ourCompanies,
       },
     },
   });
@@ -169,6 +170,7 @@ exports.signinWithToken = catchAsync(async (req, res, next) => {
           type: user.type,
           logo_url: user.logo_url,
           city: user.city,
+          ourCompanies: user.ourCompanies,
         },
       },
     });

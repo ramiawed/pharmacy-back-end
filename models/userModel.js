@@ -108,6 +108,12 @@ var userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    ourCompanies: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     timestamps: true,
