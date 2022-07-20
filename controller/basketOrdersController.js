@@ -1,15 +1,17 @@
-const Order = require("../models/orderModel");
+const BasketOrder = require("../models/basketOrdersModel");
+const Basket = require("../models/basketModel");
 const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
+const AppError = require("../utils/appError");
 
-exports.getOrderById = catchAsync(async (req, res, next) => {
+exports.getBasketOrderById = catchAsync(async (req, res, next) => {
   const { id } = req.query;
 
-  const order = await Order.findById(id)
+  const basketOrder = await BasketOrder.findById(id)
     .populate({
       path: "pharmacy",
       model: "User",
-      select: { name: 1, addressDetails: 1, mobile: 1 },
+      select: { name: 1, addressDetails: 1 },
     })
     .populate({
       path: "warehouse",
@@ -17,47 +19,38 @@ exports.getOrderById = catchAsync(async (req, res, next) => {
       select: { name: 1 },
     })
     .populate({
-      path: "items.item",
-      model: "Item",
-      select: {
-        name: 1,
-        formula: 1,
-        caliber: 1,
-        price: 1,
-        customer_price: 1,
-        nameAr: 1,
-      },
+      path: "basket",
+      model: "Basket",
       populate: {
-        path: "company",
-        model: "User",
-        select: { name: 1 },
+        path: "items.item",
+        model: "Item",
       },
     });
 
   res.status(200).json({
     status: "success",
     data: {
-      order,
+      basketOrder,
     },
   });
 });
 
-exports.getAllOrders = catchAsync(async (req, res, next) => {
-  const orders = await Order.find({});
+exports.getAllBasketOrders = catchAsync(async (req, res, next) => {
+  const basketOrders = await BasketOrder.find({});
 
   res.status(200).json({
     status: "success",
     data: {
-      data: orders,
+      data: basketOrders,
     },
   });
 });
 
-exports.updateOrder = catchAsync(async (req, res, next) => {
+exports.updateBasketOrder = catchAsync(async (req, res, next) => {
   const { id } = req.query;
   const body = req.body;
 
-  const updatedOrder = await Order.findByIdAndUpdate(id, body, {
+  const updateBasketOrder = await BasketOrder.findByIdAndUpdate(id, body, {
     new: true,
   })
     .select(
@@ -77,16 +70,16 @@ exports.updateOrder = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     data: {
-      order: updatedOrder,
+      basketOrder: updateBasketOrder,
     },
   });
 });
 
-exports.updateOrders = catchAsync(async (req, res, next) => {
+exports.updateBasketOrders = catchAsync(async (req, res, next) => {
   const { ids, body } = req.body;
 
   for (let i = 0; i < ids.length; i++) {
-    await Order.findByIdAndUpdate(ids[i], body, {});
+    await BasketOrder.findByIdAndUpdate(ids[i], body, {});
   }
 
   res.status(200).json({
@@ -94,7 +87,7 @@ exports.updateOrders = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getOrders = catchAsync(async (req, res, next) => {
+exports.getBasketOrders = catchAsync(async (req, res, next) => {
   const user = req.user;
   const {
     page,
@@ -181,15 +174,12 @@ exports.getOrders = catchAsync(async (req, res, next) => {
     });
   }
 
-  const orders = await Order.find(
+  const basketOrders = await BasketOrder.find(
     conditionArray.length > 0 ? { $and: conditionArray } : {}
   )
     .sort("-createdAt")
     .skip((page - 1) * (limit * 1))
     .limit(limit * 1)
-    .select(
-      "_id pharmacy warehouse seenByAdmin warehouseStatus pharmacyStatus updatedAt createdAt"
-    )
     .populate({
       path: "pharmacy",
       model: "User",
@@ -199,9 +189,17 @@ exports.getOrders = catchAsync(async (req, res, next) => {
       path: "warehouse",
       model: "User",
       select: { name: 1 },
+    })
+    .populate({
+      path: "basket",
+      model: "Basket",
+      populate: {
+        path: "items.item",
+        model: "Item",
+      },
     });
 
-  const count = await Order.countDocuments(
+  const count = await BasketOrder.countDocuments(
     conditionArray.length > 0 ? { $and: conditionArray } : {}
   );
 
@@ -209,32 +207,41 @@ exports.getOrders = catchAsync(async (req, res, next) => {
     status: "success",
     count,
     data: {
-      orders,
+      basketOrders,
     },
   });
 });
 
-exports.saveOrder = catchAsync(async (req, res, next) => {
-  const body = req.body;
+exports.addBasketOrder = catchAsync(async (req, res, next) => {
+  const { warehouseId, basketId } = req.body;
+  const pharmacyId = req.user._id;
 
-  try {
-    await Order.create(body);
-  } catch (err) {}
+  if (!warehouseId || !basketId) {
+    return next(
+      new AppError("please choose a warehouse and/or basket to add", 400)
+    );
+  }
+
+  await BasketOrder.create({
+    pharmacy: pharmacyId,
+    warehouse: warehouseId,
+    basket: basketId,
+  });
 
   res.status(200).json({
     status: "success",
   });
 });
 
-exports.getUnreadOrders = catchAsync(async (req, res, next) => {
+exports.getUnreadBasketOrders = catchAsync(async (req, res, next) => {
   const user = req.user;
 
   let count = 0;
 
   if (user.type === "admin") {
-    count = await Order.countDocuments({ seenByAdmin: false });
+    count = await BasketOrder.countDocuments({ seenByAdmin: false });
   } else {
-    count = await Order.countDocuments({
+    count = await BasketOrder.countDocuments({
       warehouseStatus: "unread",
       warehouse: user._id,
     });
@@ -248,15 +255,15 @@ exports.getUnreadOrders = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.deleteOrder = catchAsync(async (req, res, next) => {
-  const { orderId } = req.body;
+exports.deleteBasketOrder = catchAsync(async (req, res, next) => {
+  const { basketOrderId } = req.body;
 
-  await Order.findByIdAndDelete(orderId);
+  await BasketOrder.findByIdAndDelete(basketOrderId);
 
   res.status(200).json({
     status: "success",
     data: {
-      orderId,
+      basketOrderId,
     },
   });
 });
@@ -264,9 +271,9 @@ exports.deleteOrder = catchAsync(async (req, res, next) => {
 exports.restoreData = catchAsync(async (req, res, next) => {
   const body = req.body;
 
-  await Order.deleteMany({});
+  await BasketOrder.deleteMany({});
 
-  await Order.insertMany(body);
+  await BasketOrder.insertMany(body);
 
   res.status(200).json({
     status: "success",

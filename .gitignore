@@ -40,6 +40,11 @@ build/Release
 # Dependency directories
 node_modules/
 jspm_packages/
+**/public
+**/public/advertisements
+**/public/profiles
+**/public/items
+**/public/notifications
 
 # TypeScript v1 declaration files
 typings/

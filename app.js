@@ -12,6 +12,9 @@ const settingRouter = require("./routes/settingRoutes");
 const orderRouter = require("./routes/orderRoutes");
 const advertisementRouter = require("./routes/advertisementRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const savedItemRouter = require("./routes/savedItemRoutes");
+const basketRouter = require("./routes/basketRoutes");
+const basketOrdersRoutes = require("./routes/basketOrdersRoutes");
 
 global.__basedir = __dirname;
 
@@ -38,6 +41,9 @@ app.use("/api/v1/settings", settingRouter);
 app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/advertisement", advertisementRouter);
 app.use("/api/v1/notifications", notificationRoutes);
+app.use("/api/v1/savedItems", savedItemRouter);
+app.use("/api/v1/baskets", basketRouter);
+app.use("/api/v1/ordered-baskets", basketOrdersRoutes);
 
 // function to handle all the router that doesn't catch by
 // previous routes

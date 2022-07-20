@@ -2,26 +2,35 @@ const catchAsync = require("../utils/catchAsync");
 const Advertisement = require("../models/advertisementModel");
 
 const fs = require("fs");
-const { promisify } = require("util");
-const pipeline = promisify(require("stream").pipeline);
 
 exports.getAllAdvertisements = catchAsync(async (req, res, next) => {
   const advertisements = await Advertisement.find({})
     .populate({
       path: "company",
       model: "User",
-      select: "_id name type allowShowingMedicines city",
+      select: "_id name type allowShowingMedicines city ourCompanies",
+      populate: {
+        path: "ourCompanies",
+        model: "User",
+        select: "_id name",
+      },
     })
     .populate({
       path: "warehouse",
       model: "User",
-      select: "_id name type allowShowingMedicines city",
+      select: "_id name type allowShowingMedicines city ourCompanies",
+      populate: {
+        path: "ourCompanies",
+        model: "User",
+        select: "_id name",
+      },
     })
     .populate({
       path: "medicine",
       model: "Item",
       select: "_id name",
-    });
+    })
+    .sort("-createdAt _id");
 
   res.status(200).json({
     status: "success",
