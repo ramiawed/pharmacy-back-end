@@ -49,6 +49,8 @@ exports.getItems = catchAsync(async (req, res, next) => {
     inSectionTwo,
     inSectionThree,
     forAdmin,
+    searchCompaniesIds,
+    searchWarehousesIds,
   } = req.query;
 
   const user = req.user;
@@ -129,6 +131,16 @@ exports.getItems = catchAsync(async (req, res, next) => {
       conditionArray.push({ warehouses: [] });
     }
   } else {
+    if (searchCompaniesIds) {
+      conditionArray.push({ company: { $in: searchCompaniesIds } });
+    }
+
+    if (searchWarehousesIds) {
+      conditionArray.push({
+        "warehouses.warehouse": { $in: searchWarehousesIds },
+      });
+    }
+
     // get the active and approved company
     let activeApprovedCompany = await User.find({
       type: "company",
