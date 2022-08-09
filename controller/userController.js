@@ -147,6 +147,11 @@ exports.getUsers = catchAsync(async (req, res, next) => {
     conditionArray.push({ name: { $regex: query.name, $options: "i" } });
   }
 
+  // mobile condition
+  if (query.mobile) {
+    conditionArray.push({ mobile: { $regex: query.mobile, $options: "i" } });
+  }
+
   // inSectionOne condition
   if (query.inSectionOne !== undefined) {
     conditionArray.push({ inSectionOne: query.inSectionOne });

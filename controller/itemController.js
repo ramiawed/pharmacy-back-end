@@ -44,6 +44,7 @@ exports.getItems = catchAsync(async (req, res, next) => {
     isActive,
     inWarehouse,
     outWarehouse,
+    haveOffer,
     sort,
     inSectionOne,
     inSectionTwo,
@@ -154,12 +155,57 @@ exports.getItems = catchAsync(async (req, res, next) => {
     });
 
     if (companyId) {
-      conditionArray.push({ company: companyId });
+      if (haveOffer) {
+        conditionArray.push({ company: companyId });
+        if (user.type === "pharmacy") {
+          let filteredWarehouseArray = await User.find({
+            type: "warehouse",
+            city: user.city,
+            isApproved: true,
+            isActive: true,
+          });
+  
+          filteredWarehouseArray.map((w) => w._id);
+  
+          conditionArray.push({
+            "warehouses.warehouse": { $in: filteredWarehouseArray },
+            "warehouses.offer.mode": ["pieces", "percentage"]
+          });
+        }
+  
+        if (user.type === "warehouse") {
+          conditionArray.push({
+            "warehouses.warehouse": user._id,
+            "warehouses.offer.mode": ["pieces", "percentage"]
+          });
+        }
+  
+        if (user.type === "admin") {
+          let filteredWarehouseArray = await User.find({
+            type: "warehouse",
+            isApproved: true,
+            isActive: true,
+          });
+  
+          filteredWarehouseArray.map((w) => w._id);
+  
+          conditionArray.push({
+            "warehouses.warehouse": { $in: filteredWarehouseArray },
+            "warehouses.offer.mode": ["pieces", "percentage"]
+          });
+        }
+      } else {
+        conditionArray.push({ company: companyId });
+      }
     }
 
     // get the items for a specific warehouse
     if (warehouseId) {
-      conditionArray.push({ "warehouses.warehouse": warehouseId });
+      if (haveOffer) {
+        conditionArray.push({ "warehouses.warehouse": warehouseId, "warehouses.offer.mode": ["pieces", "percentage"] });
+      } else {
+        conditionArray.push({"warehouses.warehouse": warehouseId});
+      }
     }
 
     // search by item name
@@ -383,6 +429,19 @@ exports.getItemById = catchAsync(async (req, res, next) => {
 
 exports.getAllItemsForCompany = catchAsync(async (req, res, next) => {
   const items = await Item.find({ company: req.params.companyId }).select(
+    "_id name caliber formula indication composition packing price customer_price barcode nameAr"
+  );
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      items,
+    },
+  });
+});
+
+exports.getAllItemsForWarehouse = catchAsync(async (req, res, next) => {
+  const items = await Item.find({ "warehouses.warehouse": req.params.warehouseId }).select(
     "_id name caliber formula indication composition packing price customer_price barcode nameAr"
   );
 

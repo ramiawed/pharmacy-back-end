@@ -11,7 +11,7 @@ exports.getBasketOrderById = catchAsync(async (req, res, next) => {
     .populate({
       path: "pharmacy",
       model: "User",
-      select: { name: 1, addressDetails: 1 },
+      select: { name: 1, addressDetails: 1, mobile: 1, certificateName : 1 },
     })
     .populate({
       path: "warehouse",

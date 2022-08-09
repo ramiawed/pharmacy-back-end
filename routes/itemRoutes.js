@@ -28,9 +28,15 @@ itemRoutes
   );
 
 itemRoutes.get(
-  "/allItem/:companyId",
+  "/allItemForCompany/:companyId",
   authController.protect,
   itemController.getAllItemsForCompany
+);
+
+itemRoutes.get(
+  "/allItemForWarehouse/:warehouseId",
+  authController.protect,
+  itemController.getAllItemsForWarehouse
 );
 
 itemRoutes.get(
