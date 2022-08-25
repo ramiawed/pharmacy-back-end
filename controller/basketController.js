@@ -48,9 +48,13 @@ exports.getBaskets = catchAsync(async (req, res, next) => {
     .skip((page - 1) * (limit * 1))
     .limit(limit * 1);
 
+  const count = await Basket.countDocuments(
+    conditionArray.length > 0 ? { $and: conditionArray } : {}
+  );
+
   res.status(200).json({
     status: "success",
-    count: baskets.length,
+    count: count,
     data: {
       baskets,
     },

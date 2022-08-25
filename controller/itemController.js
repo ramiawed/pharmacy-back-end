@@ -164,35 +164,60 @@ exports.getItems = catchAsync(async (req, res, next) => {
             isApproved: true,
             isActive: true,
           });
-  
+
           filteredWarehouseArray.map((w) => w._id);
-  
+
           conditionArray.push({
-            "warehouses.warehouse": { $in: filteredWarehouseArray },
-            "warehouses.offer.mode": ["pieces", "percentage"]
+            warehouses: {
+              $elemMatch: {
+                warehouse: { $in: filteredWarehouseArray },
+                "offer.mode": { $in: ["pieces", "percentage"] },
+              },
+            },
           });
+
+          // conditionArray.push({
+          //   "warehouses.warehouse": { $in: filteredWarehouseArray },
+          //   "warehouses.offer.mode": ["pieces", "percentage"],
+          // });
         }
-  
+
         if (user.type === "warehouse") {
           conditionArray.push({
-            "warehouses.warehouse": user._id,
-            "warehouses.offer.mode": ["pieces", "percentage"]
+            warehouses: {
+              $elemMatch: {
+                warehouse: user._id,
+                "offer.mode": { $in: ["pieces", "percentage"] },
+              },
+            },
           });
+          // conditionArray.push({
+          //   "warehouses.warehouse": user._id,
+          //   "warehouses.offer.mode": ["pieces", "percentage"],
+          // });
         }
-  
+
         if (user.type === "admin") {
           let filteredWarehouseArray = await User.find({
             type: "warehouse",
             isApproved: true,
             isActive: true,
           });
-  
+
           filteredWarehouseArray.map((w) => w._id);
-  
+
           conditionArray.push({
-            "warehouses.warehouse": { $in: filteredWarehouseArray },
-            "warehouses.offer.mode": ["pieces", "percentage"]
+            warehouses: {
+              $elemMatch: {
+                warehouse: { $in: filteredWarehouseArray },
+                "offer.mode": { $in: ["pieces", "percentage"] },
+              },
+            },
           });
+          // conditionArray.push({
+          //   "warehouses.warehouse": { $in: filteredWarehouseArray },
+          //   "warehouses.offer.mode": { $in: ["pieces", "percentage"] },
+          // });
         }
       } else {
         conditionArray.push({ company: companyId });
@@ -202,9 +227,16 @@ exports.getItems = catchAsync(async (req, res, next) => {
     // get the items for a specific warehouse
     if (warehouseId) {
       if (haveOffer) {
-        conditionArray.push({ "warehouses.warehouse": warehouseId, "warehouses.offer.mode": ["pieces", "percentage"] });
+        conditionArray.push({
+          warehouses: {
+            $elemMatch: {
+              warehouse: warehouseId,
+              "offer.mode": { $in: ["pieces", "percentage"] },
+            },
+          },
+        });
       } else {
-        conditionArray.push({"warehouses.warehouse": warehouseId});
+        conditionArray.push({ "warehouses.warehouse": warehouseId });
       }
     }
 
@@ -441,7 +473,9 @@ exports.getAllItemsForCompany = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllItemsForWarehouse = catchAsync(async (req, res, next) => {
-  const items = await Item.find({ "warehouses.warehouse": req.params.warehouseId }).select(
+  const items = await Item.find({
+    "warehouses.warehouse": req.params.warehouseId,
+  }).select(
     "_id name caliber formula indication composition packing price customer_price barcode nameAr"
   );
 

@@ -12,7 +12,7 @@ exports.addStatistics = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getStatistics = catchAsync(async (req, res, next) => {
+exports.getAllStatistics = catchAsync(async (req, res, next) => {
   const statistics = await Statistic.find({});
   res.status(200).json({
     status: "success",
@@ -22,12 +22,160 @@ exports.getStatistics = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getAllStatistics = catchAsync(async (req, res, next) => {
-  const statistics = await Statistic.find({});
+exports.getStatistics = catchAsync(async (req, res, next) => {
+  const {
+    actiontype = "",
+    page = 1,
+    limit = 15,
+    name = "",
+    date = "",
+    date1 = "",
+  } = req.query;
+
+  let aggregateCondition = [];
+
+  aggregateCondition.push({
+    $match: { action: { $regex: actiontype, $options: "i" } },
+  });
+
+  if (date !== "") {
+    aggregateCondition.push({
+      $match: {
+        createdAt: {
+          $gte: new Date(date),
+          $lt: new Date(date1),
+        },
+      },
+    });
+  }
+
+  if (
+    actiontype === "user-sign-in" ||
+    actiontype === "choose-company" ||
+    actiontype === "user-added-to-favorite" ||
+    actiontype === "user-made-an-order"
+  ) {
+    if (actiontype === "user-made-an-order") {
+      aggregateCondition.push({
+        $group: {
+          _id: "$sourceUser",
+          count: {
+            $sum: 1,
+          },
+          dates: {
+            $addToSet: "$createdAt",
+          },
+        },
+      });
+    } else {
+      aggregateCondition.push({
+        $group: {
+          _id: "$targetUser",
+          count: {
+            $sum: 1,
+          },
+          dates: {
+            $addToSet: "$createdAt",
+          },
+        },
+      });
+    }
+
+    aggregateCondition.push({
+      $lookup: {
+        from: "users",
+        localField: "_id",
+        foreignField: "_id",
+        as: "data",
+      },
+    });
+    aggregateCondition.push({
+      $unwind: {
+        path: "$data",
+      },
+    });
+    aggregateCondition.push({
+      $project: {
+        count: 1,
+        dates: 1,
+        "data.name": 1,
+        "data._id": 1,
+      },
+    });
+    aggregateCondition.push({
+      $match: { "data.name": { $regex: name, $options: "i" } },
+    });
+  }
+
+  if (
+    actiontype === "choose-item" ||
+    actiontype === "item-added-to-cart" ||
+    actiontype === "item-added-to-favorite" ||
+    actiontype === "item-ordered"
+  ) {
+    aggregateCondition.push({
+      $group: {
+        _id: "$targetItem",
+        count: {
+          $sum: 1,
+        },
+        dates: {
+          $addToSet: "$createdAt",
+        },
+      },
+    });
+
+    aggregateCondition.push({
+      $lookup: {
+        from: "items",
+        localField: "_id",
+        foreignField: "_id",
+        as: "data",
+      },
+    });
+    aggregateCondition.push({
+      $unwind: {
+        path: "$data",
+      },
+    });
+    aggregateCondition.push({
+      $project: {
+        count: 1,
+        dates: 1,
+        "data.name": 1,
+        "data._id": 1,
+      },
+    });
+    aggregateCondition.push({
+      $match: { "data.name": { $regex: name, $options: "i" } },
+    });
+  }
+
+  const countAggregateCondition = [
+    ...aggregateCondition,
+    {
+      $count: "count",
+    },
+  ];
+
+  aggregateCondition.push({
+    $sort: { count: -1 },
+  });
+
+  aggregateCondition.push({
+    $skip: (page - 1) * (limit * 1),
+  });
+
+  aggregateCondition.push({ $limit: limit * 1 });
+
+  const data = await Statistic.aggregate(aggregateCondition);
+  const count = await Statistic.aggregate(countAggregateCondition);
+
   res.status(200).json({
     status: "success",
+    count: count.length > 0 ? count[0].count : 0,
     data: {
-      data: statistics,
+      data,
     },
   });
 });
