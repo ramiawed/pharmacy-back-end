@@ -1,8 +1,8 @@
 const Notification = require("../models/notificationModel");
+const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
 const fs = require("fs");
-const { promisify } = require("util");
-const pipeline = promisify(require("stream").pipeline);
+const { sendPushNotification } = require("../utils/expoNotification");
 
 // get the setting
 exports.getNotifications = catchAsync(async (req, res, next) => {
@@ -74,6 +74,19 @@ exports.addNotification = catchAsync(async (req, res, next) => {
     header: title,
     body: description,
     logo_url: name,
+  });
+  const users = await User.find({
+    "expoPushToken.0": { $exists: true },
+  });
+
+  const somePushTokens = [];
+  users.forEach((user) => {
+    somePushTokens.push(...user.expoPushToken);
+  });
+
+  sendPushNotification(somePushTokens, title, description, {
+    screen: "notification",
+    notificationId: notification._id,
   });
 
   res.status(200).json({

@@ -35,6 +35,16 @@ userRouter.post(
   authController.restrictTo("admin"),
   userController.restoreData
 );
+userRouter.post(
+  "/store-expo-push-token",
+  authController.protect,
+  userController.storeExpoPushToken
+);
+userRouter.post(
+  "/clear-expo-push-token",
+  authController.protect,
+  userController.clearExpoPushToken
+);
 
 userRouter.post("/updateMe", authController.protect, userController.updateMe);
 userRouter.post(

@@ -506,3 +506,52 @@ exports.removeCompanyFromOurCompanies = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+exports.storeExpoPushToken = catchAsync(async (req, res, next) => {
+  const { _id } = req.user;
+  const { expoPushToken } = req.query;
+
+  const findUser = await User.findById(_id);
+
+  if (findUser) {
+    const expoPushTokenArr = findUser.expoPushToken || [];
+    if (expoPushTokenArr.length === 0) {
+      findUser.expoPushToken = [expoPushToken];
+      await findUser.save({ validateBeforeSave: false });
+    } else if (!expoPushTokenArr.includes(expoPushToken)) {
+      findUser.expoPushToken = [...expoPushTokenArr, expoPushToken];
+      await findUser.save({ validateBeforeSave: false });
+    }
+  } else {
+    return next(new AppError("enter a user id", 401));
+  }
+
+  res.status(200).json({
+    status: "success",
+  });
+});
+
+exports.clearExpoPushToken = catchAsync(async (req, res, next) => {
+  const { _id } = req.user;
+  const { expoPushToken } = req.query;
+  const findUser = await User.findById(_id);
+
+  if (findUser && expoPushToken) {
+    const filteredExpoPushToken = findUser.expoPushToken.filter(
+      (ept) => ept !== expoPushToken
+    );
+
+    if (filteredExpoPushToken.length === 0) {
+      findUser.expoPushToken = [];
+    } else {
+      findUser.expoPushToken = filteredExpoPushToken;
+    }
+    await findUser.save({ validateBeforeSave: false });
+  } else {
+    return next(new AppError("enter a user id", 401));
+  }
+
+  res.status(200).json({
+    status: "success",
+  });
+});

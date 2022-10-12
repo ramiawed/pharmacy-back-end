@@ -1,6 +1,7 @@
 const Order = require("../models/orderModel");
 const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
+const { sendPushNotification } = require("../utils/expoNotification");
 
 exports.getOrderById = catchAsync(async (req, res, next) => {
   const { id } = req.query;
@@ -9,7 +10,7 @@ exports.getOrderById = catchAsync(async (req, res, next) => {
     .populate({
       path: "pharmacy",
       model: "User",
-      select: { name: 1, addressDetails: 1, mobile: 1, certificateName : 1 },
+      select: { name: 1, addressDetails: 1, mobile: 1, certificateName: 1 },
     })
     .populate({
       path: "warehouse",
@@ -220,6 +221,36 @@ exports.saveOrder = catchAsync(async (req, res, next) => {
   try {
     await Order.create(body);
   } catch (err) {}
+
+  // to send notification for a warehouse
+  const warehouserUser = await User.findById(req.body.warehouse);
+  const pharmacyUser = await User.findById(req.body.pharmacy).select(
+    "_id name"
+  );
+  const adminUser = await User.findOne({
+    type: "admin",
+  });
+
+  const messages = [":طلبية جديدة من الصيدلية", `${pharmacyUser.name}`, ""];
+
+  if (warehouserUser && warehouserUser.expoPushToken.length > 0) {
+    const somePushTokens = [];
+    somePushTokens.push(...warehouserUser.expoPushToken);
+    sendPushNotification(somePushTokens, "طلبية جديدة", messages.join(" "));
+  }
+
+  if (
+    adminUser &&
+    adminUser.expoPushToken &&
+    adminUser.expoPushToken.length > 0
+  ) {
+    messages.push("الى المستودع", `${warehouserUser.name}`);
+    sendPushNotification(
+      ...adminUser.expoPushToken,
+      "طلبية جديدة",
+      messages.join(" ")
+    );
+  }
 
   res.status(200).json({
     status: "success",
