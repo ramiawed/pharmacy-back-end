@@ -3,6 +3,7 @@ const Basket = require("../models/basketModel");
 const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
+const { sendPushNotification } = require("../utils/expoNotification");
 
 exports.getBasketOrderById = catchAsync(async (req, res, next) => {
   const { id } = req.query;
@@ -11,7 +12,7 @@ exports.getBasketOrderById = catchAsync(async (req, res, next) => {
     .populate({
       path: "pharmacy",
       model: "User",
-      select: { name: 1, addressDetails: 1, mobile: 1, certificateName : 1 },
+      select: { name: 1, addressDetails: 1, mobile: 1, certificateName: 1 },
     })
     .populate({
       path: "warehouse",
@@ -79,7 +80,80 @@ exports.updateBasketOrders = catchAsync(async (req, res, next) => {
   const { ids, body } = req.body;
 
   for (let i = 0; i < ids.length; i++) {
-    await BasketOrder.findByIdAndUpdate(ids[i], body, {});
+    const updatedBasketOrder = await BasketOrder.findByIdAndUpdate(
+      ids[i],
+      body,
+      {}
+    );
+
+    const { pharmacy, warehouse, createdAt } = updatedBasketOrder;
+
+    const warehouseUser = await User.findById(warehouse).select(
+      "name expoPushToken"
+    );
+    const pharmacyUser = await User.findById(pharmacy).select(
+      "name expoPushToken"
+    );
+
+    const adminUser = await User.findOne({
+      type: "admin",
+    }).select("name expoPushToken");
+
+    if (body.warehouseStatus) {
+      const orderStatus =
+        body.warehouseStatus === "sent"
+          ? "طلب السلة قيد الشحن"
+          : body.warehouseStatus === "received"
+          ? "تم استلام طلب السلة"
+          : "نعتذر عن تخديم طلب السلة";
+      const message = [
+        "تم تغيير حالة طلب السلة المرسلة من الصيدلية",
+        `${pharmacyUser.name}`,
+        "إلى المستودع",
+        `${warehouseUser.name}`,
+        "بتاريخ",
+        `${new Date(createdAt).toLocaleDateString()}`,
+        "إلى",
+        `${orderStatus}`,
+      ];
+
+      sendPushNotification(
+        [...pharmacyUser.expoPushToken, ...adminUser.expoPushToken],
+        "تعديل حالة طلب السلة",
+        message.join(" "),
+        {
+          screen: "basket order",
+          orderId: updatedBasketOrder._id,
+        }
+      );
+    }
+
+    if (body.pharmacyStatus) {
+      const orderStatus =
+        body.pharmacyStatus === "sent"
+          ? "تم ارسال طلب السلة"
+          : "تم استلام طلب السلة من المستودع";
+      const message = [
+        "تم تغيير حالة طلب السلة المرسلة من الصيدلية",
+        `${pharmacyUser.name}`,
+        "إلى المستودع",
+        `${warehouseUser.name}`,
+        "بتاريخ",
+        `${new Date(createdAt).toLocaleDateString()}`,
+        "إلى",
+        `${orderStatus}`,
+      ];
+
+      sendPushNotification(
+        [...warehouseUser.expoPushToken, ...adminUser.expoPushToken],
+        "تعديل حالة طلب السلة",
+        message.join(" "),
+        {
+          screen: "basket order",
+          orderId: updatedBasketOrder._id,
+        }
+      );
+    }
   }
 
   res.status(200).json({
@@ -227,6 +301,34 @@ exports.addBasketOrder = catchAsync(async (req, res, next) => {
     warehouse: warehouseId,
     basket: basketId,
   });
+
+  // to send notification for a warehouse
+  const warehouserUser = await User.findById(warehouseId);
+  const pharmacyUser = await User.findById(pharmacyId).select("_id name");
+  const adminUser = await User.findOne({
+    type: "admin",
+  });
+
+  const messages = ["طلب سلة جديدة من الصيدلية", `${pharmacyUser.name}`, ""];
+
+  if (warehouserUser && warehouserUser.expoPushToken.length > 0) {
+    const somePushTokens = [];
+    somePushTokens.push(...warehouserUser.expoPushToken);
+    sendPushNotification(somePushTokens, "طلبية سلة جديدة", messages.join(" "));
+  }
+
+  if (
+    adminUser &&
+    adminUser.expoPushToken &&
+    adminUser.expoPushToken.length > 0
+  ) {
+    messages.push("الى المستودع", `${warehouserUser.name}`);
+    sendPushNotification(
+      adminUser.expoPushToken,
+      "طلبية سلة جديدة",
+      messages.join(" ")
+    );
+  }
 
   res.status(200).json({
     status: "success",

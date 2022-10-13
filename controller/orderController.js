@@ -87,7 +87,78 @@ exports.updateOrders = catchAsync(async (req, res, next) => {
   const { ids, body } = req.body;
 
   for (let i = 0; i < ids.length; i++) {
-    await Order.findByIdAndUpdate(ids[i], body, {});
+    const updatedOrder = await Order.findByIdAndUpdate(ids[i], body, {});
+
+    const { pharmacy, warehouse, createdAt } = updatedOrder;
+
+    const warehouseUser = await User.findById(warehouse).select(
+      "name expoPushToken"
+    );
+    const pharmacyUser = await User.findById(pharmacy).select(
+      "name expoPushToken"
+    );
+
+    const adminUser = await User.findOne({
+      type: "admin",
+    }).select("name expoPushToken");
+
+    if (body.warehouseStatus) {
+      const orderStatus =
+        body.warehouseStatus === "sent"
+          ? "الطلبية قيد الشحن"
+          : body.warehouseStatus === "received"
+          ? "تم استلام الطلبية"
+          : "نعتذر عن تخديم الطلبية";
+      const message = [
+        "تم تغيير حالة الطلبية المرسلة من الصيدلية",
+        `${pharmacyUser.name}`,
+        "إلى المستودع",
+        `${warehouseUser.name}`,
+        "بتاريخ",
+        `${new Date(createdAt).toLocaleDateString()}`,
+        "إلى",
+        `${orderStatus}`,
+      ];
+
+      // console.log(message.join(" "));
+      sendPushNotification(
+        [...pharmacyUser.expoPushToken, ...adminUser.expoPushToken],
+        "تعديل حالة الطلبية",
+        message.join(" "),
+        {
+          screen: "order",
+          orderId: updatedOrder._id,
+        }
+      );
+    }
+
+    if (body.pharmacyStatus) {
+      const orderStatus =
+        body.pharmacyStatus === "sent"
+          ? "تم ارسال الطلبية"
+          : "تم استلام الطلبية من المستودع";
+      const message = [
+        "تم تغيير حالة الطلبية المرسلة من الصيدلية",
+        `${pharmacyUser.name}`,
+        "إلى المستودع",
+        `${warehouseUser.name}`,
+        "بتاريخ",
+        `${new Date(createdAt).toLocaleDateString()}`,
+        "إلى",
+        `${orderStatus}`,
+      ];
+
+      // console.log(message.join(" "));
+      sendPushNotification(
+        [...warehouseUser.expoPushToken, ...adminUser.expoPushToken],
+        "تعديل حالة الطلبية",
+        message.join(" "),
+        {
+          screen: "order",
+          orderId: updatedOrder._id,
+        }
+      );
+    }
   }
 
   res.status(200).json({
@@ -246,7 +317,7 @@ exports.saveOrder = catchAsync(async (req, res, next) => {
   ) {
     messages.push("الى المستودع", `${warehouserUser.name}`);
     sendPushNotification(
-      ...adminUser.expoPushToken,
+      adminUser.expoPushToken,
       "طلبية جديدة",
       messages.join(" ")
     );
