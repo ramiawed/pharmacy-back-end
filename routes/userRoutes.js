@@ -4,6 +4,7 @@ const userController = require("../controller/userController");
 
 // multer configurations
 const multer = require("multer");
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "public/profiles");
@@ -17,6 +18,19 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+const licenseStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "public/licenses");
+  },
+  filename: function (req, file, cb) {
+    const name = Date.now() + file.originalname;
+    cb(null, name);
+    req.name = name;
+  },
+});
+
+const licenseUpload = multer({ storage: licenseStorage });
+
 const userRouter = express.Router();
 
 userRouter.post("/signup", authController.signup);
@@ -29,6 +43,8 @@ userRouter.get(
   authController.restrictTo("admin"),
   userController.getAllUsers
 );
+userRouter.get("/check-username/:username", authController.checkUsername);
+userRouter.get("/check-version/:version", authController.checkVersion);
 userRouter.post(
   "/restore",
   authController.protect,
@@ -77,12 +93,26 @@ userRouter.post(
   userController.removeCompanyFromOurCompanies
 );
 
-userRouter.post("delete-user", userController.deleteUser);
+userRouter.post(
+  "/delete-user/:id",
+  authController.protect,
+  authController.restrictTo("admin"),
+  userController.deleteUser
+);
 
 userRouter.post("/deleteMe", authController.protect, userController.deleteMe);
 
 userRouter.get("/", authController.protect, userController.getUsers);
-
+userRouter.get(
+  "/companies",
+  authController.protect,
+  userController.getCompanies
+);
+userRouter.get(
+  "/warehouses",
+  authController.protect,
+  userController.getWarehouses
+);
 userRouter.get("/:userId", authController.protect, userController.getUserById);
 
 userRouter.post(
@@ -94,7 +124,7 @@ userRouter.post(
 
 userRouter.post(
   "/upload-license",
-  upload.single("file"),
+  licenseUpload.single("file"),
   userController.uploadLicense
 );
 
@@ -103,6 +133,12 @@ userRouter.post(
   authController.protect,
   authController.restrictTo("pharmacy"),
   userController.sendEmail
+);
+
+userRouter.post(
+  "/delete-image",
+  authController.protect,
+  userController.removeImage
 );
 
 module.exports = userRouter;

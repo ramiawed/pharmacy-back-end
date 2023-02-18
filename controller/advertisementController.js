@@ -1,6 +1,6 @@
 const catchAsync = require("../utils/catchAsync");
 const Advertisement = require("../models/advertisementModel");
-
+const mongoose = require("mongoose");
 const fs = require("fs");
 
 exports.getAllAdvertisements = catchAsync(async (req, res, next) => {
@@ -135,11 +135,28 @@ exports.addAdvertisement = catchAsync(async (req, res) => {
 });
 
 exports.restoreData = catchAsync(async (req, res, next) => {
-  const body = req.body;
+  const { data, rest } = req.body;
 
-  await Advertisement.deleteMany({});
+  const modifiedData = data.map((d) => {
+    return {
+      ...d,
+      _id: mongoose.Types.ObjectId(d._id),
+      company: d.company ? mongoose.Types.ObjectId(d.company) : null,
+      warehouse: d.warehouse ? mongoose.Types.ObjectId(d.warehouse) : null,
+      medicine: d.medicine ? mongoose.Types.ObjectId(d.medicine) : null,
+    };
+  });
 
-  await Advertisement.insertMany(body);
+  try {
+    if (rest) {
+      await Advertisement.deleteMany({});
+      await Advertisement.insertMany(modifiedData);
+    } else {
+      await Advertisement.insertMany(modifiedData);
+    }
+  } catch (err) {
+    return next(new AppError("error occured during restore some data", 401));
+  }
 
   res.status(200).json({
     status: "success",

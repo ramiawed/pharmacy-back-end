@@ -1,6 +1,7 @@
 const Order = require("../models/orderModel");
 const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
+const mongoose = require("mongoose");
 const { sendPushNotification } = require("../utils/expoNotification");
 
 exports.getOrderById = catchAsync(async (req, res, next) => {
@@ -61,9 +62,6 @@ exports.updateOrder = catchAsync(async (req, res, next) => {
   const updatedOrder = await Order.findByIdAndUpdate(id, body, {
     new: true,
   })
-    .select(
-      "_id pharmacy warehouse seenByAdmin seenByWarehouse warehouseStatus pharmacyStatus createdAt"
-    )
     .populate({
       path: "pharmacy",
       model: "User",
@@ -120,7 +118,6 @@ exports.updateOrders = catchAsync(async (req, res, next) => {
         `${orderStatus}`,
       ];
 
-      // console.log(message.join(" "));
       sendPushNotification(
         [...pharmacyUser.expoPushToken, ...adminUser.expoPushToken],
         "تعديل حالة الطلبية",
@@ -148,7 +145,6 @@ exports.updateOrders = catchAsync(async (req, res, next) => {
         `${orderStatus}`,
       ];
 
-      // console.log(message.join(" "));
       sendPushNotification(
         [...warehouseUser.expoPushToken, ...adminUser.expoPushToken],
         "تعديل حالة الطلبية",
@@ -175,9 +171,7 @@ exports.getOrders = catchAsync(async (req, res, next) => {
     warehouseName = null,
     date = null,
     date1 = null,
-    pharmacyStatus = "",
-    warehouseStatus = "",
-    adminOrderStatus = "",
+    orderStatus = "",
   } = req.query;
 
   const conditionArray = [];
@@ -230,18 +224,8 @@ exports.getOrders = catchAsync(async (req, res, next) => {
     });
   }
 
-  if (pharmacyStatus !== "") {
-    conditionArray.push({ pharmacyStatus: pharmacyStatus });
-  }
-
-  if (warehouseStatus !== "") {
-    conditionArray.push({ warehouseStatus: warehouseStatus });
-  }
-
-  if (adminOrderStatus !== "") {
-    conditionArray.push({
-      seenByAdmin: adminOrderStatus === "seen" ? true : false,
-    });
+  if (orderStatus !== "") {
+    conditionArray.push({ status: orderStatus });
   }
 
   if (date) {
@@ -260,7 +244,7 @@ exports.getOrders = catchAsync(async (req, res, next) => {
     .skip((page - 1) * (limit * 1))
     .limit(limit * 1)
     .select(
-      "_id pharmacy warehouse seenByAdmin warehouseStatus pharmacyStatus updatedAt createdAt"
+      "_id pharmacy warehouse updatedAt createdAt status shippedDate deliverDate deliverTime shippedTime couldNotDeliverDate confirmDate"
     )
     .populate({
       path: "pharmacy",
@@ -291,7 +275,9 @@ exports.saveOrder = catchAsync(async (req, res, next) => {
 
   try {
     await Order.create(body);
-  } catch (err) {}
+  } catch (err) {
+    return next(new AppError("something went wrong", 400, ""));
+  }
 
   // to send notification for a warehouse
   const warehouserUser = await User.findById(req.body.warehouse);
@@ -364,11 +350,33 @@ exports.deleteOrder = catchAsync(async (req, res, next) => {
 });
 
 exports.restoreData = catchAsync(async (req, res, next) => {
-  const body = req.body;
+  const { data, rest } = req.body;
 
-  await Order.deleteMany({});
+  const modifiedData = data.map((d) => {
+    return {
+      ...d,
+      pharmacy: mongoose.Types.ObjectId(d.pharmacy),
+      warehouse: mongoose.Types.ObjectId(d.warehouse),
+      items: d.items.map((i) => {
+        return {
+          ...i,
+          item: mongoose.Types.ObjectId(i.item),
+          _id: mongoose.Types.ObjectId(i._id),
+        };
+      }),
+    };
+  });
 
-  await Order.insertMany(body);
+  try {
+    if (rest) {
+      await Order.deleteMany({});
+      await Order.insertMany(modifiedData);
+    } else {
+      await Order.insertMany(modifiedData);
+    }
+  } catch (err) {
+    return next(new AppError("error occured during restore some data", 401));
+  }
 
   res.status(200).json({
     status: "success",

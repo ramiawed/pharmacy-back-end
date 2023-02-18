@@ -1,7 +1,7 @@
 const Item = require("../models/itemModel");
-const User = require("../models/userModel");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
+const mongoose = require("mongoose");
 
 const itemAllowedFields = [
   "name",
@@ -32,29 +32,26 @@ const filterObj = (obj) => {
   return newObj;
 };
 
-exports.getItems = catchAsync(async (req, res, next) => {
+exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
   const {
     page,
     limit,
     companyId,
     warehouseId,
     itemName,
-    companyName,
-    warehouseName,
-    isActive,
-    inWarehouse,
-    outWarehouse,
     haveOffer,
     sort,
+    searchCompaniesIds,
+    searchWarehousesIds,
+    searchInWarehouses,
+    searchOutWarehouses,
+    userWarehouses,
+    searchWarehouseCompanyId,
+    isActive,
     inSectionOne,
     inSectionTwo,
     inSectionThree,
-    forAdmin,
-    searchCompaniesIds,
-    searchWarehousesIds,
   } = req.query;
-
-  const user = req.user;
 
   let count;
   let items;
@@ -62,323 +59,78 @@ exports.getItems = catchAsync(async (req, res, next) => {
   // array that contains all the conditions
   const conditionArray = [];
 
-  // get items from admin perspective (warehouse, company, admin)
-  if (forAdmin === "true") {
-    // get the items for a specific company
-    if (companyId) {
-      conditionArray.push({ company: companyId });
-    }
+  if (inSectionOne) {
+    conditionArray.push({ inSectionOne: true });
+  }
 
-    // get the items for a specific warehouse
-    if (warehouseId) {
-      conditionArray.push({ "warehouses.warehouse": warehouseId });
-    }
+  if (inSectionTwo) {
+    conditionArray.push({ inSectionTwo: true });
+  }
 
-    // get items by item name
-    if (itemName) {
-      conditionArray.push({
-        $or: [
-          { name: { $regex: itemName, $options: "i" } },
-          { nameAr: { $regex: itemName, $options: "i" } },
-          { composition: { $regex: itemName, $options: "i" } },
-          { barcode: itemName },
-        ],
-      });
-    }
+  if (inSectionThree) {
+    conditionArray.push({ inSectionThree: true });
+  }
 
-    // search by company name
-    if (companyName) {
-      // get the ids for all company that there name match the companyName
-      const companiesArray = await User.find({
-        name: { $regex: companyName, $options: "i" },
-        type: "company",
-      });
+  if (isActive !== undefined) {
+    conditionArray.push({ isActive: isActive });
+  }
 
-      // map each company object to it's id
-      const arr = companiesArray.map((company) => company._id);
+  if (searchCompaniesIds) {
+    conditionArray.push({ company: { $in: searchCompaniesIds } });
+  }
 
-      // get all items that company id in the companies ids array
-      conditionArray.push({
-        company: { $in: arr },
-      });
-    }
-
-    // search by warehouse name
-    if (warehouseName) {
-      // get the ids for all warehouse that there name match the warehouseName
-      const warehouseArray = await User.find({
-        name: { $regex: warehouseName, $options: "i" },
-        type: "warehouse",
-      });
-
-      // map each warehouse object to it's id
-      const arr = warehouseArray.map((warehouse) => warehouse._id);
-
-      // get all items that warehouse id in the warehouse ids array
-      conditionArray.push({
-        "warehouses.warehouse": { $in: arr },
-      });
-    }
-
-    // active condition
-    if (isActive !== undefined) {
-      conditionArray.push({ isActive: isActive });
-    }
-
-    if (inWarehouse) {
-      conditionArray.push({ warehouses: { $ne: [] } });
-    }
-    if (outWarehouse) {
-      conditionArray.push({ warehouses: [] });
-    }
-  } else {
-    if (searchCompaniesIds) {
-      conditionArray.push({ company: { $in: searchCompaniesIds } });
-    }
-
-    if (searchWarehousesIds) {
-      conditionArray.push({
-        "warehouses.warehouse": { $in: searchWarehousesIds },
-      });
-    }
-
-    // get the active and approved company
-    let activeApprovedCompany = await User.find({
-      type: "company",
-      isApproved: true,
-      isActive: true,
-    });
-
-    activeApprovedCompany = activeApprovedCompany.map((c) => c._id);
+  if (searchWarehousesIds) {
     conditionArray.push({
-      company: { $in: activeApprovedCompany },
+      "warehouses.warehouse": { $in: searchWarehousesIds },
     });
+  }
 
-    if (companyId) {
-      if (haveOffer) {
-        conditionArray.push({ company: companyId });
-        if (user.type === "pharmacy") {
-          let filteredWarehouseArray = await User.find({
-            type: "warehouse",
-            city: user.city,
-            isApproved: true,
-            isActive: true,
-          });
+  if (companyId) {
+    conditionArray.push({ company: companyId });
+  }
 
-          filteredWarehouseArray.map((w) => w._id);
+  if (searchWarehouseCompanyId) {
+    conditionArray.push({ company: searchWarehouseCompanyId });
+  }
 
-          conditionArray.push({
-            warehouses: {
-              $elemMatch: {
-                warehouse: { $in: filteredWarehouseArray },
-                "offer.mode": { $in: ["pieces", "percentage"] },
-              },
-            },
-          });
+  // get the items for a specific warehouse
+  if (warehouseId) {
+    conditionArray.push({ "warehouses.warehouse": warehouseId });
+  }
 
-          // conditionArray.push({
-          //   "warehouses.warehouse": { $in: filteredWarehouseArray },
-          //   "warehouses.offer.mode": ["pieces", "percentage"],
-          // });
-        }
+  if (searchInWarehouses) {
+    conditionArray.push({
+      "warehouses.warehouse": { $in: searchInWarehouses },
+    });
+  }
 
-        if (user.type === "warehouse") {
-          conditionArray.push({
-            warehouses: {
-              $elemMatch: {
-                warehouse: user._id,
-                "offer.mode": { $in: ["pieces", "percentage"] },
-              },
-            },
-          });
-          // conditionArray.push({
-          //   "warehouses.warehouse": user._id,
-          //   "warehouses.offer.mode": ["pieces", "percentage"],
-          // });
-        }
+  if (searchOutWarehouses) {
+    conditionArray.push({
+      "warehouses.warehouse": { $nin: searchOutWarehouses },
+    });
+  }
 
-        if (user.type === "admin") {
-          let filteredWarehouseArray = await User.find({
-            type: "warehouse",
-            isApproved: true,
-            isActive: true,
-          });
+  if (haveOffer) {
+    conditionArray.push({
+      warehouses: {
+        $elemMatch: {
+          warehouse: { $in: userWarehouses },
+          "offer.mode": { $in: ["pieces", "percentage"] },
+        },
+      },
+    });
+  }
 
-          filteredWarehouseArray.map((w) => w._id);
-
-          conditionArray.push({
-            warehouses: {
-              $elemMatch: {
-                warehouse: { $in: filteredWarehouseArray },
-                "offer.mode": { $in: ["pieces", "percentage"] },
-              },
-            },
-          });
-          // conditionArray.push({
-          //   "warehouses.warehouse": { $in: filteredWarehouseArray },
-          //   "warehouses.offer.mode": { $in: ["pieces", "percentage"] },
-          // });
-        }
-      } else {
-        conditionArray.push({ company: companyId });
-      }
-    }
-
-    // get the items for a specific warehouse
-    if (warehouseId) {
-      if (haveOffer) {
-        conditionArray.push({
-          warehouses: {
-            $elemMatch: {
-              warehouse: warehouseId,
-              "offer.mode": { $in: ["pieces", "percentage"] },
-            },
-          },
-        });
-      } else {
-        conditionArray.push({ "warehouses.warehouse": warehouseId });
-      }
-    }
-
-    // search by item name
-    if (itemName) {
-      conditionArray.push({
-        $or: [
-          { name: { $regex: itemName, $options: "i" } },
-          { nameAr: { $regex: itemName, $options: "i" } },
-          { composition: { $regex: itemName, $options: "i" } },
-          { barcode: itemName },
-        ],
-      });
-    }
-
-    // search byt company name
-    if (companyName) {
-      // get the ids for all company that there name match the companyName
-      const companiesArray = await User.find({
-        name: { $regex: companyName, $options: "i" },
-        type: "company",
-      });
-
-      // map each company object to it's id
-      const arr = companiesArray.map((company) => company._id);
-
-      // get all items that company id in the companies ids array
-      conditionArray.push({
-        company: { $in: arr },
-      });
-    }
-
-    // get items for a specific warehouse
-    if (warehouseName) {
-      // get the ids for all warehouse that there name match the warehouseName
-      const specificCity = user.type === "pharmacy" ? user.city : "";
-      const warehouseArray = await User.find({
-        name: { $regex: warehouseName, $options: "i" },
-        type: "warehouse",
-        city: { $regex: specificCity, $options: "i" },
-        isApproved: true,
-        isActive: true,
-      });
-
-      // map each warehouse object to it's id
-      const arr = warehouseArray.map((warehouse) => warehouse._id);
-
-      // get all items that warehouse id in the warehouse ids array
-      conditionArray.push({
-        "warehouses.warehouse": { $in: arr },
-      });
-    }
-
-    if (inSectionOne !== undefined) {
-      conditionArray.push({ inSectionOne: inSectionOne });
-    }
-
-    if (inSectionTwo !== undefined) {
-      conditionArray.push({ inSectionTwo: inSectionTwo });
-    }
-
-    if (inSectionThree !== undefined) {
-      conditionArray.push({ inSectionThree: inSectionThree });
-    }
-
-    // active condition
-    if (isActive !== undefined) {
-      conditionArray.push({ isActive: isActive });
-    }
-
-    if (inWarehouse) {
-      if (user.type === "pharmacy") {
-        let filteredWarehouseArray = await User.find({
-          type: "warehouse",
-          city: user.city,
-          isApproved: true,
-          isActive: true,
-        });
-
-        filteredWarehouseArray.map((w) => w._id);
-
-        conditionArray.push({
-          "warehouses.warehouse": { $in: filteredWarehouseArray },
-        });
-      }
-
-      if (user.type === "warehouse") {
-        conditionArray.push({
-          "warehouses.warehouse": user._id,
-        });
-      }
-
-      if (user.type === "admin") {
-        let filteredWarehouseArray = await User.find({
-          type: "warehouse",
-          isApproved: true,
-          isActive: true,
-        });
-
-        filteredWarehouseArray.map((w) => w._id);
-
-        conditionArray.push({
-          "warehouses.warehouse": { $in: filteredWarehouseArray },
-        });
-      }
-    }
-    if (outWarehouse) {
-      if (user.type === "pharmacy") {
-        let filteredWarehouseArray = await User.find({
-          type: "warehouse",
-          city: user.city,
-          isApproved: true,
-          isActive: true,
-        });
-
-        filteredWarehouseArray.map((w) => w._id);
-
-        conditionArray.push({
-          "warehouses.warehouse": { $nin: filteredWarehouseArray },
-        });
-      }
-
-      if (user.type === "warehouse") {
-        conditionArray.push({
-          "warehouses.warehouse": { $ne: user._id },
-        });
-      }
-
-      if (user.type === "admin") {
-        let filteredWarehouseArray = await User.find({
-          type: "warehouse",
-          isApproved: true,
-          isActive: true,
-        });
-
-        filteredWarehouseArray.map((w) => w._id);
-
-        conditionArray.push({
-          "warehouses.warehouse": { $nin: filteredWarehouseArray },
-        });
-      }
-    }
+  // search by item name
+  if (itemName) {
+    conditionArray.push({
+      $or: [
+        { name: { $regex: itemName, $options: "i" } },
+        { nameAr: { $regex: itemName, $options: "i" } },
+        { composition: { $regex: itemName, $options: "i" } },
+        { barcode: itemName },
+      ],
+    });
   }
 
   count = await Item.countDocuments(
@@ -388,7 +140,7 @@ exports.getItems = catchAsync(async (req, res, next) => {
   items = await Item.find(
     conditionArray.length > 0 ? { $and: conditionArray } : {}
   )
-    .sort(sort ? sort + " _id" : "createdAt _id")
+    .sort(sort ? sort + " _id" : "name _id")
     .select(
       "_id name caliber formula company warehouses price customer_price logo_url packing isActive  composition barcode nameAr"
     )
@@ -400,7 +152,8 @@ exports.getItems = catchAsync(async (req, res, next) => {
     .populate({
       path: "warehouses.warehouse",
       model: "User",
-      select: "_id name city isActive isApproved",
+      select:
+        "_id name city isActive  costOfDeliver invoiceMinTotal fastDeliver",
     })
     .skip((page - 1) * (limit * 1))
     .limit(limit * 1);
@@ -408,6 +161,19 @@ exports.getItems = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     count,
+    data: {
+      items,
+    },
+  });
+});
+
+exports.getItemsSmallDetails = catchAsync(async (req, res, next) => {
+  const items = await Item.find({ isActive: true }).select(
+    "_id name  composition barcode nameAr company warehouses"
+  );
+
+  res.status(200).json({
+    status: "success",
     data: {
       items,
     },
@@ -444,7 +210,8 @@ exports.getItemById = catchAsync(async (req, res, next) => {
     .populate({
       path: "warehouses.warehouse",
       model: "User",
-      select: "_id name city isActive isApproved",
+      select:
+        "_id name city isActive costOfDeliver invoiceMinTotal fastDeliver",
     });
 
   if (!item) {
@@ -461,7 +228,7 @@ exports.getItemById = catchAsync(async (req, res, next) => {
 
 exports.getAllItemsForCompany = catchAsync(async (req, res, next) => {
   const items = await Item.find({ company: req.params.companyId }).select(
-    "_id name caliber formula indication composition packing price customer_price barcode nameAr"
+    "_id name caliber formula indication composition packing price customer_price barcode nameAr company"
   );
 
   res.status(200).json({
@@ -476,7 +243,7 @@ exports.getAllItemsForWarehouse = catchAsync(async (req, res, next) => {
   const items = await Item.find({
     "warehouses.warehouse": req.params.warehouseId,
   }).select(
-    "_id name caliber formula indication composition packing price customer_price barcode nameAr"
+    "_id name caliber formula indication composition packing price customer_price barcode nameAr company"
   );
 
   res.status(200).json({
@@ -673,7 +440,7 @@ exports.changeItemWarehouseMaxQty = catchAsync(async (req, res, next) => {
   }
 
   // find the item specified by itemId
-  const findItem = await Item.findById(itemId);
+  let findItem = await Item.findById(itemId);
 
   // if the item doesn't exist
   if (!findItem) {
@@ -746,7 +513,7 @@ exports.changeOffer = catchAsync(async (req, res, next) => {
 //remove item from the warehouse
 exports.removeItemFromWarehouse = catchAsync(async (req, res, next) => {
   // get the item id from request parameters
-  const { itemId, city } = req.params;
+  const { itemId } = req.params;
 
   // get the warehouseId and caliber from request body
   const { warehouseId } = req.body;
@@ -840,11 +607,50 @@ exports.changeIsFavoriteField = catchAsync(async (req, res, next) => {
 });
 
 exports.restoreData = catchAsync(async (req, res, next) => {
-  const body = req.body;
+  const { data, rest } = req.body;
 
-  await Item.deleteMany({});
+  const modifiedData = data.map((d) => {
+    return {
+      ...d,
+      _id: mongoose.Types.ObjectId(d._id),
+      company: mongoose.Types.ObjectId(d.company),
+      warehouses:
+        d.warehouses.length > 0
+          ? d.warehouses.map((w) => {
+              return {
+                ...w,
+                _id: mongoose.Types.ObjectId(w._id),
+                warehouse: mongoose.Types.ObjectId(w.warehouse),
+                offer: w.offer
+                  ? {
+                      ...w.offer,
+                      offers: w.offer.offers
+                        ? w.offer.offers.map((off) => {
+                            return {
+                              ...off,
+                              _id: mongoose.Types.ObjectId(off._id),
+                            };
+                          })
+                        : [],
+                    }
+                  : null,
+              };
+            })
+          : [],
+    };
+  });
 
-  await Item.insertMany(body);
+  try {
+    if (rest) {
+      await Item.deleteMany({});
+
+      await Item.insertMany(modifiedData);
+    } else {
+      await Item.insertMany(modifiedData);
+    }
+  } catch (err) {
+    return next(new AppError("error occured during restore some data", 401));
+  }
 
   res.status(200).json({
     status: "success",
@@ -852,28 +658,20 @@ exports.restoreData = catchAsync(async (req, res, next) => {
 });
 
 exports.getItemsWithOffer = catchAsync(async (req, res, next) => {
-  const { page, limit, itemName, companyName, warehouseName, isActive } =
+  const { page, limit, itemName, searchWarehousesIds, searchCompaniesIds } =
     req.query;
-
-  const user = req.user;
 
   let aggregateCondition = [];
 
-  let activeApprovedCompany = await User.find({
-    type: "company",
-    isApproved: true,
-    isActive: true,
-    name: { $regex: companyName ? companyName : "", $options: "i" },
-  });
-
-  activeApprovedCompany = activeApprovedCompany.map((c) => c._id);
-  aggregateCondition.push({
-    $match: {
-      company: {
-        $in: activeApprovedCompany,
+  if (searchCompaniesIds) {
+    aggregateCondition.push({
+      $match: {
+        company: {
+          $in: searchCompaniesIds.map((id) => mongoose.Types.ObjectId(id)),
+        },
       },
-    },
-  });
+    });
+  }
 
   if (itemName?.trim().length > 0) {
     aggregateCondition.push({
@@ -903,22 +701,15 @@ exports.getItemsWithOffer = catchAsync(async (req, res, next) => {
     },
   });
 
-  let activeApprovedWarehouse = await User.find({
-    type: "warehouse",
-    isApproved: true,
-    isActive: true,
-    name: { $regex: warehouseName ? warehouseName : "", $options: "i" },
-    city: { $regex: user.type === "pharmacy" ? user.city : "", $options: "i" },
-  });
-
-  activeApprovedWarehouse = activeApprovedWarehouse.map((c) => c._id);
-  aggregateCondition.push({
-    $match: {
-      "warehouses.warehouse": {
-        $in: activeApprovedWarehouse,
+  if (searchWarehousesIds) {
+    aggregateCondition.push({
+      $match: {
+        "warehouses.warehouse": {
+          $in: searchWarehousesIds.map((id) => mongoose.Types.ObjectId(id)),
+        },
       },
-    },
-  });
+    });
+  }
 
   aggregateCondition.push({
     $lookup: {
@@ -961,7 +752,9 @@ exports.getItemsWithOffer = catchAsync(async (req, res, next) => {
         "warehouse.name": 1,
         "warehouse.city": 1,
         "warehouse.isActive": 1,
-        "warehouse.isApproved": 1,
+        "warehouse.costOfDeliver": 1,
+        "warehouse.invoiceMinTotal": 1,
+        "warehouse.fastDeliver": 1,
         maxQty: 1,
         orderNumber: 1,
         offer: 1,

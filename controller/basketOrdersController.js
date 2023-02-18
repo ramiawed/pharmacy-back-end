@@ -1,8 +1,9 @@
 const BasketOrder = require("../models/basketOrdersModel");
-const Basket = require("../models/basketModel");
 const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
+const mongoose = require("mongoose");
+
 const { sendPushNotification } = require("../utils/expoNotification");
 
 exports.getBasketOrderById = catchAsync(async (req, res, next) => {
@@ -25,6 +26,7 @@ exports.getBasketOrderById = catchAsync(async (req, res, next) => {
       populate: {
         path: "items.item",
         model: "Item",
+        select: { name: 1, price: 1 },
       },
     });
 
@@ -54,9 +56,6 @@ exports.updateBasketOrder = catchAsync(async (req, res, next) => {
   const updateBasketOrder = await BasketOrder.findByIdAndUpdate(id, body, {
     new: true,
   })
-    .select(
-      "_id pharmacy warehouse seenByAdmin seenByWarehouse warehouseStatus pharmacyStatus createdAt"
-    )
     .populate({
       path: "pharmacy",
       model: "User",
@@ -170,9 +169,7 @@ exports.getBasketOrders = catchAsync(async (req, res, next) => {
     warehouseName = null,
     date = null,
     date1 = null,
-    pharmacyStatus = "",
-    warehouseStatus = "",
-    adminOrderStatus = "",
+    orderStatus = "",
   } = req.query;
 
   const conditionArray = [];
@@ -225,18 +222,8 @@ exports.getBasketOrders = catchAsync(async (req, res, next) => {
     });
   }
 
-  if (pharmacyStatus !== "") {
-    conditionArray.push({ pharmacyStatus: pharmacyStatus });
-  }
-
-  if (warehouseStatus !== "") {
-    conditionArray.push({ warehouseStatus: warehouseStatus });
-  }
-
-  if (adminOrderStatus !== "") {
-    conditionArray.push({
-      seenByAdmin: adminOrderStatus === "seen" ? true : false,
-    });
+  if (orderStatus !== "") {
+    conditionArray.push({ status: orderStatus });
   }
 
   if (date) {
@@ -287,23 +274,19 @@ exports.getBasketOrders = catchAsync(async (req, res, next) => {
 });
 
 exports.addBasketOrder = catchAsync(async (req, res, next) => {
-  const { warehouseId, basketId } = req.body;
+  const { warehouse, basket } = req.body;
   const pharmacyId = req.user._id;
 
-  if (!warehouseId || !basketId) {
+  if (!warehouse || !basket) {
     return next(
       new AppError("please choose a warehouse and/or basket to add", 400)
     );
   }
 
-  await BasketOrder.create({
-    pharmacy: pharmacyId,
-    warehouse: warehouseId,
-    basket: basketId,
-  });
+  await BasketOrder.create(req.body);
 
   // to send notification for a warehouse
-  const warehouserUser = await User.findById(warehouseId);
+  const warehouserUser = await User.findById(warehouse);
   const pharmacyUser = await User.findById(pharmacyId).select("_id name");
   const adminUser = await User.findOne({
     type: "admin",
@@ -371,11 +354,28 @@ exports.deleteBasketOrder = catchAsync(async (req, res, next) => {
 });
 
 exports.restoreData = catchAsync(async (req, res, next) => {
-  const body = req.body;
+  const { data, rest } = req.body;
 
-  await BasketOrder.deleteMany({});
+  const modifiedData = data.map((d) => {
+    return {
+      ...d,
+      _id: mongoose.Types.ObjectId(d._id),
+      pharmacy: mongoose.Types.ObjectId(d.pharmacy),
+      warehouse: mongoose.Types.ObjectId(d.warehouse),
+      basket: mongoose.Types.ObjectId(d.basket),
+    };
+  });
 
-  await BasketOrder.insertMany(body);
+  try {
+    if (rest) {
+      await BasketOrder.deleteMany({});
+      await BasketOrder.insertMany(modifiedData);
+    } else {
+      await BasketOrder.insertMany(modifiedData);
+    }
+  } catch (err) {
+    return next(new AppError("error occured during restore some data", 401));
+  }
 
   res.status(200).json({
     status: "success",

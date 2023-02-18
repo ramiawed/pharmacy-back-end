@@ -92,6 +92,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   const findUserByUsername = await User.findOne({
     username: req.body.username,
   });
+
   if (findUserByUsername) {
     return next(new AppError("provide unique username", 400, ["username"]));
   }
@@ -117,7 +118,7 @@ exports.signup = catchAsync(async (req, res, next) => {
 // you need to provide username and password
 // if sign in success return the user and the token
 exports.signin = catchAsync(async (req, res, next) => {
-  const { username, password } = req.body;
+  const { username, password, version } = req.body;
 
   // 1- check if email and password exist
   if (!username || !password) {
@@ -125,16 +126,20 @@ exports.signin = catchAsync(async (req, res, next) => {
   }
 
   // 2- check if the use exists && password is correct
-  const user = await User.findOne({ username }).select("+password +isApproved");
+  const user = await User.findOne({ username }).select("+password +isActive");
 
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError("Incorrect username or password", 401));
   }
 
-  if (user && !user.isApproved) {
+  if (user && !user.isActive) {
     return next(
       new AppError(`You have to approve your account from Admin`, 401)
     );
+  }
+
+  if (version !== process.env.VERSION) {
+    return next(new AppError("update the app"));
   }
 
   // 3- if everything ok, send token to client
@@ -142,8 +147,11 @@ exports.signin = catchAsync(async (req, res, next) => {
 });
 
 exports.signinWithToken = catchAsync(async (req, res, next) => {
-  const { token } = req.body;
+  const { token, version } = req.body;
 
+  if (version !== process.env.VERSION) {
+    return next(new AppError("update the app"));
+  }
   try {
     // 2- verification token
     const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
@@ -231,3 +239,30 @@ exports.restrictTo = (...types) => {
     next();
   };
 };
+
+// check if the username is available or not
+exports.checkUsername = catchAsync(async (req, res, next) => {
+  const { username } = req.params;
+
+  let available = false;
+  const findUser = await User.findOne({ username });
+
+  if (!findUser) {
+    available = true;
+  }
+
+  res.status(200).json({
+    status: "success",
+    available,
+  });
+});
+
+exports.checkVersion = catchAsync(async (req, res, next) => {
+  const { version } = req.params;
+
+  const check = version === process.env.VERSION;
+
+  res.status(200).json({
+    check,
+  });
+});

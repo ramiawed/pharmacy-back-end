@@ -22,4 +22,18 @@ savedItemRouter.post(
   savedItemsController.removeSaveItem
 );
 
+savedItemRouter.get(
+  "/all",
+  authController.protect,
+  authController.restrictTo("admin"),
+  savedItemsController.getAllSavedItems
+);
+
+savedItemRouter.post(
+  "/restore",
+  authController.protect,
+  authController.restrictTo("admin"),
+  savedItemsController.restoreData
+);
+
 module.exports = savedItemRouter;

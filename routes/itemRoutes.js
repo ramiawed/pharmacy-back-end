@@ -20,12 +20,16 @@ const itemRoutes = express.Router();
 
 itemRoutes
   .route("/")
-  .get(authController.protect, itemController.getItems)
+  .get(authController.protect, itemController.getItemsNewVersion)
   .post(
     authController.protect,
     authController.restrictTo("company", "admin"),
     itemController.addItem
   );
+
+itemRoutes
+  .route("/small-details")
+  .get(authController.protect, itemController.getItemsSmallDetails);
 
 itemRoutes.get(
   "/allItemForCompany/:companyId",
@@ -79,7 +83,7 @@ itemRoutes
   );
 
 itemRoutes
-  .route("/warehouse/add-item/:itemId/:city")
+  .route("/warehouse/add-item/:itemId")
   .post(
     authController.protect,
     authController.restrictTo("warehouse"),
@@ -87,7 +91,7 @@ itemRoutes
   );
 
 itemRoutes
-  .route("/warehouse/remove-item/:itemId/:city")
+  .route("/warehouse/remove-item/:itemId")
   .post(
     authController.protect,
     authController.restrictTo("warehouse", "admin"),

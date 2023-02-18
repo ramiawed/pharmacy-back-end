@@ -32,4 +32,18 @@ basketRouter.post(
   basketController.removeBasket
 );
 
+basketRouter.get(
+  "/all",
+  authController.protect,
+  authController.restrictTo("admin"),
+  basketController.getAllBaskets
+);
+
+basketRouter.post(
+  "/restore",
+  authController.protect,
+  authController.restrictTo("admin"),
+  basketController.restoreData
+);
+
 module.exports = basketRouter;

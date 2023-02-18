@@ -3,6 +3,7 @@ const User = require("../models/userModel");
 const catchAsync = require("../utils/catchAsync");
 const fs = require("fs");
 const { sendPushNotification } = require("../utils/expoNotification");
+const mongoose = require("mongoose");
 
 // get the setting
 exports.getNotifications = catchAsync(async (req, res, next) => {
@@ -132,11 +133,25 @@ exports.getUnreadNotifications = catchAsync(async (req, res, next) => {
 });
 
 exports.restoreData = catchAsync(async (req, res, next) => {
-  const body = req.body;
+  const { data, rest } = req.body;
 
-  await Notification.deleteMany({});
+  const modifiedData = data.map((d) => {
+    return {
+      ...d,
+      users: d.users ? d.users.map((u) => mongoose.Types.ObjectId(u)) : [],
+    };
+  });
 
-  await Notification.insertMany(body);
+  try {
+    if (rest) {
+      await Notification.deleteMany({});
+      await Notification.insertMany(modifiedData);
+    } else {
+      await Notification.insertMany(modifiedData);
+    }
+  } catch (err) {
+    return next(new AppError("error occured during restore some data", 401));
+  }
 
   res.status(200).json({
     status: "success",

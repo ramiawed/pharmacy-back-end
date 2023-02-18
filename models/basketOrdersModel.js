@@ -14,17 +14,26 @@ const basketOrdersSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Basket",
     },
-    seenByAdmin: {
-      type: Boolean,
-      default: false,
-    },
-    warehouseStatus: {
+    status: {
       type: String,
-      default: "unread",
     },
-    pharmacyStatus: {
+    shippedDate: {
+      type: Date,
+    },
+    shippedTime: {
       type: String,
-      default: "sent",
+    },
+    deliverDate: {
+      type: Date,
+    },
+    deliverTime: {
+      type: String,
+    },
+    couldNotDeliverDate: {
+      type: Date,
+    },
+    confirmDate: {
+      type: Date,
     },
   },
   {

@@ -2,6 +2,7 @@ const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const SavedItems = require("../models/savedItemsModel");
 const Item = require("../models/itemModel");
+const mongoose = require("mongoose");
 
 exports.getSavedItems = catchAsync(async (req, res, next) => {
   const userId = req.user._id;
@@ -21,7 +22,7 @@ exports.getSavedItems = catchAsync(async (req, res, next) => {
         populate: {
           path: "warehouses.warehouse",
           model: "User",
-          select: "_id name city isActive isApproved",
+          select: "_id name city isActive",
         },
         populate: {
           path: "company",
@@ -67,7 +68,7 @@ exports.addSavedItem = catchAsync(async (req, res, next) => {
     .populate({
       path: "warehouses.warehouse",
       model: "User",
-      select: "_id name city isActive isApproved",
+      select: "_id name city isActive",
     })
     .populate({
       path: "company",
@@ -129,11 +130,27 @@ exports.getAllSavedItems = catchAsync(async (req, res, next) => {
 });
 
 exports.restoreData = catchAsync(async (req, res, next) => {
-  const body = req.body;
+  const { data, rest } = req.body;
 
-  await SavedItems.deleteMany({});
+  const modifiedData = data.map((d) => {
+    return {
+      ...d,
+      _id: mongoose.Types.ObjectId(d._id),
+      userId: mongoose.Types.ObjectId(d.userId),
+      items: d.items.map((i) => mongoose.Types.ObjectId(i)),
+    };
+  });
 
-  await SavedItems.insertMany(body);
+  try {
+    if (rest) {
+      await SavedItems.deleteMany({});
+      await SavedItems.insertMany(modifiedData);
+    } else {
+      await SavedItems.insertMany(modifiedData);
+    }
+  } catch (err) {
+    return next(new AppError("error occured during restore some data", 401));
+  }
 
   res.status(200).json({
     status: "success",

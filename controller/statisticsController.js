@@ -2,6 +2,8 @@ const User = require("../models/userModel");
 const Item = require("../models/itemModel");
 const Statistic = require("../models/statisticModel");
 const catchAsync = require("../utils/catchAsync");
+const AppError = require("../utils/appError");
+const mongoose = require("mongoose");
 
 exports.addStatistics = catchAsync(async (req, res, next) => {
   const body = req.body;
@@ -14,10 +16,11 @@ exports.addStatistics = catchAsync(async (req, res, next) => {
 
 exports.getAllStatistics = catchAsync(async (req, res, next) => {
   const statistics = await Statistic.find({});
+
   res.status(200).json({
     status: "success",
     data: {
-      statistics,
+      data: statistics,
     },
   });
 });
@@ -369,11 +372,27 @@ exports.getItemsStatistics = catchAsync(async (req, res, next) => {
 });
 
 exports.restoreData = catchAsync(async (req, res, next) => {
-  const body = req.body;
+  const { data, rest } = req.body;
 
-  await Statistic.deleteMany({});
+  const modifiedData = data.map((d) => {
+    return {
+      ...d,
+      sourceUser: d.sourceUser ? mongoose.Types.ObjectId(d.sourceUser) : null,
+      targetUser: d.targetUser ? mongoose.Types.ObjectId(d.targetUser) : null,
+      targetItem: d.targetItem ? mongoose.Types.ObjectId(d.targetItem) : null,
+    };
+  });
 
-  await Statistic.insertMany(body);
+  try {
+    if (rest) {
+      await Statistic.deleteMany({});
+      await Statistic.insertMany(modifiedData);
+    } else {
+      await Statistic.insertMany(modifiedData);
+    }
+  } catch (err) {
+    return next(new AppError("error occured during restore some data", 401));
+  }
 
   res.status(200).json({
     status: "success",

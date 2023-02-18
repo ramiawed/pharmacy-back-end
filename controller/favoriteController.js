@@ -3,6 +3,7 @@ const AppError = require("../utils/appError");
 const Favorite = require("../models/favoriteModel");
 const User = require("../models/userModel");
 const Item = require("../models/itemModel");
+const mongoose = require("mongoose");
 
 // get all favorite for a specific user
 exports.getFavorites = catchAsync(async (req, res, next) => {
@@ -221,11 +222,28 @@ exports.removeFavoriteItem = catchAsync(async (req, res, next) => {
 });
 
 exports.restoreData = catchAsync(async (req, res, next) => {
-  const body = req.body;
+  const { data, rest } = req.body;
 
-  await Favorite.deleteMany({});
+  const modifiedData = data.map((d) => {
+    return {
+      ...d,
+      _id: mongoose.Types.ObjectId(d._id),
+      userId: mongoose.Types.ObjectId(d.userId),
+      favorites: d.favorites.map((i) => mongoose.Types.ObjectId(i)),
+      favorites_items: d.favorites_items.map((i) => mongoose.Types.ObjectId(i)),
+    };
+  });
 
-  await Favorite.insertMany(body);
+  try {
+    if (rest) {
+      await Favorite.deleteMany({});
+      await Favorite.insertMany(modifiedData);
+    } else {
+      await Favorite.insertMany(modifiedData);
+    }
+  } catch (err) {
+    return next(new AppError("error occured during restore some data", 401));
+  }
 
   res.status(200).json({
     status: "success",

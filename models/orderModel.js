@@ -10,18 +10,6 @@ const orderSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    seenByAdmin: {
-      type: Boolean,
-      default: false,
-    },
-    warehouseStatus: {
-      type: String,
-      default: "unread",
-    },
-    pharmacyStatus: {
-      type: String,
-      default: "sent",
-    },
 
     items: [
       {
@@ -47,6 +35,30 @@ const orderSchema = new mongoose.Schema(
         },
       },
     ],
+    status: {
+      type: String,
+    },
+    shippedDate: {
+      type: Date,
+    },
+    shippedTime: {
+      type: String,
+    },
+    deliverDate: {
+      type: Date,
+    },
+    deliverTime: {
+      type: String,
+    },
+    couldNotDeliverDate: {
+      type: Date,
+    },
+    confirmDate: {
+      type: Date,
+    },
+    editingDate: {
+      type: Date,
+    },
   },
   {
     timestamps: true,

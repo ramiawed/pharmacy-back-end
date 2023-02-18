@@ -1,11 +1,18 @@
 const User = require("../models/userModel");
+const Order = require("../models/orderModel");
+const BasketOrder = require("../models/basketOrdersModel");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/appError");
 const fs = require("fs");
-const { promisify } = require("util");
-const pipeline = promisify(require("stream").pipeline);
 const Excel = require("exceljs");
 const nodemailer = require("nodemailer");
+const Item = require("../models/itemModel");
+const Advertisement = require("../models/advertisementModel");
+const Basket = require("../models/basketModel");
+const Favorite = require("../models/favoriteModel");
+const Statistic = require("../models/statisticModel");
+const SavedItems = require("../models/savedItemsModel");
+const mongoose = require("mongoose");
 
 const userAllowedFields = [
   "name",
@@ -26,6 +33,9 @@ const userAllowedFields = [
   "allowShowingMedicines",
   "paper_url",
   "ourCompanies",
+  "costOfDeliver",
+  "invoiceMinTotal",
+  "fastDeliver",
 ];
 
 // remove unwanted property from an object
@@ -78,7 +88,7 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
 
   await User.findByIdAndUpdate(
     req.user._id,
-    { isActive: false, isApproved: false },
+    { isActive: false },
     { runValidators: false }
   );
 
@@ -88,12 +98,87 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteUser = catchAsync(async (req, res, next) => {
-  const { id } = req.query;
+  const { id } = req.params;
+
+  if (!id) {
+    return next(new AppError("enter a user id", 401));
+  }
+
+  const checkItem = await Item.find({
+    $or: [{ company: id }, { "warehouses.warehouse": id }],
+  });
+
+  if (checkItem && checkItem.length > 0) {
+    return next(new AppError("cannot delete user item collections", 400));
+  }
+
+  const checkAdvertisement = await Advertisement.find({
+    $or: [{ company: id }, { warehouse: id }],
+  });
+
+  if (checkAdvertisement && checkAdvertisement.length > 0) {
+    return next(
+      new AppError("cannot delete user advertisement collections", 400)
+    );
+  }
+
+  const checkOrder = await Order.find({
+    $or: [{ pharmacy: id }, { warehouse: id }],
+  });
+
+  if (checkOrder && checkOrder.length > 0) {
+    return next(new AppError("cannot delete user order collections", 400));
+  }
+
+  const checkBasketOrder = await BasketOrder.find({
+    $or: [{ pharmacy: id }, { warehouse: id }],
+  });
+
+  if (checkBasketOrder && checkBasketOrder.length > 0) {
+    return next(
+      new AppError("cannot delete user basket order collections", 400)
+    );
+  }
+
+  const checkBasket = await Basket.find({
+    warehouse: id,
+  });
+
+  if (checkBasket && checkBasket.length > 0) {
+    return next(new AppError("cannot delete user basket collections", 400));
+  }
+
+  const checkFavorite = await Favorite.find({
+    $or: [{ userId: id }, { favorites: id }],
+  });
+
+  if (checkFavorite && checkFavorite.length > 0) {
+    return next(new AppError("cannot delete user favorite collections", 400));
+  }
+
+  const checkStatistics = await Statistic.find({
+    $or: [{ sourceUser: id }, { targetUser: id }],
+  });
+
+  if (checkStatistics && checkStatistics.length > 0) {
+    await Statistic.deleteMany({
+      $or: [{ sourceUser: id }, { targetUser: id }],
+    });
+  }
+
+  const checkSavedItems = await SavedItems.find({
+    userId: id,
+  });
+
+  if (checkSavedItems && checkSavedItems.length > 0) {
+    return next(new AppError("cannot delete user saved item collections", 400));
+  }
 
   await User.findByIdAndDelete(id);
 
   res.status(200).json({
     status: "success",
+    userId: id,
   });
 });
 
@@ -129,7 +214,6 @@ exports.getUserById = catchAsync(async (req, res, next) => {
 
 // get users specified by type (Company, Warehouse, Normal, Admin)
 exports.getUsers = catchAsync(async (req, res, next) => {
-  const user = req.user;
   const { page, limit } = req.query;
 
   const query = req.query;
@@ -163,9 +247,9 @@ exports.getUsers = catchAsync(async (req, res, next) => {
   }
 
   // approve condition
-  if (query.isApproved !== undefined) {
-    conditionArray.push({ isApproved: query.isApproved });
-  }
+  // if (query.isApproved !== undefined) {
+  //   conditionArray.push({ isApproved: query.isApproved });
+  // }
 
   // active condition
   if (query.isActive !== undefined) {
@@ -234,7 +318,7 @@ exports.getUsers = catchAsync(async (req, res, next) => {
       .select(
         details === "all"
           ? "-inSectionOne -inSectionTwo"
-          : "name  logo_url  _id city type allowShowingMedicines isActive isApproved ourCompanies"
+          : "name  logo_url  _id city type allowShowingMedicines isActive  ourCompanies costOfDeliver invoiceMinTotal fastDeliver"
       )
       .populate({
         path: "ourCompanies",
@@ -256,7 +340,7 @@ exports.getUsers = catchAsync(async (req, res, next) => {
       .select(
         details === "all"
           ? "-inSectionOne -inSectionTwo"
-          : "name  logo_url  _id city type allowShowingMedicines isActive isApproved ourCompanies"
+          : "name  logo_url  _id city type allowShowingMedicines isActive  ourCompanies costOfDeliver invoiceMinTotal fastDeliver"
       )
       .populate({
         path: "ourCompanies",
@@ -452,11 +536,28 @@ exports.sendEmail = catchAsync(async (req, res, next) => {
 });
 
 exports.restoreData = catchAsync(async (req, res, next) => {
-  const body = req.body;
+  const { data, rest } = req.body;
 
-  await User.deleteMany({});
+  const modifiedData = data
+    .filter((d) => d.type !== "admin")
+    .map((d) => {
+      return {
+        ...d,
+        _id: mongoose.Types.ObjectId(d._id),
+      };
+    });
 
-  await User.insertMany(body);
+  try {
+    if (rest) {
+      await User.deleteMany({ type: { $ne: "admin" } });
+
+      await User.insertMany(modifiedData);
+    } else {
+      await User.insertMany(modifiedData);
+    }
+  } catch (err) {
+    return next(new AppError("error occured during restore some data", 401));
+  }
 
   res.status(200).json({
     status: "success",
@@ -553,5 +654,78 @@ exports.clearExpoPushToken = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: "success",
+  });
+});
+
+exports.removeImage = catchAsync(async (req, res, next) => {
+  const { source, id, type } = req.body;
+
+  try {
+    if (source) {
+      if (fs.existsSync(`${__basedir}/public/${source}`)) {
+        fs.unlinkSync(`${__basedir}/public/${source}`);
+      }
+
+      if (id && type) {
+        if (type === "profile") {
+          await User.findByIdAndUpdate(id, { logo_url: "" });
+        }
+
+        if (type === "license") {
+          await User.findByIdAndUpdate(id, { paper_url: "" });
+        }
+      }
+    }
+  } catch (err) {
+    return next(new AppError(err, 401));
+  }
+
+  res.status(200).json({
+    status: "success",
+  });
+});
+
+exports.getCompanies = catchAsync(async (req, res, next) => {
+  const companies = await User.find({
+    type: "company",
+    isActive: true,
+    // isApproved: true,
+  })
+    .select("_id type name logo_url city")
+    .sort("name");
+
+  res.status(200).json({
+    data: companies,
+  });
+});
+
+exports.getWarehouses = catchAsync(async (req, res, next) => {
+  const { city, type } = req.user;
+  let filter = {
+    type: "warehouse",
+    isActive: true,
+    // isApproved: true,
+  };
+
+  if (type !== "admin") {
+    filter = {
+      ...filter,
+      city: city,
+    };
+  }
+
+  const warehouses = await User.find(filter)
+    .select(
+      "name logo_url _id city type allowShowingMedicines isActive  ourCompanies costOfDeliver invoiceMinTotal fastDeliver"
+    )
+    .populate({
+      path: "ourCompanies",
+      model: "User",
+      select: "_id name",
+    })
+    .sort("name");
+
+  res.status(200).json({
+    data: warehouses,
   });
 });

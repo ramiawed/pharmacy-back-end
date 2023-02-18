@@ -40,11 +40,18 @@ exports.updateSetting = catchAsync(async (req, res, next) => {
 });
 
 exports.restoreData = catchAsync(async (req, res, next) => {
-  const body = req.body;
+  const { data, rest } = req.body;
 
-  await Setting.deleteMany({});
-
-  await Setting.insertMany(body);
+  try {
+    if (rest) {
+      await Setting.deleteMany({});
+      await Setting.insertMany(data);
+    } else {
+      await Setting.insertMany(data);
+    }
+  } catch (err) {
+    return next(new AppError("error occured during restore some data", 401));
+  }
 
   res.status(200).json({
     status: "success",

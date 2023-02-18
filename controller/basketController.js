@@ -3,10 +3,11 @@ const AppError = require("../utils/appError");
 const Basket = require("../models/basketModel");
 const User = require("../models/userModel");
 const Item = require("../models/itemModel");
+const mongoose = require("mongoose");
 
 exports.getBaskets = catchAsync(async (req, res, next) => {
   const user = req.user;
-  const { page, limit } = req.query;
+  const { page, limit, searchWarehouseIds } = req.query;
 
   const conditionArray = [];
 
@@ -20,7 +21,6 @@ exports.getBaskets = catchAsync(async (req, res, next) => {
     let filteredWarehouseArray = await User.find({
       type: "warehouse",
       city: user.city,
-      isApproved: true,
       isActive: true,
     });
 
@@ -31,13 +31,19 @@ exports.getBaskets = catchAsync(async (req, res, next) => {
     });
   }
 
+  if (searchWarehouseIds && searchWarehouseIds.length > 0) {
+    conditionArray.push({
+      warehouse: { $in: searchWarehouseIds },
+    });
+  }
+
   const baskets = await Basket.find(
     conditionArray.length > 0 ? { $and: conditionArray } : {}
   )
     .populate({
       path: "warehouse",
       model: "User",
-      select: "_id name city isApproved isActive",
+      select: "_id name city isActive",
     })
     .populate({
       path: "items.item",
@@ -70,7 +76,7 @@ exports.addBasket = catchAsync(async (req, res, next) => {
     .populate({
       path: "warehouse",
       model: "User",
-      select: "_id name city isApproved isActive",
+      select: "_id name city isActive",
     })
     .populate({
       path: "items.item",
@@ -112,7 +118,7 @@ exports.updateBasket = catchAsync(async (req, res, next) => {
     .populate({
       path: "warehouse",
       model: "User",
-      select: "_id name city isApproved isActive",
+      select: "_id name city  isActive",
     })
     .populate({
       path: "items.item",
@@ -125,5 +131,50 @@ exports.updateBasket = catchAsync(async (req, res, next) => {
     data: {
       basket: updatedBasket,
     },
+  });
+});
+
+exports.getAllBaskets = catchAsync(async (req, res, next) => {
+  const baskets = await Basket.find({});
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      data: baskets,
+    },
+  });
+});
+
+exports.restoreData = catchAsync(async (req, res, next) => {
+  const { data, rest } = req.body;
+
+  const modifiedData = data.map((d) => {
+    return {
+      ...d,
+      _id: mongoose.Types.ObjectId(d._id),
+      warehouse: mongoose.Types.ObjectId(d.warehouse),
+      items: d.items.map((i) => {
+        return {
+          ...i,
+          item: mongoose.Types.ObjectId(i.item),
+          _id: mongoose.Types.ObjectId(d._id),
+        };
+      }),
+    };
+  });
+
+  try {
+    if (rest) {
+      await Basket.deleteMany({});
+      await Basket.insertMany(modifiedData);
+    } else {
+      await Basket.insertMany(modifiedData);
+    }
+  } catch (err) {
+    return next(new AppError("error occured during restore some data", 401));
+  }
+
+  res.status(200).json({
+    status: "success",
   });
 });

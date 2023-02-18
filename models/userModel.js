@@ -42,12 +42,12 @@ var userSchema = new mongoose.Schema(
     },
     isActive: {
       type: Boolean,
-      default: true,
-    },
-    isApproved: {
-      type: Boolean,
       default: false,
     },
+    // isApproved: {
+    //   type: Boolean,
+    //   default: false,
+    // },
     mobile: [
       {
         type: String,
@@ -120,6 +120,18 @@ var userSchema = new mongoose.Schema(
         default: "",
       },
     ],
+    costOfDeliver: {
+      type: Number,
+      default: 0,
+    },
+    invoiceMinTotal: {
+      type: Number,
+      default: 0,
+    },
+    fastDeliver: {
+      type: Boolean,
+      defautl: false,
+    },
   },
   {
     timestamps: true,

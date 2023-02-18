@@ -1,6 +1,10 @@
+const { updateOrder } = require("./controller/orderController");
+
 const socket = (io) => {
   const User = require("./models/userModel");
   const Order = require("./models/orderModel");
+  const Basket = require("./models/basketModel");
+  const BasketOrder = require("./models/basketOrdersModel");
   const Notification = require("./models/notificationModel");
   const Setting = require("./models/settingModel");
   const Item = require("./models/itemModel");
@@ -8,6 +12,8 @@ const socket = (io) => {
 
   const userStream = User.watch();
   const orderStream = Order.watch();
+  const basketStream = Basket.watch();
+  const basketOrderStream = BasketOrder.watch();
   const notificationStream = Notification.watch();
   const settingStream = Setting.watch();
   const itemStream = Item.watch();
@@ -16,14 +22,10 @@ const socket = (io) => {
   userStream.on("change", async (change) => {
     if (change.operationType === "update") {
       if (
-        (Object.keys(change.updateDescription.updatedFields).includes(
-          "isApproved"
-        ) &&
-          change.updateDescription.updatedFields.isApproved === false) ||
-        (Object.keys(change.updateDescription.updatedFields).includes(
+        Object.keys(change.updateDescription.updatedFields).includes(
           "isActive"
         ) &&
-          change.updateDescription.updatedFields.isActive === false)
+        change.updateDescription.updatedFields.isActive === false
       ) {
         io.emit("user-sign-out", change.documentKey._id);
       }
@@ -96,8 +98,108 @@ const socket = (io) => {
     // io.emit("user-changed", change);
   });
 
-  orderStream.on("change", (change) => {
-    io.emit("order-changed", change);
+  // orders changes
+  orderStream.on("change", async (change) => {
+    // add a new order
+    if (change.operationType === "insert") {
+      const addedOrder = await Order.findById(change.documentKey)
+        .select(
+          "_id pharmacy warehouse updatedAt createdAt status shippedDate deliverDate deliverTime shippedTime couldNotDeliverDate confirmDate"
+        )
+        .populate({
+          path: "pharmacy",
+          model: "User",
+          select: { name: 1, addressDetails: 1, _id: 1 },
+        })
+        .populate({
+          path: "warehouse",
+          model: "User",
+          select: { name: 1, _id: 1 },
+        });
+      io.emit("order-inserted", addedOrder);
+    }
+
+    // update an order
+    if (change.operationType === "update") {
+      const updatedOrder = await Order.findById(change.documentKey)
+        .select(
+          "_id pharmacy warehouse updatedAt createdAt status shippedDate deliverDate deliverTime shippedTime couldNotDeliverDate confirmDate"
+        )
+        .populate({
+          path: "pharmacy",
+          model: "User",
+          select: { name: 1, addressDetails: 1 },
+        })
+        .populate({
+          path: "warehouse",
+          model: "User",
+          select: { name: 1 },
+        });
+
+      io.emit("order-updated", updatedOrder);
+    }
+
+    // delete an order
+    if (change.operationType === "delete") {
+      io.emit("order-deleted", change.documentKey);
+    }
+  });
+
+  basketOrderStream.on("change", async (change) => {
+    // new basket order
+    if (change.operationType === "insert") {
+      const insertedBasketOrder = await BasketOrder.findById(change.documentKey)
+        .populate({
+          path: "pharmacy",
+          model: "User",
+          select: { name: 1, addressDetails: 1 },
+        })
+        .populate({
+          path: "warehouse",
+          model: "User",
+          select: { name: 1 },
+        })
+        .populate({
+          path: "basket",
+          model: "Basket",
+          populate: {
+            path: "items.item",
+            model: "Item",
+          },
+        });
+
+      io.emit("basket-order-inserted", insertedBasketOrder);
+    }
+
+    // update the status of the order
+    if (change.operationType === "update") {
+      const insertedBasketOrder = await BasketOrder.findById(change.documentKey)
+        .populate({
+          path: "pharmacy",
+          model: "User",
+          select: { name: 1, addressDetails: 1 },
+        })
+        .populate({
+          path: "warehouse",
+          model: "User",
+          select: { name: 1 },
+        })
+        .populate({
+          path: "basket",
+          model: "Basket",
+          populate: {
+            path: "items.item",
+            model: "Item",
+          },
+        });
+
+      io.emit("basket-order-updated", insertedBasketOrder);
+    }
+
+    // delete an order
+    if (change.operationType === "delete") {
+      io.emit("basket-order-deleted", change.documentKey);
+    }
   });
 
   notificationStream.on("change", (change) => {
@@ -200,9 +302,31 @@ const socket = (io) => {
     }
   });
 
-  advertisementStream.on("change", (change) => {
+  advertisementStream.on("change", async (change) => {
     if (change.operationType === "insert") {
-      io.emit("new-advertisement", change.fullDocument);
+      const { _id } = change.fullDocument;
+      let newAdvertisement = await Advertisement.findById(_id);
+      newAdvertisement = await newAdvertisement
+        .populate({
+          path: "company",
+          model: "User",
+          select: "_id name type allowShowingMedicines city",
+        })
+        .populate({
+          path: "warehouse",
+          model: "User",
+          select: "_id name type allowShowingMedicines city",
+        })
+        .populate({
+          path: "medicine",
+          model: "Item",
+          select: "_id name",
+        })
+        .execPopulate();
+      io.emit("new-advertisement", newAdvertisement);
+    }
+    if (change.operationType === "delete") {
+      io.emit("delete-advertisement", change.documentKey);
     }
   });
 };
