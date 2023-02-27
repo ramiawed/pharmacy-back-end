@@ -141,4 +141,10 @@ userRouter.post(
   userController.removeImage
 );
 
+userRouter.post(
+  "/update-points",
+  authController.protect,
+  userController.updatePoints
+);
+
 module.exports = userRouter;

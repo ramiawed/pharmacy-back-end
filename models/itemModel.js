@@ -52,10 +52,6 @@ var itemSchema = new mongoose.Schema(
           type: Number,
           default: 0,
         },
-        addedAt: {
-          type: Date,
-          default: new Date(),
-        },
         offer: {
           mode: {
             type: String,
@@ -71,6 +67,16 @@ var itemSchema = new mongoose.Schema(
             },
           ],
         },
+        points: [
+          {
+            qty: {
+              type: Number,
+            },
+            bonus: {
+              type: Number,
+            },
+          },
+        ],
       },
     ],
     logo_url: {

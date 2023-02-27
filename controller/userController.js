@@ -36,6 +36,11 @@ const userAllowedFields = [
   "costOfDeliver",
   "invoiceMinTotal",
   "fastDeliver",
+  "payAtDeliver",
+  "includeInPointSystem",
+  "pointForAmount",
+  "amountToGetPoint",
+  "points",
 ];
 
 // remove unwanted property from an object
@@ -318,7 +323,7 @@ exports.getUsers = catchAsync(async (req, res, next) => {
       .select(
         details === "all"
           ? "-inSectionOne -inSectionTwo"
-          : "name  logo_url  _id city type allowShowingMedicines isActive  ourCompanies costOfDeliver invoiceMinTotal fastDeliver"
+          : "name  logo_url _id city type allowShowingMedicines isActive  ourCompanies costOfDeliver invoiceMinTotal fastDeliver points"
       )
       .populate({
         path: "ourCompanies",
@@ -340,7 +345,7 @@ exports.getUsers = catchAsync(async (req, res, next) => {
       .select(
         details === "all"
           ? "-inSectionOne -inSectionTwo"
-          : "name  logo_url  _id city type allowShowingMedicines isActive  ourCompanies costOfDeliver invoiceMinTotal fastDeliver"
+          : "name  logo_url  _id city type allowShowingMedicines isActive  ourCompanies costOfDeliver invoiceMinTotal fastDeliver points"
       )
       .populate({
         path: "ourCompanies",
@@ -704,7 +709,6 @@ exports.getWarehouses = catchAsync(async (req, res, next) => {
   let filter = {
     type: "warehouse",
     isActive: true,
-    // isApproved: true,
   };
 
   if (type !== "admin") {
@@ -716,7 +720,7 @@ exports.getWarehouses = catchAsync(async (req, res, next) => {
 
   const warehouses = await User.find(filter)
     .select(
-      "name logo_url _id city type allowShowingMedicines isActive  ourCompanies costOfDeliver invoiceMinTotal fastDeliver"
+      "name logo_url _id city type allowShowingMedicines isActive  ourCompanies costOfDeliver invoiceMinTotal fastDeliver payAtDeliver includeInPointSystem pointForAmount amountToGetPoint"
     )
     .populate({
       path: "ourCompanies",
@@ -727,5 +731,22 @@ exports.getWarehouses = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     data: warehouses,
+  });
+});
+
+exports.updatePoints = catchAsync(async (req, res, next) => {
+  const { id, amount } = req.body;
+
+  try {
+    const findedUser = await User.findById(id);
+
+    const newPoints = findedUser.points + amount;
+    await User.findByIdAndUpdate(id, { points: newPoints });
+  } catch (err) {
+    return next(new AppError(err, 401));
+  }
+
+  res.status(200).json({
+    status: "success",
   });
 });

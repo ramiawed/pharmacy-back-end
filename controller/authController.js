@@ -70,6 +70,7 @@ const createSendToken = async (user, statusCode, res) => {
         logo_url: user.logo_url,
         city: user.city,
         ourCompanies: user.ourCompanies,
+        points: user.points,
       },
     },
   });

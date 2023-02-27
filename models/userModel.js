@@ -1,12 +1,11 @@
 const mongoose = require("mongoose");
-const validator = require("validator");
+// const validator = require("validator");
 const bcrypt = require("bcryptjs");
 
 var userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      // unique: [true, "You must supply a unique name"],
       required: [true, "You must supply a name"],
     },
     username: {
@@ -44,10 +43,6 @@ var userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    // isApproved: {
-    //   type: Boolean,
-    //   default: false,
-    // },
     mobile: [
       {
         type: String,
@@ -131,6 +126,26 @@ var userSchema = new mongoose.Schema(
     fastDeliver: {
       type: Boolean,
       defautl: false,
+    },
+    payAtDeliver: {
+      type: Boolean,
+      default: false,
+    },
+    includeInPointSystem: {
+      type: Boolean,
+      default: false,
+    },
+    pointForAmount: {
+      type: Number,
+      default: 0,
+    },
+    amountToGetPoint: {
+      type: Number,
+      default: 0,
+    },
+    points: {
+      type: Number,
+      default: 0,
     },
   },
   {

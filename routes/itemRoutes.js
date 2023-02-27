@@ -27,6 +27,12 @@ itemRoutes
     itemController.addItem
   );
 
+itemRoutes.get(
+  "/filter",
+  authController.protect,
+  itemController.filterItemsByName
+);
+
 itemRoutes
   .route("/small-details")
   .get(authController.protect, itemController.getItemsSmallDetails);
@@ -115,8 +121,20 @@ itemRoutes
   );
 
 itemRoutes
+  .route("/warehouse/change-points/:itemId")
+  .post(
+    authController.protect,
+    authController.restrictTo("warehouse", "admin"),
+    itemController.changePoints
+  );
+
+itemRoutes
   .route("/items-with-offer")
   .get(authController.protect, itemController.getItemsWithOffer);
+
+itemRoutes
+  .route("/items-with-points")
+  .get(authController.protect, itemController.getItemsWithPoints);
 
 itemRoutes.post(
   "/upload/:itemId",

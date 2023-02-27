@@ -40,6 +40,7 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
     warehouseId,
     itemName,
     haveOffer,
+    havePoint,
     sort,
     searchCompaniesIds,
     searchWarehousesIds,
@@ -121,6 +122,17 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
     });
   }
 
+  if (havePoint) {
+    conditionArray.push({
+      warehouses: {
+        $elemMatch: {
+          warehouse: { $in: userWarehouses },
+          points: { $elemMatch: { $exists: true } },
+        },
+      },
+    });
+  }
+
   // search by item name
   if (itemName) {
     conditionArray.push({
@@ -137,10 +149,95 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
     conditionArray.length > 0 ? { $and: conditionArray } : {}
   );
 
-  items = await Item.find(
-    conditionArray.length > 0 ? { $and: conditionArray } : {}
-  )
-    .sort(sort ? sort + " _id" : "name _id")
+  if (itemName) {
+    items = await Item.find(
+      conditionArray.length > 0 ? { $and: conditionArray } : {}
+    )
+      .sort(sort ? sort + " _id" : "name _id")
+      .select(
+        "_id name caliber formula company warehouses price customer_price logo_url packing isActive  composition barcode nameAr"
+      )
+      .populate({
+        path: "company",
+        model: "User",
+        select: "_id name allowAdmin",
+      })
+      .populate({
+        path: "warehouses.warehouse",
+        model: "User",
+        select:
+          "_id name city isActive  costOfDeliver invoiceMinTotal fastDeliver payAtDeliver includeInPointSystem pointForAmount amountToGetPoint",
+      });
+
+    let searchNameResults = [];
+    let searchNameArResults = [];
+    let searchCompositionResults = [];
+
+    items.forEach((item) => {
+      if (item.name.toLowerCase().includes(itemName.toLowerCase())) {
+        searchNameResults.push(item);
+      } else if (item.nameAr.toLowerCase().includes(itemName.toLowerCase())) {
+        searchNameArResults.push(item);
+      } else {
+        searchCompositionResults.push(item);
+      }
+    });
+    const startIndex = (page - 1) * (limit * 1);
+    const endIndex = startIndex + limit * 1;
+
+    items = [
+      ...searchNameResults,
+      ...searchNameArResults,
+      ...searchCompositionResults,
+    ].slice(startIndex, endIndex);
+  } else {
+    items = await Item.find(
+      conditionArray.length > 0 ? { $and: conditionArray } : {}
+    )
+      .sort(sort ? sort + " _id" : "name _id")
+      .select(
+        "_id name caliber formula company warehouses price customer_price logo_url packing isActive  composition barcode nameAr"
+      )
+      .populate({
+        path: "company",
+        model: "User",
+        select: "_id name allowAdmin",
+      })
+      .populate({
+        path: "warehouses.warehouse",
+        model: "User",
+        select:
+          "_id name city isActive  costOfDeliver invoiceMinTotal fastDeliver payAtDeliver includeInPointSystem pointForAmount amountToGetPoint",
+      })
+      .skip((page - 1) * (limit * 1))
+      .limit(limit * 1);
+  }
+
+  res.status(200).json({
+    status: "success",
+    count,
+    data: {
+      items,
+    },
+  });
+});
+
+exports.filterItemsByName = catchAsync(async (req, res, next) => {
+  const { page, limit, itemName } = req.query;
+
+  const result = await Item.find({
+    $and: [
+      { isActive: true },
+      {
+        $or: [
+          { name: { $regex: `${itemName}`, $options: "i" } },
+          { nameAr: { $regex: `${itemName}`, $options: "i" } },
+          { composition: { $regex: `${itemName}`, $options: "i" } },
+          { barcode: itemName },
+        ],
+      },
+    ],
+  })
     .select(
       "_id name caliber formula company warehouses price customer_price logo_url packing isActive  composition barcode nameAr"
     )
@@ -153,16 +250,37 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
       path: "warehouses.warehouse",
       model: "User",
       select:
-        "_id name city isActive  costOfDeliver invoiceMinTotal fastDeliver",
+        "_id name city isActive  costOfDeliver invoiceMinTotal fastDeliver payAtDeliver includeInPointSystem pointForAmount amountToGetPoint",
     })
-    .skip((page - 1) * (limit * 1))
-    .limit(limit * 1);
+    .sort("_id");
+
+  let searchNameResults = [];
+  let searchNameArResults = [];
+  let searchCompositionResults = [];
+
+  result.forEach((item) => {
+    if (item.name.toLowerCase().includes(itemName.toLowerCase())) {
+      searchNameResults.push(item);
+    } else if (item.nameAr.toLowerCase().includes(itemName.toLowerCase())) {
+      searchNameArResults.push(item);
+    } else {
+      searchCompositionResults.push(item);
+    }
+  });
+  const startIndex = (page - 1) * (limit * 1);
+  const endIndex = startIndex + limit * 1;
+
+  const finalResult = [
+    ...searchNameResults,
+    ...searchNameArResults,
+    ...searchCompositionResults,
+  ].slice(startIndex, endIndex);
 
   res.status(200).json({
     status: "success",
-    count,
+    count: result.length,
     data: {
-      items,
+      items: finalResult,
     },
   });
 });
@@ -211,7 +329,7 @@ exports.getItemById = catchAsync(async (req, res, next) => {
       path: "warehouses.warehouse",
       model: "User",
       select:
-        "_id name city isActive costOfDeliver invoiceMinTotal fastDeliver",
+        "_id name city isActive  costOfDeliver invoiceMinTotal fastDeliver payAtDeliver includeInPointSystem pointForAmount amountToGetPoint",
     });
 
   if (!item) {
@@ -382,7 +500,7 @@ exports.changeItemActiveState = catchAsync(async (req, res, next) => {
 exports.addItemToWarehouse = catchAsync(async (req, res, next) => {
   // get the item id from request parameters
 
-  const { itemId, city } = req.params;
+  const { itemId } = req.params;
 
   // get the warehouseId and caliber from request body
   const { warehouseId } = req.body;
@@ -485,7 +603,64 @@ exports.changeOffer = catchAsync(async (req, res, next) => {
 
   findItem.warehouses = findItem.warehouses.map((w) => {
     if (w.warehouse == warehouseId) {
-      return { warehouse: warehouseId, offer: offer, maxQty: w.maxQty };
+      return {
+        warehouse: warehouseId,
+        offer: offer,
+        maxQty: w.maxQty,
+        points: w.points,
+      };
+    } else return w;
+  });
+
+  await findItem.save();
+
+  const returnedItem = await Item.findById(itemId)
+    .populate({
+      path: "warehouses.warehouse",
+      model: "User",
+    })
+    .populate({
+      path: "company",
+      model: "User",
+      select: "_id name",
+    });
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      item: returnedItem,
+    },
+  });
+});
+
+exports.changePoints = catchAsync(async (req, res, next) => {
+  // get the item id from request parameters
+  const { itemId } = req.params;
+
+  // get the warehouseId and caliber from request body
+  const { warehouseId, points } = req.body;
+
+  // check if the warehouseId exist in the body request
+  if (!warehouseId) {
+    return next(new AppError(`Please provide the required fields`));
+  }
+
+  // find the item specified by itemId
+  const findItem = await Item.findById(itemId);
+
+  // if the item doesn't exist
+  if (!findItem) {
+    return next(new AppError(`No item found`, 400));
+  }
+
+  findItem.warehouses = findItem.warehouses.map((w) => {
+    if (w.warehouse == warehouseId) {
+      return {
+        warehouse: warehouseId,
+        points: points,
+        maxQty: w.maxQty,
+        offer: w.offer,
+      };
     } else return w;
   });
 
@@ -662,6 +837,7 @@ exports.getItemsWithOffer = catchAsync(async (req, res, next) => {
     req.query;
 
   let aggregateCondition = [];
+  let data = [];
 
   if (searchCompaniesIds) {
     aggregateCondition.push({
@@ -758,6 +934,7 @@ exports.getItemsWithOffer = catchAsync(async (req, res, next) => {
         maxQty: 1,
         orderNumber: 1,
         offer: 1,
+        points: 1,
       },
     },
   });
@@ -769,13 +946,197 @@ exports.getItemsWithOffer = catchAsync(async (req, res, next) => {
     },
   ];
 
+  if (itemName?.trim().length > 0) {
+    data = await Item.aggregate(aggregateCondition);
+
+    let searchNameResults = [];
+    let searchNameArResults = [];
+    let searchCompositionResults = [];
+
+    data.forEach((item) => {
+      if (item.name.toLowerCase().includes(itemName.toLowerCase())) {
+        searchNameResults.push(item);
+      } else if (item.nameAr.toLowerCase().includes(itemName.toLowerCase())) {
+        searchNameArResults.push(item);
+      } else {
+        searchCompositionResults.push(item);
+      }
+    });
+    const startIndex = (page - 1) * (limit * 1);
+    const endIndex = startIndex + limit * 1;
+
+    data = [
+      ...searchNameResults,
+      ...searchNameArResults,
+      ...searchCompositionResults,
+    ].slice(startIndex, endIndex);
+  } else {
+    aggregateCondition.push({
+      $skip: (page - 1) * (limit * 1),
+    });
+
+    aggregateCondition.push({ $limit: limit * 1 });
+
+    data = await Item.aggregate(aggregateCondition);
+  }
+
+  const count = await Item.aggregate(countAggregateCondition);
+
+  res.status(200).json({
+    status: "success",
+    count: count[0]?.itemName ? count[0].itemName : 0,
+    data: {
+      data,
+    },
+  });
+});
+
+exports.getItemsWithPoints = catchAsync(async (req, res, next) => {
+  const { page, limit, itemName, searchWarehousesIds, searchCompaniesIds } =
+    req.query;
+
+  let aggregateCondition = [];
+  let data = [];
+
+  if (searchCompaniesIds) {
+    aggregateCondition.push({
+      $match: {
+        company: {
+          $in: searchCompaniesIds.map((id) => mongoose.Types.ObjectId(id)),
+        },
+      },
+    });
+  }
+
+  if (itemName?.trim().length > 0) {
+    aggregateCondition.push({
+      $match: {
+        $or: [
+          { name: { $regex: itemName, $options: "i" } },
+          { nameAr: { $regex: itemName, $options: "i" } },
+          { composition: { $regex: itemName, $options: "i" } },
+          { barcode: itemName },
+        ],
+      },
+    });
+  }
+
   aggregateCondition.push({
-    $skip: (page - 1) * (limit * 1),
+    $unwind: {
+      path: "$warehouses",
+      preserveNullAndEmptyArrays: true,
+    },
   });
 
-  aggregateCondition.push({ $limit: limit * 1 });
+  aggregateCondition.push({
+    $match: {
+      "warehouses.points": { $elemMatch: { $exists: true } },
+    },
+  });
 
-  const data = await Item.aggregate(aggregateCondition);
+  if (searchWarehousesIds) {
+    aggregateCondition.push({
+      $match: {
+        "warehouses.warehouse": {
+          $in: searchWarehousesIds.map((id) => mongoose.Types.ObjectId(id)),
+        },
+      },
+    });
+  }
+
+  aggregateCondition.push({
+    $lookup: {
+      from: "users",
+      localField: "company",
+      foreignField: "_id",
+      as: "company",
+    },
+  });
+
+  aggregateCondition.push({
+    $lookup: {
+      from: "users",
+      localField: "warehouses.warehouse",
+      foreignField: "_id",
+      as: "warehouses.warehouse",
+    },
+  });
+
+  aggregateCondition.push({
+    $project: {
+      _id: 1,
+      price: 1,
+      customer_price: 1,
+      logo_url: 1,
+      isActive: 1,
+      barcode: 1,
+      name: 1,
+      formula: 1,
+      packing: 1,
+      composition: 1,
+      "company._id": 1,
+      "company.name": 1,
+      caliber: 1,
+      indication: 1,
+      warehouses: 1,
+      nameAr: 1,
+      warehouses: {
+        "warehouse._id": 1,
+        "warehouse.name": 1,
+        "warehouse.city": 1,
+        "warehouse.isActive": 1,
+        "warehouse.costOfDeliver": 1,
+        "warehouse.invoiceMinTotal": 1,
+        "warehouse.fastDeliver": 1,
+        maxQty: 1,
+        orderNumber: 1,
+        offer: 1,
+        points: 1,
+      },
+    },
+  });
+
+  const countAggregateCondition = [
+    ...aggregateCondition,
+    {
+      $count: "itemName",
+    },
+  ];
+
+  if (itemName?.trim().length > 0) {
+    data = await Item.aggregate(aggregateCondition);
+
+    let searchNameResults = [];
+    let searchNameArResults = [];
+    let searchCompositionResults = [];
+
+    data.forEach((item) => {
+      if (item.name.toLowerCase().includes(itemName.toLowerCase())) {
+        searchNameResults.push(item);
+      } else if (item.nameAr.toLowerCase().includes(itemName.toLowerCase())) {
+        searchNameArResults.push(item);
+      } else {
+        searchCompositionResults.push(item);
+      }
+    });
+    const startIndex = (page - 1) * (limit * 1);
+    const endIndex = startIndex + limit * 1;
+
+    data = [
+      ...searchNameResults,
+      ...searchNameArResults,
+      ...searchCompositionResults,
+    ].slice(startIndex, endIndex);
+  } else {
+    aggregateCondition.push({
+      $skip: (page - 1) * (limit * 1),
+    });
+
+    aggregateCondition.push({ $limit: limit * 1 });
+
+    data = await Item.aggregate(aggregateCondition);
+  }
+
   const count = await Item.aggregate(countAggregateCondition);
 
   res.status(200).json({
