@@ -82,6 +82,13 @@ userRouter.post(
   userController.resetUserPassword
 );
 
+userRouter.get(
+  "/my-points",
+  authController.protect,
+  authController.restrictTo("pharmacy"),
+  userController.getMyPoints
+);
+
 userRouter.post(
   "/add-company-to-ours",
   authController.protect,

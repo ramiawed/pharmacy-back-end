@@ -15,6 +15,7 @@ const itemAllowedFields = [
   "price",
   "customer_price",
   "barcode",
+  "barcodeTwo",
   "logo_url",
   "isActive",
   "warehouses",
@@ -135,12 +136,15 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
 
   // search by item name
   if (itemName) {
+    const splitArray = itemName.split(" ");
+    const regex = splitArray.join("|");
     conditionArray.push({
       $or: [
-        { name: { $regex: itemName, $options: "i" } },
-        { nameAr: { $regex: itemName, $options: "i" } },
-        { composition: { $regex: itemName, $options: "i" } },
-        { barcode: itemName },
+        { name: { $regex: regex, $options: "i" } },
+        { nameAr: { $regex: regex, $options: "i" } },
+        { composition: { $regex: regex, $options: "i" } },
+        { barcode: regex },
+        { barcodeTwo: regex },
       ],
     });
   }
@@ -155,12 +159,12 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
     )
       .sort(sort ? sort + " _id" : "name _id")
       .select(
-        "_id name caliber formula company warehouses price customer_price logo_url packing isActive  composition barcode nameAr"
+        "_id name caliber formula company warehouses price customer_price logo_url packing isActive  composition barcode barcodeTwo nameAr"
       )
       .populate({
         path: "company",
         model: "User",
-        select: "_id name allowAdmin",
+        select: "_id name allowAdmin logo_url",
       })
       .populate({
         path: "warehouses.warehouse",
@@ -196,12 +200,12 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
     )
       .sort(sort ? sort + " _id" : "name _id")
       .select(
-        "_id name caliber formula company warehouses price customer_price logo_url packing isActive  composition barcode nameAr"
+        "_id name caliber formula company warehouses price customer_price logo_url packing isActive  composition barcode barcodeTwo nameAr"
       )
       .populate({
         path: "company",
         model: "User",
-        select: "_id name allowAdmin",
+        select: "_id name allowAdmin logo_url logo_url",
       })
       .populate({
         path: "warehouses.warehouse",
@@ -225,26 +229,30 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
 exports.filterItemsByName = catchAsync(async (req, res, next) => {
   const { page, limit, itemName } = req.query;
 
+  const splitArray = itemName.split(" ");
+  const regex = splitArray.join("|");
+
   const result = await Item.find({
     $and: [
       { isActive: true },
       {
         $or: [
-          { name: { $regex: `${itemName}`, $options: "i" } },
-          { nameAr: { $regex: `${itemName}`, $options: "i" } },
-          { composition: { $regex: `${itemName}`, $options: "i" } },
-          { barcode: itemName },
+          { name: { $regex: regex, $options: "i" } },
+          { nameAr: { $regex: regex, $options: "i" } },
+          { composition: { $regex: regex, $options: "i" } },
+          { barcode: regex },
+          { barcodeTwo: regex },
         ],
       },
     ],
   })
     .select(
-      "_id name caliber formula company warehouses price customer_price logo_url packing isActive  composition barcode nameAr"
+      "_id name caliber formula company warehouses price customer_price logo_url packing isActive  composition barcode barcodeTwo nameAr"
     )
     .populate({
       path: "company",
       model: "User",
-      select: "_id name allowAdmin",
+      select: "_id name allowAdmin logo_url",
     })
     .populate({
       path: "warehouses.warehouse",
@@ -287,7 +295,7 @@ exports.filterItemsByName = catchAsync(async (req, res, next) => {
 
 exports.getItemsSmallDetails = catchAsync(async (req, res, next) => {
   const items = await Item.find({ isActive: true }).select(
-    "_id name  composition barcode nameAr company warehouses"
+    "_id name  composition barcode barcodeTwo nameAr company warehouses"
   );
 
   res.status(200).json({
@@ -318,12 +326,12 @@ exports.getItemById = catchAsync(async (req, res, next) => {
 
   const item = await Item.findById(itemId)
     .select(
-      "_id name caliber formula company warehouses price customer_price logo_url packing isActive  composition indication barcode nameAr"
+      "_id name caliber formula company warehouses price customer_price logo_url packing isActive  composition indication barcode barcodeTwo nameAr"
     )
     .populate({
       path: "company",
       model: "User",
-      select: "_id name allowAdmin",
+      select: "_id name allowAdmin logo_url",
     })
     .populate({
       path: "warehouses.warehouse",
@@ -346,7 +354,7 @@ exports.getItemById = catchAsync(async (req, res, next) => {
 
 exports.getAllItemsForCompany = catchAsync(async (req, res, next) => {
   const items = await Item.find({ company: req.params.companyId }).select(
-    "_id name caliber formula indication composition packing price customer_price barcode nameAr company"
+    "_id name caliber formula indication composition packing price customer_price barcode barcodeTwo nameAr company"
   );
 
   res.status(200).json({
@@ -361,7 +369,7 @@ exports.getAllItemsForWarehouse = catchAsync(async (req, res, next) => {
   const items = await Item.find({
     "warehouses.warehouse": req.params.warehouseId,
   }).select(
-    "_id name caliber formula indication composition packing price customer_price barcode nameAr company"
+    "_id name caliber formula indication composition packing price customer_price barcode barcodeTwo nameAr company"
   );
 
   res.status(200).json({
@@ -406,6 +414,7 @@ exports.addAndUpdateItems = catchAsync(async (req, res, next) => {
         indication: items[i].indication,
         composition: items[i].composition,
         barcode: items[i].barcode,
+        barcodeTwo: items[i].barcodeTwo,
         nameAr: items[i].nameAr,
       });
     }
@@ -857,6 +866,7 @@ exports.getItemsWithOffer = catchAsync(async (req, res, next) => {
           { nameAr: { $regex: itemName, $options: "i" } },
           { composition: { $regex: itemName, $options: "i" } },
           { barcode: itemName },
+          { barcodeTwo: itemName },
         ],
       },
     });
@@ -913,6 +923,7 @@ exports.getItemsWithOffer = catchAsync(async (req, res, next) => {
       logo_url: 1,
       isActive: 1,
       barcode: 1,
+      barcodeTwo: 1,
       name: 1,
       formula: 1,
       packing: 1,
@@ -1016,6 +1027,7 @@ exports.getItemsWithPoints = catchAsync(async (req, res, next) => {
           { nameAr: { $regex: itemName, $options: "i" } },
           { composition: { $regex: itemName, $options: "i" } },
           { barcode: itemName },
+          { barcodeTwo: itemName },
         ],
       },
     });
@@ -1070,6 +1082,7 @@ exports.getItemsWithPoints = catchAsync(async (req, res, next) => {
       logo_url: 1,
       isActive: 1,
       barcode: 1,
+      barcodeTwo: 1,
       name: 1,
       formula: 1,
       packing: 1,

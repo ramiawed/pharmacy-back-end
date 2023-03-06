@@ -30,11 +30,16 @@ const orderSchema = new mongoose.Schema(
         price: {
           type: Number,
         },
-        customer_price: {
-          type: Number,
-        },
       },
     ],
+    totalInvoicePrice: {
+      type: Number,
+      default: 0,
+    },
+    totalInvoicePoints: {
+      type: Number,
+      default: 0,
+    },
     status: {
       type: String,
     },

@@ -103,6 +103,10 @@ var itemSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    barcodeTwo: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,

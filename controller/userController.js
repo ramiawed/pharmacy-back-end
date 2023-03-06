@@ -748,5 +748,22 @@ exports.updatePoints = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: "success",
+    amount: amount,
+  });
+});
+
+exports.getMyPoints = catchAsync(async (req, res, next) => {
+  const { _id } = req.user;
+  let myPoints = 0;
+  try {
+    const user = await User.findById(_id);
+    myPoints = user.points;
+  } catch (err) {
+    return next(new AppError(err, 401));
+  }
+
+  res.status(200).json({
+    status: "success",
+    points: myPoints,
   });
 });
