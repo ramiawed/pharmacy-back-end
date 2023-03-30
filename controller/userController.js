@@ -179,6 +179,23 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
     return next(new AppError("cannot delete user saved item collections", 400));
   }
 
+  const user = await User.findById(id);
+
+  try {
+    // if the user have a logo, delete it
+    if (user.logo_url && user.logo_url !== "") {
+      if (fs.existsSync(`${__basedir}/public/profiles/${user.logo_url}`)) {
+        fs.unlinkSync(`${__basedir}/public/profiles/${user.logo_url}`);
+      }
+    }
+
+    if (user.paper_url && user.paper_url !== "") {
+      if (fs.existsSync(`${__basedir}/public/licenses/${user.paper_url}`)) {
+        fs.unlinkSync(`${__basedir}/public/licenses/${user.paper_url}`);
+      }
+    }
+  } catch (err) {}
+
   await User.findByIdAndDelete(id);
 
   res.status(200).json({
@@ -694,7 +711,6 @@ exports.getCompanies = catchAsync(async (req, res, next) => {
   const companies = await User.find({
     type: "company",
     isActive: true,
-    // isApproved: true,
   })
     .select("_id type name logo_url city")
     .sort("name");

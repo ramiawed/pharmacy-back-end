@@ -56,6 +56,7 @@ exports.getAllOrders = catchAsync(async (req, res, next) => {
 });
 
 exports.updateOrder = catchAsync(async (req, res, next) => {
+  const { type } = req.user;
   const { id } = req.query;
   const body = req.body;
 
@@ -72,6 +73,58 @@ exports.updateOrder = catchAsync(async (req, res, next) => {
       model: "User",
       select: { name: 1 },
     });
+
+  const { pharmacy, warehouse, createdAt } = updatedOrder;
+
+  const warehouseUser = await User.findById(warehouse._id).select(
+    "name expoPushToken"
+  );
+  const pharmacyUser = await User.findById(pharmacy._id).select(
+    "name expoPushToken"
+  );
+
+  const adminUser = await User.findOne({
+    type: "admin",
+  }).select("name expoPushToken");
+
+  const orderStatus =
+    body.status === "dont-serve"
+      ? "نعتذر عن تخديم الطلبية"
+      : body.status === "confirm"
+      ? "تم تثبيت الطلبية"
+      : body.status === "delivery"
+      ? "تم تسليم الطلبية"
+      : body.status === "shipping"
+      ? "تم شحن الطلبية"
+      : "";
+
+  if (orderStatus.length > 0) {
+    const message = [
+      "تم تغيير حالة الطلبية المرسلة من الصيدلية",
+      `${pharmacyUser.name}`,
+      "إلى المستودع",
+      `${warehouseUser.name}`,
+      "بتاريخ",
+      `${new Date(createdAt).toLocaleDateString()}`,
+      "إلى",
+      `${orderStatus}`,
+    ];
+
+    let sendTo = [];
+
+    if (type === "admin") {
+      sendTo = [...pharmacyUser.expoPushToken];
+    }
+
+    if (type === "warehouse") {
+      sendTo = [...pharmacyUser.expoPushToken, ...adminUser.expoPushToken];
+    }
+
+    sendPushNotification(sendTo, "تعديل حالة الطلبية", message.join(" "), {
+      screen: "order",
+      orderId: updatedOrder._id,
+    });
+  }
 
   res.status(200).json({
     status: "success",

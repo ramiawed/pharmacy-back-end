@@ -30,6 +30,9 @@ const orderSchema = new mongoose.Schema(
         price: {
           type: Number,
         },
+        points: {
+          type: Number,
+        },
       },
     ],
     totalInvoicePrice: {

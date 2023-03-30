@@ -123,19 +123,19 @@ exports.signin = catchAsync(async (req, res, next) => {
 
   // 1- check if email and password exist
   if (!username || !password) {
-    return next(new AppError("Please provide username and password", 400));
+    return next(new AppError("please provide username and password", 400));
   }
 
   // 2- check if the use exists && password is correct
   const user = await User.findOne({ username }).select("+password +isActive");
 
   if (!user || !(await user.correctPassword(password, user.password))) {
-    return next(new AppError("Incorrect username or password", 401));
+    return next(new AppError("incorrect username or password", 401));
   }
 
   if (user && !user.isActive) {
     return next(
-      new AppError(`You have to approve your account from Admin`, 401)
+      new AppError(`you have to approve your account from Admin`, 401)
     );
   }
 
@@ -161,7 +161,7 @@ exports.signinWithToken = catchAsync(async (req, res, next) => {
     if (!user) {
       return next(
         new AppError(
-          "The user belonging to this token does no longer exist.",
+          "the user belonging to this token does no longer exist",
           401
         )
       );
@@ -186,7 +186,7 @@ exports.signinWithToken = catchAsync(async (req, res, next) => {
     });
   } catch (err) {
     return next(
-      new AppError("You are not logged in! Please log in to get access", 401)
+      new AppError("you are not logged in! Please log in to get access", 401)
     );
   }
 });
@@ -223,7 +223,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   } catch (err) {
     // if (!token) {
     return next(
-      new AppError("You are not logged in! Please log in to get access", 401)
+      new AppError("you are not logged in! Please log in to get access", 401)
     );
     // }
   }
@@ -235,7 +235,7 @@ exports.restrictTo = (...types) => {
     // types is an array of string
     if (!types.includes(req.user.type)) {
       return next(
-        new AppError("You don't have permission to perform this action", 403)
+        new AppError("you don't have permission to perform this action", 403)
       );
     }
     next();

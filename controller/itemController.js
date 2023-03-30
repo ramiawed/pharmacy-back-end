@@ -136,15 +136,15 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
 
   // search by item name
   if (itemName) {
-    const splitArray = itemName.split(" ");
-    const regex = splitArray.join("|");
+    // const splitArray = itemName.split(" ");
+    // const regex = splitArray.join("|");
     conditionArray.push({
       $or: [
-        { name: { $regex: regex, $options: "i" } },
-        { nameAr: { $regex: regex, $options: "i" } },
-        { composition: { $regex: regex, $options: "i" } },
-        { barcode: regex },
-        { barcodeTwo: regex },
+        { name: { $regex: `${itemName}`, $options: "i" } },
+        { nameAr: { $regex: `${itemName}`, $options: "i" } },
+        { composition: { $regex: `${itemName}`, $options: "i" } },
+        { barcode: `${itemName}` },
+        { barcodeTwo: `${itemName}` },
       ],
     });
   }
@@ -229,19 +229,19 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
 exports.filterItemsByName = catchAsync(async (req, res, next) => {
   const { page, limit, itemName } = req.query;
 
-  const splitArray = itemName.split(" ");
-  const regex = splitArray.join("|");
+  // const splitArray = itemName.split(" ");
+  // const regex = splitArray.join("|");
 
   const result = await Item.find({
     $and: [
       { isActive: true },
       {
         $or: [
-          { name: { $regex: regex, $options: "i" } },
-          { nameAr: { $regex: regex, $options: "i" } },
-          { composition: { $regex: regex, $options: "i" } },
-          { barcode: regex },
-          { barcodeTwo: regex },
+          { name: { $regex: `${itemName}`, $options: "i" } },
+          { nameAr: { $regex: `${itemName}`, $options: "i" } },
+          { composition: { $regex: `${itemName}`, $options: "i" } },
+          { barcode: `${itemName}` },
+          { barcodeTwo: `${itemName}` },
         ],
       },
     ],
