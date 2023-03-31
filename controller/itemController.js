@@ -1,4 +1,5 @@
 const Item = require("../models/itemModel");
+const User = require("../models/userModel");
 const AppError = require("../utils/appError");
 const catchAsync = require("../utils/catchAsync");
 const mongoose = require("mongoose");
@@ -47,7 +48,7 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
     searchWarehousesIds,
     searchInWarehouses,
     searchOutWarehouses,
-    userWarehouses,
+    // userWarehouses,
     searchWarehouseCompanyId,
     isActive,
     inSectionOne,
@@ -57,6 +58,32 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
 
   let count;
   let items;
+
+  let userW = [];
+  const { type, city, _id } = req.user;
+
+  if (type === "admin") {
+    userW = await User.find({
+      type: "warehouse",
+      isActive: true,
+    }).select("_id");
+    userW = userW.map((w) => w._id);
+  }
+
+  if (type === "pharmacy") {
+    userW = await User.find({
+      type: "warehouse",
+      isActive: true,
+      city: city,
+    }).select("_id");
+    userW = userW.map((w) => w._id);
+  }
+
+  if (type === "warehouse") {
+    userW = [_id];
+  }
+
+  // console.log(userW);
 
   // array that contains all the conditions
   const conditionArray = [];
@@ -102,13 +129,13 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
 
   if (searchInWarehouses) {
     conditionArray.push({
-      "warehouses.warehouse": { $in: searchInWarehouses },
+      "warehouses.warehouse": { $in: userW },
     });
   }
 
   if (searchOutWarehouses) {
     conditionArray.push({
-      "warehouses.warehouse": { $nin: searchOutWarehouses },
+      "warehouses.warehouse": { $nin: userW },
     });
   }
 
@@ -116,7 +143,7 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
     conditionArray.push({
       warehouses: {
         $elemMatch: {
-          warehouse: { $in: userWarehouses },
+          warehouse: { $in: userW },
           "offer.mode": { $in: ["pieces", "percentage"] },
         },
       },
@@ -127,7 +154,7 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
     conditionArray.push({
       warehouses: {
         $elemMatch: {
-          warehouse: { $in: userWarehouses },
+          warehouse: { $in: userW },
           points: { $elemMatch: { $exists: true } },
         },
       },
@@ -879,6 +906,30 @@ exports.getItemsWithOffer = catchAsync(async (req, res, next) => {
     },
   });
 
+  let userW = [];
+  const { type, city } = req.user;
+
+  if (type === "admin") {
+    userW = await User.find({
+      type: "warehouse",
+      isActive: true,
+    }).select("_id");
+    userW = userW.map((w) => w._id);
+  }
+
+  if (type === "pharmacy") {
+    userW = await User.find({
+      $and: [
+        {
+          type: "warehouse",
+        },
+        { isActive: true },
+        { city: city },
+      ],
+    }).select("_id");
+    userW = userW.map((w) => w._id);
+  }
+
   aggregateCondition.push({
     $match: {
       "warehouses.offer.mode": {
@@ -886,6 +937,16 @@ exports.getItemsWithOffer = catchAsync(async (req, res, next) => {
       },
     },
   });
+
+  if (userW.length > 0) {
+    aggregateCondition.push({
+      $match: {
+        "warehouses.warehouse": {
+          $in: userW.map((id) => mongoose.Types.ObjectId(id)),
+        },
+      },
+    });
+  }
 
   if (searchWarehousesIds) {
     aggregateCondition.push({
@@ -1045,6 +1106,40 @@ exports.getItemsWithPoints = catchAsync(async (req, res, next) => {
       "warehouses.points": { $elemMatch: { $exists: true } },
     },
   });
+
+  let userW = [];
+  const { type, city } = req.user;
+
+  if (type === "admin") {
+    userW = await User.find({
+      type: "warehouse",
+      isActive: true,
+    }).select("_id");
+    userW = userW.map((w) => w._id);
+  }
+
+  if (type === "pharmacy") {
+    userW = await User.find({
+      $and: [
+        {
+          type: "warehouse",
+        },
+        { isActive: true },
+        { city: city },
+      ],
+    }).select("_id");
+    userW = userW.map((w) => w._id);
+  }
+
+  if (userW.length > 0) {
+    aggregateCondition.push({
+      $match: {
+        "warehouses.warehouse": {
+          $in: userW.map((id) => mongoose.Types.ObjectId(id)),
+        },
+      },
+    });
+  }
 
   if (searchWarehousesIds) {
     aggregateCondition.push({
