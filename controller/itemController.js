@@ -200,6 +200,8 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
           "_id name city isActive  costOfDeliver invoiceMinTotal fastDeliver payAtDeliver includeInPointSystem pointForAmount amountToGetPoint",
       });
 
+    console.log(items);
+
     let searchNameResults = [];
     let searchNameArResults = [];
     let searchCompositionResults = [];
@@ -267,8 +269,8 @@ exports.filterItemsByName = catchAsync(async (req, res, next) => {
           { name: { $regex: `${itemName}`, $options: "i" } },
           { nameAr: { $regex: `${itemName}`, $options: "i" } },
           { composition: { $regex: `${itemName}`, $options: "i" } },
-          { barcode: `${itemName}` },
-          { barcodeTwo: `${itemName}` },
+          { barcode: itemName },
+          { barcodeTwo: itemName },
         ],
       },
     ],
