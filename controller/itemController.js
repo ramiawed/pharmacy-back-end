@@ -48,7 +48,6 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
     searchWarehousesIds,
     searchInWarehouses,
     searchOutWarehouses,
-    // userWarehouses,
     searchWarehouseCompanyId,
     isActive,
     inSectionOne,
@@ -82,8 +81,6 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
   if (type === "warehouse") {
     userW = [_id];
   }
-
-  // console.log(userW);
 
   // array that contains all the conditions
   const conditionArray = [];
@@ -184,7 +181,7 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
     items = await Item.find(
       conditionArray.length > 0 ? { $and: conditionArray } : {}
     )
-      .sort(sort ? sort + " _id" : "name _id")
+      .sort(sort ? sort + " _id" : "nameAr _id")
       .select(
         "_id name caliber formula company warehouses price customer_price logo_url packing isActive  composition barcode barcodeTwo nameAr"
       )
@@ -227,7 +224,7 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
     items = await Item.find(
       conditionArray.length > 0 ? { $and: conditionArray } : {}
     )
-      .sort(sort ? sort + " _id" : "name _id")
+      .sort(sort ? sort + " _id" : "nameAr _id")
       .select(
         "_id name caliber formula company warehouses price customer_price logo_url packing isActive  composition barcode barcodeTwo nameAr"
       )
@@ -605,16 +602,38 @@ exports.changeItemWarehouseMaxQty = catchAsync(async (req, res, next) => {
 
   findItem.warehouses = findItem.warehouses.map((w) => {
     if (w.warehouse == warehouseId) {
-      return { warehouse: warehouseId, offer: w.offer, maxQty: qty };
+      return {
+        warehouse: warehouseId,
+        offer: w.offer,
+        maxQty: qty,
+        points: w.points,
+      };
     } else return w;
   });
 
   await findItem.save();
 
+  const newItem = await Item.findById(itemId)
+    .select(
+      "_id name caliber formula company warehouses price customer_price logo_url packing isActive  composition barcode barcodeTwo nameAr"
+    )
+    .populate({
+      path: "company",
+      model: "User",
+      select: "_id name allowAdmin logo_url",
+    })
+    .populate({
+      path: "warehouses.warehouse",
+      model: "User",
+      select:
+        "_id name city isActive  costOfDeliver invoiceMinTotal fastDeliver payAtDeliver includeInPointSystem pointForAmount amountToGetPoint",
+    });
+
   res.status(200).json({
     status: "success",
     data: {
-      item: findItem,
+      itemId,
+      newItem,
     },
   });
 });
@@ -932,6 +951,8 @@ exports.getItemsWithOffer = catchAsync(async (req, res, next) => {
     userW = userW.map((w) => w._id);
   }
 
+  console.log(userW);
+
   aggregateCondition.push({
     $match: {
       "warehouses.offer.mode": {
@@ -940,15 +961,15 @@ exports.getItemsWithOffer = catchAsync(async (req, res, next) => {
     },
   });
 
-  if (userW.length > 0) {
-    aggregateCondition.push({
-      $match: {
-        "warehouses.warehouse": {
-          $in: userW.map((id) => mongoose.Types.ObjectId(id)),
-        },
+  // if (userW.length > 0) {
+  aggregateCondition.push({
+    $match: {
+      "warehouses.warehouse": {
+        $in: userW.map((id) => mongoose.Types.ObjectId(id)),
       },
-    });
-  }
+    },
+  });
+  // }
 
   if (searchWarehousesIds) {
     aggregateCondition.push({
@@ -1133,15 +1154,15 @@ exports.getItemsWithPoints = catchAsync(async (req, res, next) => {
     userW = userW.map((w) => w._id);
   }
 
-  if (userW.length > 0) {
-    aggregateCondition.push({
-      $match: {
-        "warehouses.warehouse": {
-          $in: userW.map((id) => mongoose.Types.ObjectId(id)),
-        },
+  // if (userW.length > 0) {
+  aggregateCondition.push({
+    $match: {
+      "warehouses.warehouse": {
+        $in: userW.map((id) => mongoose.Types.ObjectId(id)),
       },
-    });
-  }
+    },
+  });
+  // }
 
   if (searchWarehousesIds) {
     aggregateCondition.push({
