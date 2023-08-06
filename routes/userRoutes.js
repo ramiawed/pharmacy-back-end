@@ -64,9 +64,9 @@ userRouter.post(
 
 userRouter.post("/updateMe", authController.protect, userController.updateMe);
 userRouter.post(
-  "/update/:userId",
+  "/update/:userId?",
   authController.protect,
-  authController.restrictTo("admin"),
+  // authController.restrictTo("admin"),
   userController.update
 );
 userRouter.post(

@@ -99,7 +99,10 @@ exports.signup = catchAsync(async (req, res, next) => {
   }
 
   // create a new user
-  const newUser = await User.create(filterUser);
+  const newUser = await User.create({
+    ...filterUser,
+    username: filterUser.username.trim(),
+  });
 
   // check if something goes wrong
   if (!newUser) {

@@ -197,7 +197,6 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
           "_id name city isActive  costOfDeliver invoiceMinTotal fastDeliver payAtDeliver includeInPointSystem pointForAmount amountToGetPoint",
       });
 
-    console.log(items);
 
     let searchNameResults = [];
     let searchNameArResults = [];
@@ -951,7 +950,6 @@ exports.getItemsWithOffer = catchAsync(async (req, res, next) => {
     userW = userW.map((w) => w._id);
   }
 
-  console.log(userW);
 
   aggregateCondition.push({
     $match: {

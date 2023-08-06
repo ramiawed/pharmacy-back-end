@@ -59,6 +59,10 @@ const filterObj = (obj) => {
 exports.updateMe = catchAsync(async (req, res, next) => {
   const newObj = filterObj(req.body);
 
+  Object.keys(newObj).forEach((key) => {
+    newObj[key] = newObj[key].trim();
+  });
+
   // get the user id from the req.user after passing protect middleware
   const userId = req.user._id;
 
@@ -205,10 +209,16 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
 });
 
 exports.update = catchAsync(async (req, res, next) => {
-  const userId = req.params.userId;
-  const body = req.body;
+  const id = req.params.userId ? req.params.userId : req.user._id;
+  let body = req.body;
 
-  const user = await User.findByIdAndUpdate(userId, body, {
+  Object.keys(body).forEach((key) => {
+    if (typeof body[key] !== "boolean") {
+      body[key] = body[key].trim();
+    }
+  });
+
+  const user = await User.findByIdAndUpdate(id, body, {
     new: true,
   });
 
