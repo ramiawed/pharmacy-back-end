@@ -40,17 +40,6 @@ exports.getAllAdvertisements = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getBackupAdvertisements = catchAsync(async (req, res, next) => {
-  const advertisements = await Advertisement.find({});
-
-  res.status(200).json({
-    status: "success",
-    data: {
-      data: advertisements,
-    },
-  });
-});
-
 exports.deleteAdvertisement = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
@@ -74,7 +63,6 @@ exports.deleteAdvertisement = catchAsync(async (req, res, next) => {
   });
 });
 
-// add a new advertisement logo
 exports.addAdvertisement = catchAsync(async (req, res) => {
   const name = req.name;
   const { company, warehouse, medicine } = req.body;
@@ -130,6 +118,17 @@ exports.addAdvertisement = catchAsync(async (req, res) => {
     status: "success",
     data: {
       advertisement,
+    },
+  });
+});
+
+exports.getBackupAdvertisements = catchAsync(async (req, res, next) => {
+  const advertisements = await Advertisement.find({});
+
+  res.status(200).json({
+    status: "success",
+    data: {
+      data: advertisements,
     },
   });
 });

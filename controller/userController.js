@@ -213,7 +213,7 @@ exports.update = catchAsync(async (req, res, next) => {
   let body = req.body;
 
   Object.keys(body).forEach((key) => {
-    if (typeof body[key] !== "boolean") {
+    if (typeof body[key] !== "boolean" && typeof body[key] !== "number") {
       body[key] = body[key].trim();
     }
   });

@@ -42,6 +42,9 @@ const signToken = (id) => {
   });
 };
 
+// generate jwt token
+// add jwt token to the cookie
+// in successful send token, and user data
 const createSendToken = async (user, statusCode, res) => {
   const token = signToken(user._id);
 
@@ -81,17 +84,10 @@ exports.signup = catchAsync(async (req, res, next) => {
   // remove all fields that doesn't matter
   const filterUser = filterObj(req.body);
 
-  // // check if the name is unique
-  // // if doesn't return an Error
-  // const findUserByName = await User.findOne({ name: req.body.name });
-  // if (findUserByName) {
-  //   return next(new AppError("provide unique name", 400, ["name"]));
-  // }
-
   // check if the username is unique
   // if doesn't return an Error
   const findUserByUsername = await User.findOne({
-    username: req.body.username,
+    username: req.body.username.trim(),
   });
 
   if (findUserByUsername) {
@@ -130,7 +126,9 @@ exports.signin = catchAsync(async (req, res, next) => {
   }
 
   // 2- check if the use exists && password is correct
-  const user = await User.findOne({ username }).select("+password +isActive");
+  const user = await User.findOne({ username: username.trim() }).select(
+    "+password +isActive"
+  );
 
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError("incorrect username or password", 401));
@@ -250,7 +248,7 @@ exports.checkUsername = catchAsync(async (req, res, next) => {
   const { username } = req.params;
 
   let available = false;
-  const findUser = await User.findOne({ username });
+  const findUser = await User.findOne({ username: username.trim() });
 
   if (!findUser) {
     available = true;

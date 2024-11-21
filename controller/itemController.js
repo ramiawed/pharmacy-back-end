@@ -55,9 +55,6 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
     inSectionThree,
   } = req.query;
 
-  let count;
-  let items;
-
   let userW = [];
   const { type, city, _id } = req.user;
 
@@ -160,8 +157,6 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
 
   // search by item name
   if (itemName) {
-    // const splitArray = itemName.split(" ");
-    // const regex = splitArray.join("|");
     conditionArray.push({
       $or: [
         { name: { $regex: `${itemName}`, $options: "i" } },
@@ -173,12 +168,12 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
     });
   }
 
-  count = await Item.countDocuments(
+  const count = await Item.countDocuments(
     conditionArray.length > 0 ? { $and: conditionArray } : {}
   );
 
   if (itemName) {
-    items = await Item.find(
+    const items = await Item.find(
       conditionArray.length > 0 ? { $and: conditionArray } : {}
     )
       .sort(sort ? sort + " _id" : "nameAr _id")
@@ -197,7 +192,6 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
           "_id name city isActive  costOfDeliver invoiceMinTotal fastDeliver payAtDeliver includeInPointSystem pointForAmount amountToGetPoint",
       });
 
-
     let searchNameResults = [];
     let searchNameArResults = [];
     let searchCompositionResults = [];
@@ -214,13 +208,21 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
     const startIndex = (page - 1) * (limit * 1);
     const endIndex = startIndex + limit * 1;
 
-    items = [
+    const itemsResult = [
       ...searchNameResults,
       ...searchNameArResults,
       ...searchCompositionResults,
     ].slice(startIndex, endIndex);
+
+    res.status(200).json({
+      status: "success",
+      count,
+      data: {
+        items: itemsResult,
+      },
+    });
   } else {
-    items = await Item.find(
+    const items = await Item.find(
       conditionArray.length > 0 ? { $and: conditionArray } : {}
     )
       .sort(sort ? sort + " _id" : "nameAr _id")
@@ -240,22 +242,48 @@ exports.getItemsNewVersion = catchAsync(async (req, res, next) => {
       })
       .skip((page - 1) * (limit * 1))
       .limit(limit * 1);
+
+    res.status(200).json({
+      status: "success",
+      count,
+      data: {
+        items,
+      },
+    });
   }
 
-  res.status(200).json({
-    status: "success",
-    count,
-    data: {
-      items,
-    },
-  });
+  // items = await Item.find(
+  //   conditionArray.length > 0 ? { $and: conditionArray } : {}
+  // )
+  //   .sort(sort ? sort + " _id" : "nameAr _id")
+  //   .select(
+  //     "_id name caliber formula company warehouses price customer_price logo_url packing isActive  composition barcode barcodeTwo nameAr"
+  //   )
+  //   .populate({
+  //     path: "company",
+  //     model: "User",
+  //     select: "_id name allowAdmin logo_url logo_url",
+  //   })
+  //   .populate({
+  //     path: "warehouses.warehouse",
+  //     model: "User",
+  //     select:
+  //       "_id name city isActive  costOfDeliver invoiceMinTotal fastDeliver payAtDeliver includeInPointSystem pointForAmount amountToGetPoint",
+  //   })
+  //   .skip((page - 1) * (limit * 1))
+  //   .limit(limit * 1);
+
+  // res.status(200).json({
+  //   status: "success",
+  //   count,
+  //   data: {
+  //     items,
+  //   },
+  // });
 });
 
 exports.filterItemsByName = catchAsync(async (req, res, next) => {
   const { page, limit, itemName } = req.query;
-
-  // const splitArray = itemName.split(" ");
-  // const regex = splitArray.join("|");
 
   const result = await Item.find({
     $and: [
@@ -893,7 +921,7 @@ exports.getItemsWithOffer = catchAsync(async (req, res, next) => {
     req.query;
 
   let aggregateCondition = [];
-  let data = [];
+  // let data = [];
 
   if (searchCompaniesIds) {
     aggregateCondition.push({
@@ -949,7 +977,6 @@ exports.getItemsWithOffer = catchAsync(async (req, res, next) => {
     }).select("_id");
     userW = userW.map((w) => w._id);
   }
-
 
   aggregateCondition.push({
     $match: {
@@ -1039,12 +1066,14 @@ exports.getItemsWithOffer = catchAsync(async (req, res, next) => {
     },
   ];
 
-  if (itemName?.trim().length > 0) {
-    data = await Item.aggregate(aggregateCondition);
+  const count = await Item.aggregate(countAggregateCondition);
 
-    let searchNameResults = [];
-    let searchNameArResults = [];
-    let searchCompositionResults = [];
+  if (itemName?.trim().length > 0) {
+    const data = await Item.aggregate(aggregateCondition);
+
+    const searchNameResults = [];
+    const searchNameArResults = [];
+    const searchCompositionResults = [];
 
     data.forEach((item) => {
       if (item.name.toLowerCase().includes(itemName.toLowerCase())) {
@@ -1058,11 +1087,19 @@ exports.getItemsWithOffer = catchAsync(async (req, res, next) => {
     const startIndex = (page - 1) * (limit * 1);
     const endIndex = startIndex + limit * 1;
 
-    data = [
+    const filteredData = [
       ...searchNameResults,
       ...searchNameArResults,
       ...searchCompositionResults,
     ].slice(startIndex, endIndex);
+
+    res.status(200).json({
+      status: "success",
+      count: count[0]?.itemName ? count[0].itemName : 0,
+      data: {
+        data: filteredData,
+      },
+    });
   } else {
     aggregateCondition.push({
       $skip: (page - 1) * (limit * 1),
@@ -1070,18 +1107,24 @@ exports.getItemsWithOffer = catchAsync(async (req, res, next) => {
 
     aggregateCondition.push({ $limit: limit * 1 });
 
-    data = await Item.aggregate(aggregateCondition);
+    const data = await Item.aggregate(aggregateCondition);
+
+    res.status(200).json({
+      status: "success",
+      count: count[0]?.itemName ? count[0].itemName : 0,
+      data: {
+        data,
+      },
+    });
   }
 
-  const count = await Item.aggregate(countAggregateCondition);
-
-  res.status(200).json({
-    status: "success",
-    count: count[0]?.itemName ? count[0].itemName : 0,
-    data: {
-      data,
-    },
-  });
+  // res.status(200).json({
+  //   status: "success",
+  //   count: count[0]?.itemName ? count[0].itemName : 0,
+  //   data: {
+  //     data,
+  //   },
+  // });
 });
 
 exports.getItemsWithPoints = catchAsync(async (req, res, next) => {
@@ -1089,7 +1132,7 @@ exports.getItemsWithPoints = catchAsync(async (req, res, next) => {
     req.query;
 
   let aggregateCondition = [];
-  let data = [];
+  // let data = [];
 
   if (searchCompaniesIds) {
     aggregateCondition.push({
@@ -1232,12 +1275,14 @@ exports.getItemsWithPoints = catchAsync(async (req, res, next) => {
     },
   ];
 
-  if (itemName?.trim().length > 0) {
-    data = await Item.aggregate(aggregateCondition);
+  const count = await Item.aggregate(countAggregateCondition);
 
-    let searchNameResults = [];
-    let searchNameArResults = [];
-    let searchCompositionResults = [];
+  if (itemName?.trim().length > 0) {
+    const data = await Item.aggregate(aggregateCondition);
+
+    const searchNameResults = [];
+    const searchNameArResults = [];
+    const searchCompositionResults = [];
 
     data.forEach((item) => {
       if (item.name.toLowerCase().includes(itemName.toLowerCase())) {
@@ -1248,14 +1293,23 @@ exports.getItemsWithPoints = catchAsync(async (req, res, next) => {
         searchCompositionResults.push(item);
       }
     });
+
     const startIndex = (page - 1) * (limit * 1);
     const endIndex = startIndex + limit * 1;
 
-    data = [
+    const filteredData = [
       ...searchNameResults,
       ...searchNameArResults,
       ...searchCompositionResults,
     ].slice(startIndex, endIndex);
+
+    res.status(200).json({
+      status: "success",
+      count: count[0]?.itemName ? count[0].itemName : 0,
+      data: {
+        data: filteredData,
+      },
+    });
   } else {
     aggregateCondition.push({
       $skip: (page - 1) * (limit * 1),
@@ -1263,16 +1317,22 @@ exports.getItemsWithPoints = catchAsync(async (req, res, next) => {
 
     aggregateCondition.push({ $limit: limit * 1 });
 
-    data = await Item.aggregate(aggregateCondition);
+    const data = await Item.aggregate(aggregateCondition);
+
+    res.status(200).json({
+      status: "success",
+      count: count[0]?.itemName ? count[0].itemName : 0,
+      data: {
+        data,
+      },
+    });
   }
 
-  const count = await Item.aggregate(countAggregateCondition);
-
-  res.status(200).json({
-    status: "success",
-    count: count[0]?.itemName ? count[0].itemName : 0,
-    data: {
-      data,
-    },
-  });
+  // res.status(200).json({
+  //   status: "success",
+  //   count: count[0]?.itemName ? count[0].itemName : 0,
+  //   data: {
+  //     data,
+  //   },
+  // });
 });

@@ -45,6 +45,7 @@ jspm_packages/
 **/public/profiles
 **/public/items
 **/public/notifications
+**/public/licenses
 
 # TypeScript v1 declaration files
 typings/
